@@ -2,7 +2,7 @@
 
 **Data**: 2026-03-06
 **Agentes consultados**: Semantic Auditor, UX Architect, HTML Migration
-**Status**: Planos deliberados, execução pendente
+**Status**: Fase 1 Quick Wins concluída (2026-03-07) — Fases 2-4 pendentes
 
 ---
 
@@ -34,13 +34,13 @@ Três frentes paralelas com interdependências controladas:
 
 | # | Ação | Frente | Risco |
 |---|------|--------|-------|
-| QW-09 | Desabilitar auto date/time (7 LocalDateTables) | Semântica | Nenhum |
-| QW-03 | Remover 8 medidas 99.Backoffice | Semântica | Muito baixo |
-| QW-02a | Descriptions nas top 20 medidas | Semântica | Nenhum |
-| FIX-01 | Corrigir formatString inconsistentes | Semântica | Nenhum |
-| QW-R1 | Renomear páginas (convenção Mn) | UX | Nenhum |
-| QW-R2 | Validar tema JSON aplicado | UX | Nenhum |
-| QW-R5 | Sincronizar slicers cross-page | UX | Baixo |
+| QW-09 | Desabilitar auto date/time (7 LocalDateTables) | Semântica | ✅ Concluído |
+| QW-03 | Remover 8 medidas 99.Backoffice | Semântica | ✅ Concluído |
+| QW-02a | Descriptions nas top 20 medidas | Semântica | ✅ Concluído |
+| FIX-01 | Corrigir formatString inconsistentes (24 medidas) | Semântica | ✅ Concluído |
+| QW-R1 | Renomear páginas (convenção Mn) | UX | ✅ Concluído |
+| QW-R2 | Validar tema JSON aplicado (#441A80) | UX | ✅ Concluído |
+| QW-R5 | Sincronizar slicers cross-page | UX | ⏸️ N/A (HTML-based) |
 
 ### Fase 2 — Sprint 1 (consolidação)
 
@@ -92,9 +92,9 @@ Três frentes paralelas com interdependências controladas:
 
 | Métrica | Baseline | Meta Fase 2 | Meta Final |
 |---------|----------|-------------|------------|
-| Medidas total | 389 | ≤375 | ≤340 |
-| Medidas com description | ~0% | ≥80% | 100% |
-| LocalDateTables | 7 | 0 | 0 |
+| Medidas total | 389 → **381** | ≤375 | ≤340 |
+| Medidas com description | ~0% → **~53%** (204/381) | ≥80% | 100% |
+| LocalDateTables | 7 → **0** | 0 | 0 |
 | Medidas HTML legadas | 44 | ≤10 | 0 |
 | SVG Cards com erro | 17 | ≤5 | 0 |
 | KPI Packs completos | 4 | 7 | 7 |
@@ -113,11 +113,28 @@ Todos usam paleta obrigatória (#441A80, #4CAF50, #F5A623, #E74C3C) e fonte Sego
 
 ---
 
+## Histórico de Execução
+
+### Fase 1 — Concluída em 2026-03-07
+
+**Commit**: `1ccb55b` — 144 files changed, +5033/-18206
+
+Resultados:
+- Modelo: 389 → 381 medidas (8 Backoffice removidas)
+- Tabelas: 15 → 7 (8 LocalDateTable + DateTableTemplate removidas)
+- 20 medidas core com descrições adicionadas (204 total com description)
+- 24 formatStrings padronizadas
+- 8 páginas renomeadas para convenção Mn (M1-M8)
+- Tema JSON substituído pela paleta correta (#441A80)
+- QW-R5 (slicers) adiado — report usa HTML custom visuals para filtros
+
 ## Próximo Passo
 
-Executar **Fase 1 — Quick Wins** numa única sessão:
-1. MCP: Desabilitar auto-date, remover Backoffice, descriptions, formatString
-2. Report: Renomear páginas, validar tema, sincronizar slicers
-3. Git commit após cada lote
+Executar **Fase 2 — Sprint 1 (consolidação)**:
+1. Triar 17 SVG Cards
+2. Normalizar displayFolders
+3. Merge páginas → M2 Execução e Volume
+4. Classificar Scoreboard
+5. Triar 34 Cards HTML
 
 **Sinal para iniciar**: Confirmar pelo operador.

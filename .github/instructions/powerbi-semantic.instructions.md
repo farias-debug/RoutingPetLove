@@ -9,7 +9,7 @@ applyTo:
 ## Contexto
 
 O modelo semântico do Painel Monitoramento Petlove está em formato TMDL (Tabular Model Definition Language).
-A tabela `_Medidas` contém 389 medidas DAX organizadas por display folders.
+A tabela `_Medidas` contém 381 medidas DAX organizadas por display folders.
 Todas as medidas devem ser gerenciadas exclusivamente nessa tabela.
 
 ## Tabelas do Modelo
@@ -21,7 +21,7 @@ Todas as medidas devem ser gerenciadas exclusivamente nessa tabela.
 | dim_tipo_veiculo | Dimensão | dim_tipo_veiculo.csv |
 | fato_rotas | Fato | fato_rotas.csv |
 | fato_planejado | Fato | fato_planejado.csv |
-| _Medidas | Measures | 389 medidas DAX |
+| _Medidas | Measures | 381 medidas DAX |
 | _Metas | Parâmetros | DAX inline |
 
 ## Relacionamentos (N:1)
