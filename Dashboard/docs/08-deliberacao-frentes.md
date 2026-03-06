@@ -142,7 +142,7 @@ Resultados:
 
 ### Sprint 3 — Concluído
 
-**Commits**: `667d6bf` (PBI sync), `a356cd9` (legado), `af1fc2e` (páginas)
+**Commits**: `667d6bf` (PBI sync), `a356cd9` (legado), `af1fc2e` (páginas), `ba1331b` (displayFolders + _Metas)
 
 Resultados:
 - 51 medidas pushed para PBI Desktop via MCP (432/432 live)
@@ -152,13 +152,71 @@ Resultados:
 - 4 páginas criadas: M4 Jornada e ORH, M7 Entregas, TT-Filial, TT-Rota
 - Total páginas: 8 → 12
 - Display folders: 01-08 limpos, 90.Legado eliminado por completo
+- 98. Suporte → 08. Entregas (31 medidas renomeadas via MCP)
+- _Metas: 8 → 11 rows (+% Rotas Concluidas, Ocupacao Composta, Aderencia Volumes)
 
-## Próximo Passo
+## Estado Atual do Modelo (pós Sprint 3)
 
-Todas as fases concluídas em nível de TMDL/PBIR. Itens restantes requerem **Power BI Desktop**:
+| Item | Valor |
+|------|-------|
+| Medidas total | 371 |
+| Medidas com description | 371/371 (100%) |
+| Display folders top-level | 8 (01-08) |
+| KPI Packs | 8 (14 medidas cada) |
+| _Metas rows | 11 |
+| Páginas PBIR | 12 (8 originais + M4, M7, TT-Filial, TT-Rota) |
+| Visuais PBIR em disco | 1 (cardVisual em M8) — todas outras páginas são shells vazias |
+| TMDL linhas (_Medidas) | 3584 |
 
-1. Configurar TT-Filial e TT-Rota como tooltip pages no Desktop (pageType)
-2. Adicionar visuais nas páginas M4, M7, TT-Filial, TT-Rota
-3. Configurar drill-through em M8 Análise Filiais
-4. Migrar visuais HTML remanescentes (Grupos A+B) para nativos/SVG no Desktop
-5. Push final para repositório
+## Estrutura PBIR de Visuais
+
+Cada visual é um `visual.json` individual:
+```
+pages/<pageId>/visuals/<visualId>/visual.json
+```
+Schema: `visualContainer/2.6.0`. Visuais podem ser criados via edição direta dos JSON.
+
+Páginas existentes e seus IDs:
+
+| Página | ID (folder) | Visuais |
+|--------|-------------|----------|
+| M1 Torre de Controle | 9b8d47009241dc052b91 | 0 (shell) |
+| M1b Scoreboard | 918e295e51b706c10034 | 0 (shell) |
+| M2a Execução Diária | 58dfa821622b194e5780 | 0 (shell) |
+| M2b Volume Diário | 3e609e82464cd047019b | 0 (shell) |
+| M3 Eficiência SPR | 78d53a1ede414390cb10 | 0 (shell) |
+| M4 Jornada e ORH | b1afb120101cd00accec | 0 (shell) |
+| M5 Capacidade e Mix | 31fa0ea5890a82873711 | 0 (shell) |
+| M6 Plano vs Real | 445cd2f8a91d2d0b0d32 | 0 (shell) |
+| M7 Entregas | 84c8887403530c23c600 | 0 (shell) |
+| M8 Análise Filiais | 2e43fba03324e55c504c | 1 (cardVisual) |
+| TT-Filial | f945c081e4580230b750 | 0 (shell) |
+| TT-Rota | 876e1634acc1e034778a | 0 (shell) |
+
+## Próxima Fase — Montagem de Visuais
+
+Todas as bases semânticas/TMDL estão concluídas. Próxima fase: **criar visuais via PBIR JSON**.
+
+Visuais podem ser criados tanto por edição de `visual.json` quanto no PBI Desktop.
+
+### Prioridade de montagem por página
+
+| # | Página | Visuais planejados | Medidas-chave |
+|---|--------|--------------------|----------------|
+| 1 | M1 Torre de Controle | 6 KPI Cards + scoreboard + alertas | KPI Rotas, % Rotas Concluidas, Total Rotas |
+| 2 | M2a Execução Diária | Cards execução + gráfico temporal | Total Rotas, Total Pedidos, % Rotas Concluidas |
+| 3 | M3 Eficiência SPR | Cards SPR + tabela ranking | KPI SPR Pedidos, KPI SPR Volumes, KPI Desvio SPR |
+| 4 | M4 Jornada e ORH | Cards jornada + desvio | KPI ORH, Utilizacao Jornada 8h |
+| 5 | M5 Capacidade e Mix | Cards capacidade + mix | KPI Capacidade, Ocupacao Composta |
+| 6 | M6 Plano vs Real | Cards aderência + desvios | KPI Aderencia, Aderencia Pedidos/Volumes/KM |
+| 7 | M7 Entregas | Cards entregas + tendência | KPI Entregas, % Entregas Efetivas |
+| 8 | M1b Scoreboard | Ranking cross-filial | Rank Filial SPR, Score Operacional |
+| 9 | M8 Análise Filiais | Drill-through detalhado | Medidas TblExp (07.Investigacao) |
+| 10 | TT-Filial | Tooltip compacto (320×240) | Pior Filial, Gap%, Op Status |
+| 11 | TT-Rota | Tooltip compacto (320×240) | Total Pedidos, KM, Tempo |
+
+### Itens Desktop-only remanescentes
+
+- Configurar TT-Filial e TT-Rota como tooltip pages (pageType property)
+- Configurar drill-through em M8 Análise Filiais
+- Migrar visuais HTML remanescentes (Grupos A+B) para nativos/SVG

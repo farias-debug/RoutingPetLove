@@ -70,7 +70,7 @@ data/CSV + data/XLSX + tab_auxiliar/*.xlsx
 | fato_rotas       | Fato     | fato_rotas.csv       |
 | fato_planejado   | Fato     | fato_planejado.csv   |
 | _Medidas         | Measures | 371 measures DAX     |
-| _Metas           | Params   | DAX inline           |
+| _Metas           | Params   | DAX inline (11 rows) |
 
 ### Relacionamentos (N:1)
 

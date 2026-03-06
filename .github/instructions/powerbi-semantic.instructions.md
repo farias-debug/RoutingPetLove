@@ -71,19 +71,22 @@ Todas as medidas devem ser gerenciadas exclusivamente nessa tabela.
 06. Shared\01. Temporal                     (~41 medidas — referências de data)
 06. Shared\02. Metas\01. SPR                (~7 medidas)
 06. Shared\02. Metas\02. ORH                (~1 medida)
-06. Shared\03. SVG Cards                    (17 medidas — reavaliar)
+06. Shared\03. SVG Cards                    (17 medidas — reavaliar migração)
 06. Shared\04. Metas Global                 (3 medidas meta-global)
 06. Shared\05. Var D-1                      (3 medidas variação dia anterior)
 06. Shared\06. Var WoW                      (3 medidas variação semana)
-08. Entregas\01. Entrega                    (~7 medidas)
+08. Entregas\01. Entrega                    (6 medidas)
 08. Entregas\02. KPI Entrega                (14 medidas — pack KPI)
-08. Entregas\03. Metas Entrega              (~2 medidas)
+08. Entregas\03. Metas Entrega              (2 medidas)
+08. Entregas\04. Entrega Operacional        (9 medidas)
 ```
 
-### Legado / Baixa prioridade
+### Grupos eliminados (histórico)
 
 ```
-99. Backoffice\01. Nao Publicavel   (8 medidas — removidas na Fase 1)
+90. Legado    — ELIMINADO Sprint 3 (61 medidas: 43 HTML + 17 SVG + 1 orphan)
+98. Suporte   — ELIMINADO → renomeado para 08. Entregas (31 medidas)
+99. Backoffice — ELIMINADO Fase 1 (8 medidas removidas)
 ```
 
 ### Padrão KPI Pack (14 medidas por KPI)
