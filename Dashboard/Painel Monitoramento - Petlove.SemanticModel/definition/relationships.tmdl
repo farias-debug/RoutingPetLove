@@ -14,41 +14,6 @@ relationship fato_planejado_Filial_dim_filial_Filial
 	fromColumn: fato_planejado.Filial
 	toColumn: dim_filial.Filial
 
-relationship 3ee41c61-f0b2-43ea-9325-8b588406a822
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fato_rotas.'Data Planejada'
-	toColumn: LocalDateTable_f94047f8-ee04-40ca-ab82-55389abadc0c.Date
-
-relationship 2a0fd37c-0675-48ee-9a83-db73b309431b
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fato_rotas.'Data de Abertura'
-	toColumn: LocalDateTable_1eef1a67-00f5-475d-85ef-80237fe34e23.Date
-
-relationship 914d978e-ec29-48aa-ab2a-80fe055fb72c
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fato_rotas.'Data de Carregamento'
-	toColumn: LocalDateTable_84f26fb9-6f50-42e5-84a2-6b78b634352a.Date
-
-relationship 2bf7104e-ece0-4ae8-aaa7-e83b97407e37
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fato_rotas.'Data Atribuicao Motorista'
-	toColumn: LocalDateTable_201033d2-b2d5-43e0-ab33-bb7938d7a304.Date
-
-relationship 5fa27e18-2be7-4980-8a21-d2ab68174906
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fato_rotas.'Data Inicio Rota'
-	toColumn: LocalDateTable_82dda4d5-11b5-4034-a753-6725708e0e9f.Date
-
-relationship 74c9d1f6-717e-481b-8d96-a9e109ccfc34
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fato_rotas.'Primeira Baixa'
-	toColumn: LocalDateTable_df0cebaf-10cc-4ee4-b4c6-3b5ab1925aa5.Date
-
-relationship 7010bc94-6507-4905-8c51-93c721b923e1
-	joinOnDateBehavior: datePartOnly
-	fromColumn: fato_rotas.'Ultima Baixa'
-	toColumn: LocalDateTable_41d8d7fd-d75d-4208-be54-d86bd4c80a60.Date
-
 relationship fato_rotas_TipoVeiculoPadrao_dim_tipo_veiculo_TipoVeiculo
 	fromColumn: fato_rotas.'Tipo de Veiculo Padrao'
 	toColumn: dim_tipo_veiculo.TipoVeiculo

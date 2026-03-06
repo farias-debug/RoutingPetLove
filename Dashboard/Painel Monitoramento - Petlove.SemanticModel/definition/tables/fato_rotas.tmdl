@@ -284,11 +284,6 @@ table fato_rotas
 		summarizeBy: none
 		sourceColumn: Data Planejada
 
-		variation Variation
-			isDefault
-			relationship: 3ee41c61-f0b2-43ea-9325-8b588406a822
-			defaultHierarchy: LocalDateTable_f94047f8-ee04-40ca-ab82-55389abadc0c.'Hierarquia de datas'
-
 		annotation SummarizationSetBy = Automatic
 
 		annotation UnderlyingDateTimeDataType = Date
@@ -331,11 +326,6 @@ table fato_rotas
 		summarizeBy: none
 		sourceColumn: Data de Abertura
 
-		variation Variation
-			isDefault
-			relationship: 2a0fd37c-0675-48ee-9a83-db73b309431b
-			defaultHierarchy: LocalDateTable_1eef1a67-00f5-475d-85ef-80237fe34e23.'Hierarquia de datas'
-
 		annotation SummarizationSetBy = Automatic
 
 	column 'Data de Carregamento'
@@ -343,11 +333,6 @@ table fato_rotas
 		lineageTag: 4efe1ad4-cc0f-413c-bd3e-00d1854f8d5c
 		summarizeBy: none
 		sourceColumn: Data de Carregamento
-
-		variation Variation
-			isDefault
-			relationship: 914d978e-ec29-48aa-ab2a-80fe055fb72c
-			defaultHierarchy: LocalDateTable_84f26fb9-6f50-42e5-84a2-6b78b634352a.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -357,11 +342,6 @@ table fato_rotas
 		summarizeBy: none
 		sourceColumn: Data Atribuicao Motorista
 
-		variation Variation
-			isDefault
-			relationship: 2bf7104e-ece0-4ae8-aaa7-e83b97407e37
-			defaultHierarchy: LocalDateTable_201033d2-b2d5-43e0-ab33-bb7938d7a304.'Hierarquia de datas'
-
 		annotation SummarizationSetBy = Automatic
 
 	column 'Data Inicio Rota'
@@ -369,11 +349,6 @@ table fato_rotas
 		lineageTag: e849ad2e-ba26-42bc-9afb-e5c83c459fcb
 		summarizeBy: none
 		sourceColumn: Data Inicio Rota
-
-		variation Variation
-			isDefault
-			relationship: 5fa27e18-2be7-4980-8a21-d2ab68174906
-			defaultHierarchy: LocalDateTable_82dda4d5-11b5-4034-a753-6725708e0e9f.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -383,11 +358,6 @@ table fato_rotas
 		summarizeBy: none
 		sourceColumn: Primeira Baixa
 
-		variation Variation
-			isDefault
-			relationship: 74c9d1f6-717e-481b-8d96-a9e109ccfc34
-			defaultHierarchy: LocalDateTable_df0cebaf-10cc-4ee4-b4c6-3b5ab1925aa5.'Hierarquia de datas'
-
 		annotation SummarizationSetBy = Automatic
 
 	column 'Ultima Baixa'
@@ -395,11 +365,6 @@ table fato_rotas
 		lineageTag: 8dadeb8e-27f4-4810-b059-0373288f3f9f
 		summarizeBy: none
 		sourceColumn: Ultima Baixa
-
-		variation Variation
-			isDefault
-			relationship: 7010bc94-6507-4905-8c51-93c721b923e1
-			defaultHierarchy: LocalDateTable_41d8d7fd-d75d-4208-be54-d86bd4c80a60.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
