@@ -4,5 +4,12 @@
   "displayName": "M2b Volume Diário",
   "displayOption": "FitToPage",
   "height": 720,
-  "width": 1280
+  "width": 1280,
+  "visibility": "HiddenInViewMode",
+  "annotations": [
+    {
+      "name": "merge-target",
+      "value": "Consolidar visuais em M2 Execu\u00e7\u00e3o e Volume, depois remover esta p\u00e1gina"
+    }
+  ]
 }

@@ -4,5 +4,7 @@
   "displayName": "TT-Rota",
   "displayOption": "FitToPage",
   "height": 240,
-  "width": 320
+  "width": 320,
+  "type": "Tooltip",
+  "visibility": "HiddenInViewMode"
 }
