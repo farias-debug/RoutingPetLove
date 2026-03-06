@@ -1,4 +1,4 @@
-﻿/// Tabela exclusiva para medidas DAX. Nao contem dados.
+/// Tabela exclusiva para medidas DAX. Nao contem dados.
 table _Medidas
 	isHidden
 	lineageTag: f6ce0521-97ad-48cf-822a-80851d603e8d
