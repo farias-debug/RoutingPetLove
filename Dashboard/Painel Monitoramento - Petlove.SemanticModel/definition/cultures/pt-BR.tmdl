@@ -15,6 +15,16 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
+			          "category": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
 			          "Filial": {
 			            "State": "Suggested",
 			            "Source": {
@@ -36,6 +46,16 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
 			          "Score Operacional": {
 			            "State": "Suggested",
 			            "Source": {
@@ -54,7 +74,19 @@ cultureInfo pt-BR
 			          "ConceptualProperty": "Total Pedidos"
 			        }
 			      },
-			      "State": "Generated"
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    },
 			    "table_medidas.total_rotas": {
 			      "Definition": {
@@ -65,6 +97,16 @@ cultureInfo pt-BR
 			      },
 			      "State": "Generated",
 			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
 			        {
 			          "Rotas": {
 			            "State": "Suggested",
@@ -102,7 +144,19 @@ cultureInfo pt-BR
 			          "ConceptualProperty": "Alerta Operacional"
 			        }
 			      },
-			      "State": "Generated"
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "footer": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    },
 			    "table_medidas.op_alerta_prioritario": {
 			      "Definition": {
@@ -113,6 +167,26 @@ cultureInfo pt-BR
 			      },
 			      "State": "Generated",
 			      "Terms": [
+			        {
+			          "footer": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "text": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
 			        {
 			          "Acao": {
 			            "State": "Suggested",
@@ -155,6 +229,16 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
 			          "Rotas Plan": {
 			            "State": "Suggested",
 			            "Source": {
@@ -176,6 +260,16 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
 			          "Rotas Real": {
 			            "State": "Suggested",
 			            "Source": {
@@ -196,6 +290,16 @@ cultureInfo pt-BR
 			      },
 			      "State": "Generated",
 			      "Terms": [
+			        {
+			          "progress": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
 			        {
 			          "Progresso %": {
 			            "State": "Suggested",
@@ -249,6 +353,16 @@ cultureInfo pt-BR
 			          }
 			        },
 			        {
+			          "footer": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
 			          "Status": {
 			            "State": "Suggested",
 			            "Source": {
@@ -271,6 +385,16 @@ cultureInfo pt-BR
 			      "Terms": [
 			        {
 			          "ORH": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "value": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -322,6 +446,16 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
 			          "Gap SPR": {
 			            "State": "Suggested",
 			            "Source": {
@@ -343,7 +477,7 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Performance %": {
+			          "value": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -363,6 +497,16 @@ cultureInfo pt-BR
 			      },
 			      "State": "Generated",
 			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
 			        {
 			          "Eficiencia KM %": {
 			            "State": "Suggested",
@@ -385,6 +529,16 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
 			          "SPR Ped": {
 			            "State": "Suggested",
 			            "Source": {
@@ -403,7 +557,19 @@ cultureInfo pt-BR
 			          "ConceptualProperty": "KPI SPR Vol Valor"
 			        }
 			      },
-			      "State": "Generated"
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    },
 			    "table_medidas.pedidos_h_realizado": {
 			      "Definition": {
@@ -414,6 +580,16 @@ cultureInfo pt-BR
 			      },
 			      "State": "Generated",
 			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
 			        {
 			          "Pedidos/h": {
 			            "State": "Suggested",
@@ -456,6 +632,16 @@ cultureInfo pt-BR
 			      },
 			      "State": "Generated",
 			      "Terms": [
+			        {
+			          "sub": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
 			        {
 			          "Volumes/h": {
 			            "State": "Suggested",
@@ -509,6 +695,16 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
 			          "Overtime %": {
 			            "State": "Suggested",
 			            "Source": {
@@ -529,6 +725,16 @@ cultureInfo pt-BR
 			      },
 			      "State": "Generated",
 			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
 			        {
 			          "Ociosidade %": {
 			            "State": "Suggested",
@@ -551,6 +757,16 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
 			          "Rotas Curtas %": {
 			            "State": "Suggested",
 			            "Source": {
@@ -571,6 +787,16 @@ cultureInfo pt-BR
 			      },
 			      "State": "Generated",
 			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
 			        {
 			          "Utiliza??o %": {
 			            "State": "Suggested",
@@ -708,7 +934,7 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Ocupacao Composta %": {
+			          "value": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -739,7 +965,7 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Ocup. Pedidos %": {
+			          "ocup_ped": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -760,7 +986,7 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Ocup. Volumes %": {
+			          "ocup_vol": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -778,7 +1004,19 @@ cultureInfo pt-BR
 			          "ConceptualProperty": "Capacidade Pedidos Dia Total"
 			        }
 			      },
-			      "State": "Generated"
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    },
 			    "table_medidas.capacidade_peso_dia_total_kg": {
 			      "Definition": {
@@ -787,7 +1025,19 @@ cultureInfo pt-BR
 			          "ConceptualProperty": "Capacidade Peso Dia Total (kg)"
 			        }
 			      },
-			      "State": "Generated"
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    },
 			    "table_medidas.capacidade_veiculos_dia_total": {
 			      "Definition": {
@@ -796,7 +1046,19 @@ cultureInfo pt-BR
 			          "ConceptualProperty": "Capacidade Veiculos Dia Total"
 			        }
 			      },
-			      "State": "Generated"
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    },
 			    "table_medidas.capacidade_volumes_dia_total": {
 			      "Definition": {
@@ -805,7 +1067,19 @@ cultureInfo pt-BR
 			          "ConceptualProperty": "Capacidade Volumes Dia Total"
 			        }
 			      },
-			      "State": "Generated"
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    },
 			    "table_medidas.ocupacao_filial_veiculos_": {
 			      "Definition": {
@@ -1444,6 +1718,16 @@ cultureInfo pt-BR
 			            },
 			            "Weight": 0.9
 			          }
+			        },
+			        {
+			          "category": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
 			        }
 			      ]
 			    },
@@ -1607,6 +1891,16 @@ cultureInfo pt-BR
 			      "State": "Generated",
 			      "Terms": [
 			        {
+			          "footer": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
 			          "Acao Capacidade": {
 			            "State": "Suggested",
 			            "Source": {
@@ -1627,6 +1921,16 @@ cultureInfo pt-BR
 			      },
 			      "State": "Generated",
 			      "Terms": [
+			        {
+			          "value": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
 			        {
 			          "Ocupacao": {
 			            "State": "Suggested",
@@ -1746,6 +2050,384 @@ cultureInfo pt-BR
 			        }
 			      },
 			      "State": "Generated"
+			    },
+			    "table_medidas.var_d1_pedidos": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Var D-1 Pedidos"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "delta": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.var_d1_rotas": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Var D-1 Rotas"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "delta": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.alerta_nivel": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Alerta Nivel"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "level": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.alerta_cor": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Alerta Cor"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "color": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.pedidos_km_realizado": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Pedidos/KM Realizado"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "sub": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_spr_ped_cor": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI SPR Ped Cor"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "tone": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_spr_ped_trend_wow": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI SPR Ped Trend WoW"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "delta": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_spr_ped_meta": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI SPR Ped Meta"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "meta": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_spr_vol_cor": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI SPR Vol Cor"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "tone": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_spr_vol_trend_wow": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI SPR Vol Trend WoW"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "delta": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_spr_vol_meta": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI SPR Vol Meta"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "meta": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_spr_vol_status_texto": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI SPR Vol Status Texto"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "footer": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_orh_cor": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI ORH Cor"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "tone": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_orh_trend_wow": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI ORH Trend WoW"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "delta": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_orh_meta": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI ORH Meta"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "meta": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.kpi_orh_status_texto": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "KPI ORH Status Texto"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "footer": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.status_capacidade_cor": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Status Capacidade Cor"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "tone": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.status_capacidade_texto": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Status Capacidade Texto"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "status": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    }
 			  }
 			}

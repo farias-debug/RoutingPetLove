@@ -1,0 +1,8 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "3e609e82464cd047019b",
+  "displayName": "M2b Volume Diário",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280
+}

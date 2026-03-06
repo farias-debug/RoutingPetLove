@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
   "name": "9b8d47009241dc052b91",
-  "displayName": "01 Torre de Controle",
+  "displayName": "M1 Torre de Controle",
   "displayOption": "FitToPage",
   "height": 720,
   "width": 1280

@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
   "name": "918e295e51b706c10034",
-  "displayName": "02 Scoreboard",
+  "displayName": "M1b Scoreboard",
   "displayOption": "FitToPage",
   "height": 720,
   "width": 1280

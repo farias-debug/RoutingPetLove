@@ -1,4 +1,4 @@
-/// Tabela exclusiva para medidas DAX. Nao contem dados.
+﻿/// Tabela exclusiva para medidas DAX. Nao contem dados.
 table _Medidas
 	isHidden
 	lineageTag: f6ce0521-97ad-48cf-822a-80851d603e8d
@@ -10,6 +10,7 @@ table _Medidas
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
+		description: Contagem total de rotas realizadas no periodo filtrado
 		formatString: #,##0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 02522c45-940a-4150-a1e8-088617e80755
@@ -40,6 +41,7 @@ table _Medidas
 
 	/// Taxa de sucesso: entregas / (entregas + insucessos)
 	measure '% Entregas Efetivas' = DIVIDE([Total Entregas], [Total Entregas] + [Total Insucessos], 0)
+		description: Percentual de entregas efetivadas com sucesso sobre o total de tentativas
 		formatString: 0.0%
 		isHidden
 		displayFolder: 98. Suporte\01. Entrega
@@ -59,6 +61,7 @@ table _Medidas
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
+		description: Quilometragem total percorrida em todas as rotas do periodo
 		formatString: #,##0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 4c943fbf-f6ed-4323-8d03-2bdc5947c220
@@ -76,6 +79,7 @@ table _Medidas
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
+		description: Contagem total de pedidos transportados no periodo filtrado
 		formatString: #,##0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 716a9bba-fc37-48dc-afc4-739e6ae001b0
@@ -87,12 +91,14 @@ table _Medidas
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
+		description: Contagem total de volumes (caixas) transportados no periodo
 		formatString: #,##0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 7232fd25-0dac-4a14-a4d6-ef3e82d31c3a
 
 	/// Media de pedidos por rota
 	measure 'Media Pedidos por Rota' = DIVIDE([Total Pedidos], [Total Rotas], 0)
+		description: Media simples de pedidos por rota no periodo
 		formatString: 0.0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 9303a8b6-03bf-447c-b51c-7c626e543399
@@ -104,12 +110,14 @@ table _Medidas
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
+		description: Quantidade de veiculos distintos que realizaram rotas no periodo
 		formatString: #,##0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 1254da7e-2025-40d5-94b3-0bac0b65d8c7
 
 	/// Percentual de rotas concluidas (flag Rota Concluida = 1)
 	measure '% Rotas Concluidas' = DIVIDE(COUNTROWS(FILTER(fato_rotas, fato_rotas[Rota Concluida] = 1)), [Total Rotas], 0)
+		description: Percentual de rotas com status finalizado sobre o total de rotas
 		formatString: 0.0%
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 9bf2a89c-13e1-48a0-b2cc-eb3ba6486af0
@@ -142,12 +150,14 @@ table _Medidas
 			    [Total Rotas ORH Base],
 			    0
 			)
+		description: Tempo medio de rota realizado em horas
 		formatString: 0.0
 		displayFolder: 03. Jornada e ORH\01. ORH e Jornada
 		lineageTag: 2bb2412f-bccc-4a41-a07a-c9bbbc789115
 
 	/// Percentual de utilizacao da jornada de 8h
 	measure 'Utilizacao Jornada 8h (%)' = DIVIDE([Tempo Medio Realizado (h)], 8, 0)
+		description: Percentual medio de utilizacao da jornada de 8h por rota
 		formatString: 0.0%
 		displayFolder: 03. Jornada e ORH\01. ORH e Jornada
 		lineageTag: 9eebd7db-4836-457e-b8b9-dbde4e1af25e
@@ -184,7 +194,7 @@ table _Medidas
 
 	/// Desvio absoluto tempo (real - planejado)
 	measure 'Desvio Absoluto Tempo' = SUM(fato_rotas[Tempo Realizado (h)]) - SUM(fato_planejado[Tempo Planejado Plan (h)])
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 05. Plano vs Real\01. Desvios Absolutos
 		lineageTag: aab88642-38d3-4389-ab34-331ffcedf7e7
 
@@ -220,23 +230,10 @@ table _Medidas
 
 	/// Cobertura: rotas executadas / listas planejadas
 	measure 'Cobertura Rotas (%)' = DIVIDE([Total Rotas], COUNTROWS(fato_planejado), 0)
+		description: Percentual de rotas realizadas que possuem correspondencia no planejamento
 		formatString: 0.0%
 		displayFolder: 05. Plano vs Real\03. Cobertura e Match
 		lineageTag: 420f410f-8f02-472d-a67a-266abebb2476
-
-	/// Alias de compatibilidade. Use 'Desvio SPR Ped Plan vs Real (pts)' como medida canonica.
-	measure 'Desvio SPR Pedidos (pts)' = [Desvio SPR Ped Plan vs Real (pts)]
-		formatString: +0.0;-0.0;0
-		isHidden
-		displayFolder: 90. Legado\02. Alias de Compatibilidade\01. SPR
-		lineageTag: 6b64a227-ea4a-4b80-aecf-5b745a2da346
-
-	/// Alias de compatibilidade. Use 'Desvio SPR Vol Plan vs Real (pts)' como medida canonica.
-	measure 'Desvio SPR Volumes (pts)' = [Desvio SPR Vol Plan vs Real (pts)]
-		formatString: +0.0;-0.0;0
-		isHidden
-		displayFolder: 90. Legado\02. Alias de Compatibilidade\01. SPR
-		lineageTag: 3b767a90-367b-4ca1-a60b-2f48b42c9893
 
 	/// Pedidos por hora planejado
 	measure 'Pedidos/h Planejado' = DIVIDE(SUM(fato_planejado[Pedidos Planejados]), SUM(fato_planejado[Tempo Planejado Plan (h)]), 0)
@@ -282,19 +279,19 @@ table _Medidas
 
 	/// Desvio pedidos/h (real - plan)
 	measure 'Desvio Pedidos/h' = [Pedidos/h Realizado] - [Pedidos/h Planejado]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\02. Produtividade Hora
 		lineageTag: e289dc5a-8b9f-4058-af9c-313fea129878
 
 	/// Desvio volumes/h (real - plan)
 	measure 'Desvio Volumes/h' = [Volumes/h Realizado] - [Volumes/h Planejado]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\02. Produtividade Hora
 		lineageTag: 9bd8a674-eafe-453b-a84f-95e7c9481d80
 
 	/// Desvio peso/h (real - plan)
 	measure 'Desvio Peso/h' = [Peso/h Realizado (kg/h)] - [Peso/h Planejado (kg/h)]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\02. Produtividade Hora
 		lineageTag: c4b65f37-422c-4ead-a79e-8cbacbded930
 
@@ -876,12 +873,14 @@ table _Medidas
 
 	/// Stops por Rota - pedidos/rotas (apenas filiais Unidade)
 	measure 'SPR Ped Realizado' = DIVIDE([Total Pedidos Unidade], [Total Rotas Unidade], 0)
+		description: Stops Per Route de pedidos realizado - media de pedidos por rota
 		formatString: 0.0
 		displayFolder: 02. SPR e Performance\01. SPR Base
 		lineageTag: 36276021-7cc3-4010-8ee5-8cbb8f60c426
 
 	/// Stops por Rota - volumes/rotas (apenas filiais Unidade)
 	measure 'SPR Vol Realizado' = DIVIDE([Total Volumes Unidade], [Total Rotas Unidade], 0)
+		description: Stops Per Route de volumes realizado - media de volumes por rota
 		formatString: 0.0
 		displayFolder: 02. SPR e Performance\01. SPR Base
 		lineageTag: 0053088d-0ae2-44b6-93c8-b7511ac6e7c8
@@ -998,19 +997,19 @@ table _Medidas
 
 	/// Gap entre SPR real e meta (pontos). Positivo = acima da meta.
 	measure 'Gap SPR vs Meta (pts)' = [SPR Ped Realizado] - [Meta SPR Pedidos]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\01. SPR Base
 		lineageTag: 1cd03b86-e71d-4e34-8700-1225d333f50d
 
 	/// Desvio SPR pedidos real vs planejado (pontos)
 	measure 'Desvio SPR Ped Plan vs Real (pts)' = [SPR Ped Realizado] - [SPR Ped Planejado]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\01. SPR Base
 		lineageTag: d9cb67f6-d050-47ce-a3c1-38eae0292619
 
 	/// Desvio SPR volumes real vs planejado (pontos)
 	measure 'Desvio SPR Vol Plan vs Real (pts)' = [SPR Vol Realizado] - [SPR Vol Planejado]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\01. SPR Base
 		lineageTag: 247f60c7-461d-4f71-a684-d6954e4fd203
 
@@ -1022,7 +1021,7 @@ table _Medidas
 
 	/// Gap entre tempo medio realizado e meta (horas). Positivo = overtime.
 	measure 'Gap ORH vs Meta (h)' = [Tempo Medio Realizado (h)] - [Meta ORH Tempo (h)]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 03. Jornada e ORH\01. ORH e Jornada
 		lineageTag: 00669d31-2924-48c0-a22e-2b27ecd3aeab
 
@@ -1147,13 +1146,6 @@ table _Medidas
 		displayFolder: 06. Shared\02. Metas\01. SPR
 		lineageTag: 02a9ab48-2f3b-493f-bec3-903a5985c2f1
 
-	/// Alias de compatibilidade. Use 'Meta ORH Tempo (h)' como medida canonica.
-	measure 'Meta Global ORH' = [Meta ORH Tempo (h)]
-		formatString: 0.0
-		isHidden
-		displayFolder: 90. Legado\02. Alias de Compatibilidade\02. Metas
-		lineageTag: 1b8bc65a-acd4-41b6-ab78-99eb3703bba7
-
 	/// Meta global de percentual de entregas efetivas
 	measure 'Meta Global % Entregas' = LOOKUPVALUE(_Metas[Meta], _Metas[KPI], "% Entregas Efetivas")
 		formatString: 0.0%
@@ -1161,67 +1153,12 @@ table _Medidas
 		displayFolder: 98. Suporte\03. Metas Entrega
 		lineageTag: 5aee56bc-f9e4-4a5a-ba46-c973b004e979
 
-	/// Alias de compatibilidade. Use 'Meta SPR Pedidos' como medida canonica.
-	measure 'Meta Filial SPR' = [Meta SPR Pedidos]
-		formatString: 0.0
-		isHidden
-		displayFolder: 90. Legado\02. Alias de Compatibilidade\02. Metas
-		lineageTag: 0b9c9ca8-f238-49dd-a1c0-eb75a9d15430
-
 	/// Meta de entrega por filial (da dim_filial, campo MetaEntrega)
-	measure 'Meta Filial Entrega' = AVERAGE(dim_filial[MetaEntrega])
+	measure 'Meta Filial Entrega' = 0.98
 		formatString: 0.0%
 		isHidden
 		displayFolder: 98. Suporte\03. Metas Entrega
 		lineageTag: 9b55d115-ad8b-4e21-8771-32e3d393b456
-
-	measure 'SLA Ciclo P50 (h)' = PERCENTILEX.INC(fato_rotas, fato_rotas[Tempo Ciclo Entrega (h)], 0.5)
-		formatString: 0.0
-		isHidden
-		displayFolder: 99. Backoffice\01. Nao Publicavel
-		lineageTag: 4ef35dc3-c789-49ea-89e6-ee9f67aa1502
-
-	measure 'SLA Ciclo P90 (h)' = PERCENTILEX.INC(fato_rotas, fato_rotas[Tempo Ciclo Entrega (h)], 0.9)
-		formatString: 0.0
-		isHidden
-		displayFolder: 99. Backoffice\01. Nao Publicavel
-		lineageTag: 26994787-8242-4698-b98a-e2536e77eea9
-
-	measure '% Rotas Sem Data Final' = DIVIDE(COUNTROWS(FILTER(fato_rotas, ISBLANK(fato_rotas[Ultima Baixa]))), [Total Rotas], 0)
-		formatString: 0.0%
-		isHidden
-		displayFolder: 99. Backoffice\01. Nao Publicavel
-		lineageTag: b58102ca-1549-40ce-a4d0-98d1aa054d25
-
-	measure 'Tempo Medio Ciclo (h)' = AVERAGE(fato_rotas[Tempo Ciclo Entrega (h)])
-		formatString: 0.0
-		isHidden
-		displayFolder: 99. Backoffice\01. Nao Publicavel
-		lineageTag: a6ec00ea-5642-4498-9659-75e81a71d4e1
-
-	measure 'Custo por Rota (R$)' = DIVIDE(SUM(fato_rotas[Valor Pagamento Rota]), [Total Rotas], 0)
-		formatString: #,##0.00
-		isHidden
-		displayFolder: 99. Backoffice\01. Nao Publicavel
-		lineageTag: 951681c1-1811-4307-a27c-57c48fc524d6
-
-	measure 'Custo por Pedido (R$)' = DIVIDE(SUM(fato_rotas[Valor Pagamento Rota]), [Total Pedidos], 0)
-		formatString: #,##0.00
-		isHidden
-		displayFolder: 99. Backoffice\01. Nao Publicavel
-		lineageTag: 4170b17c-6b1b-4e6b-b464-36355630c44d
-
-	measure 'Custo por KM (R$/km)' = DIVIDE(SUM(fato_rotas[Valor Pagamento Rota]), [Total KM Realizado], 0)
-		formatString: #,##0.00
-		isHidden
-		displayFolder: 99. Backoffice\01. Nao Publicavel
-		lineageTag: 93a77142-a2ba-4d77-b679-29b1a441fdf7
-
-	measure 'Custo por Entrega Efetiva (R$)' = DIVIDE(SUM(fato_rotas[Valor Pagamento Rota]), [Total Entregas], 0)
-		formatString: #,##0.00
-		isHidden
-		displayFolder: 99. Backoffice\01. Nao Publicavel
-		lineageTag: 846dd01c-a194-41ce-97b1-0828eff5f4f8
 
 	/// Variacao dia a dia no SPR Ped Realizado (pontos). Usa flags IsUltimaData/IsAnterior.
 	measure 'Var D-1 SPR Pedidos' =
@@ -1233,7 +1170,7 @@ table _Medidas
 			        _atual - _anterior,
 			        BLANK()
 			    )
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: 0a9bbb05-98d6-46ae-aa6b-c166c35002b8
 
@@ -1247,7 +1184,7 @@ table _Medidas
 			        _atual - _anterior,
 			        BLANK()
 			    )
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: 10c52667-4f83-4af7-83a5-4eb8b19e103e
 
@@ -1440,7 +1377,7 @@ table _Medidas
 			RETURN
 			    IF(NOT ISBLANK(_atu) && NOT ISBLANK(_ant),
 			        _atu - _ant, BLANK())
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: 0d3d61aa-48db-472c-8213-71b561056913
 
@@ -1494,6 +1431,7 @@ table _Medidas
 
 	/// Valor atual do SPR Ped Realizado
 	measure 'KPI SPR Ped Valor' = [SPR Ped Realizado]
+		description: Valor atual do KPI de SPR Pedidos para exibicao em card
 		formatString: 0.0
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: faba9b89-d6b7-48a9-bcf8-5840df526f3a
@@ -1509,7 +1447,7 @@ table _Medidas
 
 	/// Delta SPR Ped: valor - meta
 	measure 'KPI SPR Ped Delta' = [KPI SPR Ped Valor] - [KPI SPR Ped Meta]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: 6ab5f263-e4c9-40ee-a00d-270caff84dfc
 
@@ -1579,7 +1517,7 @@ table _Medidas
 		lineageTag: 3d2ceafd-9ea8-478d-87a6-87f0bc8fc71f
 
 	measure 'KPI SPR Vol Delta' = [KPI SPR Vol Valor] - [KPI SPR Vol Meta]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: 1efd0a19-e2eb-42ba-9506-f06a1eca2841
 
@@ -1668,6 +1606,7 @@ table _Medidas
 		lineageTag: cce0ee69-3f5f-41c6-b920-397269adfa65
 
 	measure 'KPI ORH Valor' = [Tempo Medio Realizado (h)]
+		description: Valor atual do KPI de ORH (tempo medio de rota) para exibicao em card
 		formatString: 0.0
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 0160cf23-fe1f-4474-a693-994ef87dd513
@@ -1678,7 +1617,7 @@ table _Medidas
 		lineageTag: 6270f4a7-45f0-4015-adbe-a1e867f1f2cc
 
 	measure 'KPI ORH Delta' = [KPI ORH Valor] - [KPI ORH Meta]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 0031487d-d3a6-42cf-9ed4-f28d14af4410
 
@@ -1723,7 +1662,7 @@ table _Medidas
 		lineageTag: 9774cc82-9a6f-4e20-8866-4b3b19419ef9
 
 	measure 'KPI Desvio SPR Valor' = [Desvio SPR Ped Plan vs Real (pts)]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 8c589aed-9780-4bcd-a8ed-67d8917a5bf7
 
@@ -1733,7 +1672,7 @@ table _Medidas
 		lineageTag: f55f3558-15b8-406f-9fd1-c009a9aad502
 
 	measure 'KPI Desvio SPR Delta' = [KPI Desvio SPR Valor] - [KPI Desvio SPR Meta]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: a7558a9d-713d-4832-ad79-512f54263fe8
 
@@ -1980,7 +1919,7 @@ table _Medidas
 
 	/// Card HTML padronizado SPR Pedidos Real
 	measure 'HTML Card SPR Ped' =
-			
+
 			VAR _valor = [KPI SPR Ped Valor]
 			VAR _meta = [KPI SPR Ped Meta]
 			VAR _delta = [KPI SPR Ped Delta]
@@ -2010,7 +1949,7 @@ table _Medidas
 
 	/// Card HTML padronizado SPR Vol
 	measure 'HTML Card SPR Vol' =
-			
+
 			VAR _valor = [KPI SPR Vol Valor]
 			VAR _meta = [KPI SPR Vol Meta]
 			VAR _delta = [KPI SPR Vol Delta]
@@ -2040,7 +1979,7 @@ table _Medidas
 
 	/// Card HTML padronizado Entregas
 	measure 'HTML Card Entregas' =
-			
+
 			VAR _valor = [KPI Entregas Valor]
 			VAR _meta = [KPI Entregas Meta]
 			VAR _delta = [KPI Entregas Delta (pp)]
@@ -2069,7 +2008,7 @@ table _Medidas
 
 	/// Card HTML padronizado ORH
 	measure 'HTML Card ORH' =
-			
+
 			VAR _valor = [KPI ORH Valor]
 			VAR _meta = [KPI ORH Meta]
 			VAR _delta = [KPI ORH Delta]
@@ -2099,7 +2038,7 @@ table _Medidas
 
 	/// Card HTML padronizado Alerta
 	measure 'HTML Card Alerta' =
-			
+
 			VAR _texto = [Alerta Operacional]
 			VAR _nivel = [Alerta Nivel]
 			VAR _critSPR = [Qtd Filiais Criticas SPR]
@@ -2230,7 +2169,7 @@ table _Medidas
 
 	/// ORH Cenários Stacked Bar — Baloo 2, SVG bar-chart, hover, animações
 	measure 'HTML Card ORH Cenarios' =
-			
+
 			VAR _total = COUNTROWS(FILTER(fato_rotas, fato_rotas[Tempo Realizado (h)] > 0))
 			VAR _curtas = COUNTROWS(FILTER(fato_rotas, fato_rotas[Tempo Realizado (h)] > 0 && fato_rotas[Tempo Realizado (h)] < 4))
 			VAR _normais = COUNTROWS(FILTER(fato_rotas, fato_rotas[Tempo Realizado (h)] >= 4 && fato_rotas[Tempo Realizado (h)] <= 8))
@@ -2268,7 +2207,7 @@ table _Medidas
 
 	/// Mini KPI Total Rotas — Baloo 2, SVG map-pin, hover
 	measure 'HTML Card Total Rotas' =
-			
+
 			VAR _total = [Total Rotas]
 			VAR _varD1 = [Var D-1 Rotas]
 			VAR _varWoW = [Var WoW Rotas]
@@ -2288,7 +2227,7 @@ table _Medidas
 
 	/// Mini KPI Total Pedidos — Baloo 2, SVG shopping-bag, hover
 	measure 'HTML Card Total Pedidos' =
-			
+
 			VAR _total = [Total Pedidos]
 			VAR _varD1 = [Var D-1 Pedidos]
 			VAR _varWoW = [Var WoW Pedidos]
@@ -2308,7 +2247,7 @@ table _Medidas
 
 	/// Mini KPI Total Volumes — Baloo 2, SVG archive, hover
 	measure 'HTML Card Total Volumes' =
-			
+
 			VAR _total = [Total Volumes]
 			VAR _mediaPorRota = [Media Volumes por Rota]
 			VAR _iconPacote = "<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#5B2D8C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='16.5' y1='9.4' x2='7.5' y2='4.21'/><path d='M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z'/></svg>"
@@ -2327,7 +2266,7 @@ table _Medidas
 
 	/// Mini KPI KM Total — Baloo 2, SVG navigation, hover
 	measure 'HTML Card KM Total' =
-			
+
 			VAR _total = [Total KM Realizado]
 			VAR _eficiencia = [Eficiencia KM (%)]
 			VAR _mediaKM = [Media KM por Rota]
@@ -2347,7 +2286,7 @@ table _Medidas
 
 	/// Mini KPI Ve\u00edculos Ativos — Baloo 2, SVG truck, hover
 	measure 'HTML Card Veiculos' =
-			
+
 			VAR _ativos = [Veiculos Ativos]
 			VAR _rotasPorVeiculo = [Rotas por Veiculo Dia]
 			VAR _iconCaminhao = "<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#5B2D8C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='1' y='3' width='15' height='13'/><polygon points='16 8 20 8 23 11 23 16 16 16 16 8'/><circle cx='5.5' cy='18.5' r='2.5'/><circle cx='18.5' cy='18.5' r='2.5'/></svg>"
@@ -2366,7 +2305,7 @@ table _Medidas
 
 	/// Mini KPI Peso Total — Baloo 2, SVG box, hover
 	measure 'HTML Card Peso Total' =
-			
+
 			VAR _pesoKg = [Total Peso (kg)]
 			VAR _sprPeso = [SPR Peso Realizado (kg/rota)]
 			VAR _iconPeso = "<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#5B2D8C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2L2 7v10l10 5 10-5V7z'/><polyline points='12 17 12 22'/><polyline points='7 14.5 7 17'/><polyline points='17 14.5 17 17'/></svg>"
@@ -2385,7 +2324,7 @@ table _Medidas
 
 	/// Ticker Variação Diária — Baloo 2, SVG arrows por métrica, hover
 	measure 'HTML Card Variacao Diaria' =
-			
+
 			VAR _varSPR = [Var D-1 SPR Pedidos]
 			VAR _varEnt = [Var D-1 % Entregas]
 			VAR _varORH = [Var D-1 ORH Tempo]
@@ -2426,7 +2365,7 @@ table _Medidas
 
 	/// Produtividade por Hora — Baloo 2, SVG zap, hover
 	measure 'HTML Card Produtividade' =
-			
+
 			VAR _phr = [Pedidos/h Realizado]
 			VAR _php = [Pedidos/h Planejado]
 			VAR _vhr = [Volumes/h Realizado]
@@ -2463,7 +2402,7 @@ table _Medidas
 
 	/// Eficiência KM Gauge — Baloo 2, SVG compass, gradient bar, hover
 	measure 'HTML Card Eficiencia KM' =
-			
+
 			VAR _efic = [Eficiencia KM (%)]
 			VAR _pkm = [Pedidos/KM Realizado]
 			VAR _vkm = [Volumes/KM Realizado]
@@ -2491,7 +2430,7 @@ table _Medidas
 
 	/// Capacidade e Ocupação — Baloo 2, SVG server, gradient bars, hover
 	measure 'HTML Card Capacidade' =
-			
+
 			VAR _opcPed = [Ocupacao Pedidos (%)]
 			VAR _opcVol = [Ocupacao Volumes (%)]
 			VAR _capPed = [Cap P75 Pedidos]
@@ -2524,7 +2463,7 @@ table _Medidas
 
 	/// Reconciliação Plan x Real — Baloo 2, SVG git-merge, hover
 	measure 'HTML Card Reconciliacao' =
-			
+
 			VAR _mesmoDia = [% Match Mesmo Dia]
 			VAR _dpm1 = [% Match D+/-1]
 			VAR _semPlan = [% Sem Planejado]
@@ -2607,7 +2546,7 @@ table _Medidas
 
 	/// Resumo Semanal — Baloo 2, SVG calendar, hover, fadeIn
 	measure 'HTML Card Semana Resumo' =
-			
+
 			VAR _rotasAtu = [Rotas Semana Atual]
 			VAR _rotasAnt = [Rotas Semana Anterior]
 			VAR _sprAtu = [SPR Ped Semana Atual]
@@ -2644,7 +2583,7 @@ table _Medidas
 
 	/// Comparativo WoW — Baloo 2, SVG activity, SVG arrows, hover
 	measure 'HTML Card Comparativo Semanal' =
-			
+
 			VAR _wRotas = [Var WoW Rotas]
 			VAR _wPed = [Var WoW Pedidos]
 			VAR _wSPR = [Var WoW SPR Pedidos (%)]
@@ -2681,7 +2620,7 @@ table _Medidas
 
 	/// Aderência 5 Eixos — Baloo 2, SVG crosshair, gradient bars, hover
 	measure 'HTML Card Aderencia Radar' =
-			
+
 			VAR _aPed = [Aderencia Pedidos (%)]
 			VAR _aVol = [Aderencia Volumes (%)]
 			VAR _aPeso = [Aderencia Peso (%)]
@@ -2716,7 +2655,7 @@ table _Medidas
 
 	/// Filial Spotlight — Baloo 2, SVG map-pin, hover, gradient header
 	measure 'HTML Card Filial Spotlight' =
-			
+
 			VAR _filial = SELECTEDVALUE(dim_filial[Filial], "Todas")
 			VAR _nome = SELECTEDVALUE(dim_filial[NomeResumido], _filial)
 			VAR _tipo = SELECTEDVALUE(dim_filial[Tipo], "–")
@@ -2758,7 +2697,7 @@ table _Medidas
 
 	/// Status Frota — Baloo 2, SVG truck, hover, fadeIn
 	measure 'HTML Card Status Frota' =
-			
+
 			VAR _veiculos = [Veiculos Ativos]
 			VAR _rpvd = [Rotas por Veiculo Dia]
 			VAR _acima = [Rotas Acima Cap Pedidos]
@@ -2792,7 +2731,7 @@ table _Medidas
 
 	/// SPR Plan vs Real — Baloo 2, SVG git-compare, SVG arrows, hover
 	measure 'HTML Card SPR Plan vs Real' =
-			
+
 			VAR _sprR = [SPR Ped Realizado]
 			VAR _sprP = [SPR Ped Planejado]
 			VAR _sprVR = [SPR Vol Realizado]
@@ -2826,7 +2765,7 @@ table _Medidas
 
 	/// YTD Resumo — Baloo 2, SVG trending-up, hover, fadeIn
 	measure 'HTML Card YTD Resumo' =
-			
+
 			VAR _rYTD = [Rotas YTD]
 			VAR _pYTD = [Pedidos YTD]
 			VAR _vYTD = [Volumes YTD]
@@ -2860,7 +2799,7 @@ table _Medidas
 
 	/// MoM Resumo — Baloo 2, SVG bar-chart-2, SVG arrows, hover
 	measure 'HTML Card MoM Resumo' =
-			
+
 			VAR _mRotas = [Var MoM Rotas (%)]
 			VAR _mPed = [Var MoM Pedidos (%)]
 			VAR _mSPR = [Var MoM SPR Pedidos (%)]
@@ -2897,7 +2836,7 @@ table _Medidas
 
 	/// Performance Geral Score — Baloo 2, SVG trophy, SVG check/x, hover
 	measure 'HTML Card Performance Geral' =
-			
+
 			VAR _spr = [SPR Ped Realizado]
 			VAR _metaSPR = [Meta Global SPR Ped]
 			VAR _ent = [% Entregas Efetivas]
@@ -2934,7 +2873,7 @@ table _Medidas
 
 	/// Alerta Filiais — Baloo 2, SVG alert-triangle, hover
 	measure 'HTML Card Alerta Filiais' =
-			
+
 			VAR _top3SPR = [Top 3 Piores Filiais SPR]
 			VAR _top3Ent = [Top 3 Piores Filiais Entregas]
 			VAR _qtdSPR = [Qtd Filiais Abaixo Meta SPR]
@@ -2961,7 +2900,7 @@ table _Medidas
 
 	/// Progresso vs Metas — Baloo 2, SVG target, gradient bars, hover
 	measure 'HTML Card Progresso Metas' =
-			
+
 			VAR _sprVal = [SPR Ped Realizado]
 			VAR _sprMeta = [Meta Global SPR Ped]
 			VAR _sprPct = MIN(DIVIDE(_sprVal, _sprMeta, 0), 1.3)
@@ -2990,7 +2929,7 @@ table _Medidas
 
 	/// Card SPR Peso kg/rota com comparativo plan vs real
 	measure 'HTML Card SPR Peso' =
-			
+
 			VAR _val = [SPR Peso Realizado (kg/rota)]
 			VAR _plan = [SPR Peso Planejado (kg/rota)]
 			VAR _delta = _val - _plan
@@ -3003,7 +2942,7 @@ table _Medidas
 
 	/// Card SPR KM km/rota com comparativo plan vs real
 	measure 'HTML Card SPR KM' =
-			
+
 			VAR _val = [SPR KM Realizado (km/rota)]
 			VAR _plan = [SPR KM Planejado (km/rota)]
 			VAR _delta = _val - _plan
@@ -3040,7 +2979,7 @@ table _Medidas
 
 	/// Hero KPI Desvio SPR — Baloo 2, SVG activity zigzag, animações
 	measure 'HTML Card Desvio SPR' =
-			
+
 			VAR _val = [KPI Desvio SPR Valor]
 			VAR _meta = [KPI Desvio SPR Meta]
 			VAR _status = [KPI Desvio SPR Status]
@@ -3072,7 +3011,7 @@ table _Medidas
 
 	/// Consolidação — Baloo 2, SVG refresh, hover, fadeIn
 	measure 'HTML Card Consolidacao' =
-			
+
 			VAR _potencial = [Potencial Consolidacao (rotas)]
 			VAR _economia = [Economia Potencial (h)]
 			VAR _curtas = [% Rotas Curtas (<4h)]
@@ -3295,19 +3234,6 @@ table _Medidas
 		displayFolder: 98. Suporte\04. Entrega Operacional
 		lineageTag: 52ff68bf-12a3-4d6d-846d-84f8f373f17a
 
-	/// Alias de compatibilidade. Use 'KPI SPR Ped Valor' como medida canonica.
-	measure 'Card SPR Pedidos Real' = [KPI SPR Ped Valor]
-		formatString: 0.0
-		isHidden
-		displayFolder: 90. Legado\02. Alias de Compatibilidade\01. SPR
-		lineageTag: e4328cec-5ed9-4e96-a24a-b0c63d56f400
-
-	measure 'Peso (kg)' = [Total Peso (kg)]
-		formatString: #,##0.0
-		isHidden
-		displayFolder: 90. Legado\02. Alias de Compatibilidade\03. Base
-		lineageTag: 195557c8-5d6d-48d4-9463-493ba2e038c8
-
 	measure 'Ocupacao Pedidos Tipo (%)' =
 			VAR _rotas =
 			    CALCULATE(
@@ -3358,6 +3284,7 @@ table _Medidas
 			        BLANK(),
 			        DIVIDE(COALESCE(_ped, 0) + COALESCE(_vol, 0), _qtd, 0)
 			    )
+		description: Ocupacao media composta (pedidos + volumes) vs capacidade P75
 		formatString: 0.0%
 		displayFolder: 04. Frota e Capacidade\02. Ocupacao Geral
 		lineageTag: 85651700-2dea-42f3-a0f9-87b9e632d4fc
@@ -3810,16 +3737,19 @@ table _Medidas
 		lineageTag: 854772cb-bfd3-4751-bd0a-f5786d9e2ce3
 
 	measure 'Op Progresso Rotas (%)' = DIVIDE([Op Rotas Realizadas], [Op Rotas Planejadas], 0)
+		description: Progresso das rotas realizadas vs planejadas no dia (%)
 		formatString: 0.0%
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: a2664c1c-f92d-4191-95d3-c70611eecb49
 
 	measure 'Op Progresso Pedidos (%)' = DIVIDE([Op Pedidos Realizados], [Op Pedidos Planejados], 0)
+		description: Progresso dos pedidos realizados vs planejados no dia (%)
 		formatString: 0.0%
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: 3336e710-a918-42ac-ad86-c4b1208f06d4
 
 	measure 'Op Progresso Volumes (%)' = DIVIDE([Op Volumes Realizados], [Op Volumes Planejados], 0)
+		description: Progresso dos volumes realizados vs planejados no dia (%)
 		formatString: 0.0%
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: bf6649e3-7a00-4713-831f-d6046bdf1ea5
@@ -4037,446 +3967,6 @@ table _Medidas
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: e0bacc83-e272-46d2-94f4-3362d00bbf65
 
-	measure 'TblDia Rotas Planejadas' =
-			CALCULATE(
-			    COUNTROWS(fato_planejado),
-			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
-			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
-			)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\01. Execucao
-		lineageTag: 889c7ef7-d09d-481c-a045-e09e07311ab2
-
-	measure 'TblDia Rotas Planejadas Executadas' =
-			CALCULATE(
-			    SUM(fato_planejado[Executado]),
-			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
-			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
-			)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\01. Execucao
-		lineageTag: 2ce2c806-50dc-4f5f-b296-ceb63f56c77e
-
-	measure 'TblDia % Execucao Rotas' = DIVIDE([Total Rotas], [TblDia Rotas Planejadas], 0)
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\05. Diario\01. Execucao
-		lineageTag: 94424195-6133-41e2-b885-887ac913db05
-
-	measure 'TblDia Pedidos Planejados' =
-			CALCULATE(
-			    SUM(fato_planejado[Pedidos Planejados]),
-			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
-			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
-			)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\01. Execucao
-		lineageTag: 817e4ea2-3749-44a8-8710-9fedd4693ad1
-
-	measure 'TblDia Volumes Planejados' =
-			CALCULATE(
-			    SUM(fato_planejado[Volumes Planejados]),
-			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
-			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
-			)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\01. Execucao
-		lineageTag: 2ee3e757-0c0e-4e57-959b-0ce2163f6b4a
-
-	measure 'TblDia % Execucao Pedidos' = DIVIDE([Total Pedidos], [TblDia Pedidos Planejados], 0)
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\05. Diario\01. Execucao
-		lineageTag: 860e9041-8646-4b09-8e31-46b89c930130
-
-	measure 'TblDia % Execucao Volumes' = DIVIDE([Total Volumes], [TblDia Volumes Planejados], 0)
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\05. Diario\01. Execucao
-		lineageTag: f7ec98f6-613f-411b-bf01-9e29cba96379
-
-	measure 'TblDia Match Mesmo Dia' =
-			CALCULATE(
-			    COUNTROWS(
-			        FILTER(
-			            fato_rotas,
-			            COALESCE(fato_rotas[Possui Planejado], 0) = 1
-			                && fato_rotas[Gap Dias Plan vs Real] = 0
-			        )
-			    ),
-			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
-			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
-			)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\02. Match
-		lineageTag: 02eab89f-0dfb-41d4-b393-0210aa4b9548
-
-	measure 'TblDia Match D+/-1' =
-			CALCULATE(
-			    COUNTROWS(
-			        FILTER(
-			            fato_rotas,
-			            COALESCE(fato_rotas[Possui Planejado], 0) = 1
-			                && ABS(fato_rotas[Gap Dias Plan vs Real]) = 1
-			        )
-			    ),
-			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
-			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
-			)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\02. Match
-		lineageTag: 82fd40c9-2ebb-43a5-a970-3a3a446ead58
-
-	measure 'TblDia Match Fora Janela' =
-			CALCULATE(
-			    COUNTROWS(
-			        FILTER(
-			            fato_rotas,
-			            COALESCE(fato_rotas[Possui Planejado], 0) = 1
-			                && ABS(fato_rotas[Gap Dias Plan vs Real]) > 1
-			        )
-			    ),
-			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
-			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
-			)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\02. Match
-		lineageTag: d1d213a1-a95f-4e74-90cc-c39b48b4928f
-
-	measure 'TblDia % Match Mesmo Dia' = [% Match Mesmo Dia]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\05. Diario\02. Match
-		lineageTag: a973534c-2720-4f0f-9878-61d43c3a1090
-
-	measure 'TblDia % Match D+/-1' = [% Match D+/-1]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\05. Diario\02. Match
-		lineageTag: 8cded5d4-e21b-4cb1-b8e2-a2a96c55ea65
-
-	measure 'TblDia % Match Fora Janela' = [% Fora Janela D+/-1]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\05. Diario\02. Match
-		lineageTag: 8573ec64-7c87-4d25-ba6a-c7c8c6daf446
-
-	measure 'TblDia Rotas Nao Planejadas' =
-			CALCULATE(
-			    COUNTROWS(
-			        FILTER(
-			            fato_rotas,
-			            COALESCE(fato_rotas[Possui Planejado], 0) = 0
-			                || ISBLANK(fato_rotas[Rota Planejada])
-			        )
-			    ),
-			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
-			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
-			)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\02. Match
-		lineageTag: b7715fbb-52b7-4f96-8c92-b96b37713fcf
-
-	measure 'TblDia Rotas Sem Tempo' =
-			CALCULATE(
-			    COUNTROWS(
-			        FILTER(
-			            fato_rotas,
-			            ISBLANK(fato_rotas[Tempo Realizado (h)]) || fato_rotas[Tempo Realizado (h)] <= 0
-			        )
-			    ),
-			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
-			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
-			)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\03. Alertas
-		lineageTag: 2b17bcee-26af-41e8-91c6-4a5f8bc96d9f
-
-	measure 'TblDia Rotas Overtime' =
-			CALCULATE(
-			    COUNTROWS(FILTER(fato_rotas, fato_rotas[Tempo Realizado (h)] > 8)),
-			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
-			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
-			)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\03. Alertas
-		lineageTag: d51287ac-ff2e-458d-b75d-c4ac2e3e24a0
-
-	measure 'TblDia Alertas Total' =
-			[TblDia Rotas Nao Planejadas]
-			    + [TblDia Rotas Sem Tempo]
-			    + [TblDia Rotas Overtime]
-			    + [TblDia Match Fora Janela]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\03. Alertas
-		lineageTag: 300f187a-4476-4319-8249-cc59e4b7f863
-
-	measure 'TblDia Alertas Criticos' =
-			IF([TblDia Rotas Nao Planejadas] > 0, 1, 0)
-			    + IF([TblDia Rotas Sem Tempo] > 0, 1, 0)
-			    + IF([TblDia Rotas Overtime] > 0, 1, 0)
-			    + IF([TblDia Match Fora Janela] > 0, 1, 0)
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\03. Alertas
-		lineageTag: e9806f75-a060-4b24-9bab-bb81ff952a50
-
-	measure 'TblDia Status Operacional' =
-			VAR _c = [TblDia Alertas Criticos]
-			RETURN
-			SWITCH(
-			    TRUE(),
-			    _c >= 3, "Critico",
-			    _c >= 2, "Atencao",
-			    _c >= 1, "Monitorar",
-			    "Estavel"
-			)
-		isHidden
-		displayFolder: 90. Legado\05. Diario\03. Alertas
-		lineageTag: 0ff15579-205c-4dad-81e7-9047bddf608f
-
-	measure 'TblDia Total Rotas Unidade' = [Total Rotas Unidade]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\04. SPR
-		lineageTag: f3d17b82-4ab8-481d-ad40-494cc28ed30d
-
-	measure 'TblDia Total Pedidos Unidade' = [Total Pedidos Unidade]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\04. SPR
-		lineageTag: f3508f78-276b-4068-bd9b-238d9822bbb1
-
-	measure 'TblDia Total Volumes Unidade' = [Total Volumes Unidade]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\04. SPR
-		lineageTag: 57dfb4d9-00a7-4544-ace2-d0b88f81000f
-
-	measure 'TblDia SPR Ped Realizado Unidade' = [SPR Ped Realizado]
-		formatString: 0.0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\04. SPR
-		lineageTag: b9c67fd0-c55b-444a-9e5b-b02f4f4efa3f
-
-	measure 'TblDia SPR Ped Planejado Unidade' = [SPR Ped Planejado]
-		formatString: 0.0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\04. SPR
-		lineageTag: 688a8813-48b4-4bfd-a878-1bb168bd1b34
-
-	measure 'TblDia SPR Delta Ped Unidade' = [Desvio SPR Ped Plan vs Real (pts)]
-		formatString: +0.0;-0.0;0.0
-		isHidden
-		displayFolder: 90. Legado\05. Diario\04. SPR
-		lineageTag: 8aa635c5-29a1-44ca-9e9a-0da184e523be
-
-	measure 'TabSem Rotas Planejadas' = [TblDia Rotas Planejadas]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\01. Execucao
-		lineageTag: 3e46dda3-4927-40c0-92ae-664d840180ab
-
-	measure 'TabSem Rotas Planejadas Executadas' = [TblDia Rotas Planejadas Executadas]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\01. Execucao
-		lineageTag: 0301c96b-4aa4-4ac5-becd-ea1d11588171
-
-	measure 'TabSem % Execucao Rotas' = [TblDia % Execucao Rotas]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\01. Execucao
-		lineageTag: 086728ef-7f78-4bfe-a79a-e32ee57ef460
-
-	measure 'TabSem Pedidos Planejados' = [TblDia Pedidos Planejados]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\01. Execucao
-		lineageTag: 37e38f8f-1f6c-4064-9631-094f0eac0a78
-
-	measure 'TabSem Volumes Planejados' = [TblDia Volumes Planejados]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\01. Execucao
-		lineageTag: 219d7584-ca7d-4d88-93a1-2cca0aa7bcde
-
-	measure 'TabSem % Execucao Pedidos' = [TblDia % Execucao Pedidos]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\01. Execucao
-		lineageTag: a528ae63-78a7-464f-8e2f-2dc42c958a92
-
-	measure 'TabSem % Execucao Volumes' = [TblDia % Execucao Volumes]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\01. Execucao
-		lineageTag: 2c44b903-ab3d-4601-b15a-4058e5d44fae
-
-	measure 'TabSem Match Mesmo Dia' = [TblDia Match Mesmo Dia]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\02. Match
-		lineageTag: f2187ac7-8c96-4e07-9dd3-3f0ee070b889
-
-	measure 'TabSem Match D+/-1' = [TblDia Match D+/-1]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\02. Match
-		lineageTag: 28d5023e-e128-4700-a244-76b981821a06
-
-	measure 'TabSem Match Fora Janela' = [TblDia Match Fora Janela]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\02. Match
-		lineageTag: 09e6c736-5ff0-4419-8e35-a05d789977b2
-
-	measure 'TabSem % Match Mesmo Dia' = [% Match Mesmo Dia]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\02. Match
-		lineageTag: 74778ae6-a8d1-403c-8de7-e4a6718d4c7f
-
-	measure 'TabSem % Match D+/-1' = [% Match D+/-1]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\02. Match
-		lineageTag: dcbea5a3-655d-4f8a-9b21-87dd95669c67
-
-	measure 'TabSem % Match Fora Janela' = [% Fora Janela D+/-1]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\02. Match
-		lineageTag: a95a4170-326e-4117-a4ca-19d3df134477
-
-	measure 'TabSem Rotas Nao Planejadas' = [TblDia Rotas Nao Planejadas]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\02. Match
-		lineageTag: a402147c-eae4-4c31-9c55-f49ae8c31873
-
-	measure 'TabSem Rotas Sem Tempo' = [TblDia Rotas Sem Tempo]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\03. Alertas
-		lineageTag: 11b56153-4a67-4f38-a69a-425b7210ad3b
-
-	measure 'TabSem Rotas Overtime' = [TblDia Rotas Overtime]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\03. Alertas
-		lineageTag: 16684afe-5fd9-46a6-9174-7e1d33cf40a1
-
-	measure 'TabSem Alertas Total' = [TblDia Alertas Total]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\03. Alertas
-		lineageTag: 414b5eac-f5d2-40c1-b293-c28830ffb6fc
-
-	measure 'TabSem Alertas Criticos' = [TblDia Alertas Criticos]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\03. Alertas
-		lineageTag: 4269d940-2c71-4627-ba88-0be7805096d4
-
-	measure 'TabSem Status Operacional' = [TblDia Status Operacional]
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\03. Alertas
-		lineageTag: 31d0fda7-8d84-483b-a616-7d86326b99f6
-
-	measure 'TabSem Total Rotas Unidade' = [Total Rotas Unidade]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\04. SPR
-		lineageTag: b7b59900-391d-4ca4-94fa-d0855006187f
-
-	measure 'TabSem Total Pedidos Unidade' = [Total Pedidos Unidade]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\04. SPR
-		lineageTag: 5efa1dcc-d2a2-4ecc-818a-bcba1363b8ff
-
-	measure 'TabSem Total Volumes Unidade' = [Total Volumes Unidade]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\04. SPR
-		lineageTag: 1a986ef5-b67c-4422-8af8-299d55f8e384
-
-	measure 'TabSem SPR Ped Realizado Unidade' = [SPR Ped Realizado]
-		formatString: 0.0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\04. SPR
-		lineageTag: d035f891-14aa-4c43-873a-98a4c7efd9db
-
-	measure 'TabSem SPR Ped Planejado Unidade' = [SPR Ped Planejado]
-		formatString: 0.0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\04. SPR
-		lineageTag: b75e3e8c-a80f-40e9-9d58-2cccaf80165c
-
-	measure 'TabSem SPR Delta Ped Unidade' = [Desvio SPR Ped Plan vs Real (pts)]
-		formatString: +0.0;-0.0;0.0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\04. SPR
-		lineageTag: 3e6331e8-7461-482f-bd94-2036bcedab1d
-
-	measure 'TabMes Rotas' = CALCULATE([Total Rotas], DATESMTD(dim_calendario[Data]))
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\04. Mensal\01. Resumo
-		lineageTag: 0e8210de-3422-453c-a88e-9f8b2e583228
-
-	measure 'TabMes Pedidos' = CALCULATE([Total Pedidos], DATESMTD(dim_calendario[Data]))
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\04. Mensal\01. Resumo
-		lineageTag: d9e53cae-b86f-47eb-95a5-db70741b52a1
-
-	measure 'TabMes Volumes' = CALCULATE([Total Volumes], DATESMTD(dim_calendario[Data]))
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\04. Mensal\01. Resumo
-		lineageTag: 511577af-c351-40d9-a93d-a850944f8507
-
-	measure 'TabMes % Entregas Efetivas' = CALCULATE([% Entregas Efetivas], DATESMTD(dim_calendario[Data]))
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\04. Mensal\01. Resumo
-		lineageTag: cb61057c-397a-401c-be8f-235835ed1373
-
-	measure 'TabMes SPR Ped Unidade' =
-			CALCULATE(
-			    [SPR Ped Realizado],
-			    DATESMTD(dim_calendario[Data]),
-			    KEEPFILTERS(dim_filial[Tipo] = "Unidade")
-			)
-		formatString: 0.0
-		isHidden
-		displayFolder: 90. Legado\04. Mensal\01. Resumo
-		lineageTag: 6cee3c74-e56c-48ad-9501-e741b015943d
-
-	measure 'TabMes ORH Utilizacao Unidade' =
-			CALCULATE(
-			    [Utilizacao Jornada 8h (%)],
-			    DATESMTD(dim_calendario[Data]),
-			    KEEPFILTERS(dim_filial[Tipo] = "Unidade")
-			)
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\04. Mensal\01. Resumo
-		lineageTag: b0d6a3d4-6e30-4879-af7e-c4979c28c0df
-
 	measure 'HTML Grafico Tendencia Semanal' =
 			VAR _base =
 			    TOPN(
@@ -4563,60 +4053,6 @@ table _Medidas
 		displayFolder: 90. Legado\01. HTML\04. Graficos
 		lineageTag: af0fe834-e21e-4a1c-a85c-41d33bd4b8ff
 
-	measure 'HTML Tabela Hierarquia Semana Filial Rota' =
-			VAR _tab =
-			    TOPN(
-			        120,
-			        FILTER(
-			            SUMMARIZECOLUMNS(
-			                dim_calendario[AnoSemanaLabel],
-			                dim_calendario[ISOAnoSemanaSort],
-			                dim_filial[NomeResumido],
-			                fato_rotas[Rota],
-			                "Rotas", [Total Rotas],
-			                "Pedidos", [Total Pedidos],
-			                "Volumes", [Total Volumes],
-			                "Ent", [% Entregas Efetivas],
-			                "SPR", [SPR Ped Realizado],
-			                "Alertas", [TabSem Alertas Total]
-			            ),
-			            [Rotas] > 0
-			                && NOT ISBLANK(dim_filial[NomeResumido])
-			                && NOT ISBLANK(fato_rotas[Rota])
-			        ),
-			        [Rotas], DESC
-			    )
-			VAR _rows =
-			    CONCATENATEX(
-			        _tab,
-			        "<tr><td style='padding:7px 8px;font-size:11px;color:#6A7282;border-bottom:1px solid #F1F3F6'>" & dim_calendario[AnoSemanaLabel] & "</td>" &
-			        "<td style='padding:7px 8px;font-size:11px;color:#24324A;font-weight:700;border-bottom:1px solid #F1F3F6'>" & dim_filial[NomeResumido] & "</td>" &
-			        "<td style='padding:7px 8px;font-size:11px;color:#24324A;border-bottom:1px solid #F1F3F6'>" & fato_rotas[Rota] & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;color:#24324A;border-bottom:1px solid #F1F3F6'>" & FORMAT([Rotas], "#,##0") & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;color:#24324A;border-bottom:1px solid #F1F3F6'>" & FORMAT([Pedidos], "#,##0") & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;color:#24324A;border-bottom:1px solid #F1F3F6'>" & FORMAT([Volumes], "#,##0") & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;color:#24324A;border-bottom:1px solid #F1F3F6'>" & FORMAT([Ent], "0.0%") & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;color:#24324A;border-bottom:1px solid #F1F3F6'>" & FORMAT([SPR], "0.0") & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;font-weight:800;color:" & IF([Alertas] > 0, "#E74C3C", "#4CAF50") & ";border-bottom:1px solid #F1F3F6'>" & FORMAT([Alertas], "#,##0") & "</td></tr>",
-			        "",
-			        dim_calendario[ISOAnoSemanaSort], DESC
-			    )
-			VAR _rowsFinal =
-			    IF(
-			        ISBLANK(_rows) || LEN(_rows) = 0,
-			        "<tr><td colspan='9' style='padding:12px;font-size:12px;color:#6A7282;text-align:center'>Sem dados para o periodo selecionado.</td></tr>",
-			        _rows
-			    )
-			RETURN
-			"<style>@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap');.card{font-family:'Baloo 2',sans-serif;padding:18px 20px;background:#fff;border:1px solid #E5E7EB;border-radius:14px;box-shadow:0 4px 14px rgba(68,26,128,.10)}.ttl{font-size:13px;font-weight:800;color:#4B2579;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;display:flex;align-items:center;gap:6px}table{width:100%;border-collapse:collapse}th{padding:6px 8px;text-align:left;font-size:10px;color:#8B93A4;font-weight:700;border-bottom:2px solid #E5E7EB}th.num{text-align:right}</style>" &
-			"<div class='card'><div class='ttl'><svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#5B2D8C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='M8 13h3'/><path d='M8 9h6'/><path d='M8 17h9'/></svg><span>Hierarquia Semana > Filial > Rota</span></div>" &
-			"<table><tr><th>SEMANA</th><th>FILIAL</th><th>ROTA</th><th class='num'>ROTAS</th><th class='num'>PEDIDOS</th><th class='num'>VOLUMES</th><th class='num'>% ENT.</th><th class='num'>SPR</th><th class='num'>ALERTAS</th></tr>" &
-			_rowsFinal &
-			"</table></div>"
-		isHidden
-		displayFolder: 90. Legado\01. HTML\03. Tabelas
-		lineageTag: 7333dc09-64b5-4f79-bedf-40f418e2474e
-
 	measure 'HTML Grafico Barras Filial Semana' =
 			VAR _tab =
 			    TOPN(
@@ -4656,52 +4092,6 @@ table _Medidas
 		isHidden
 		displayFolder: 90. Legado\01. HTML\04. Graficos
 		lineageTag: f74fa6f9-0bea-4519-b9af-afb317dfcb6b
-
-	measure 'HTML Tabela Alertas Filial Semana' =
-			VAR _tab =
-			    TOPN(
-			        15,
-			        ADDCOLUMNS(
-			            FILTER(
-			                VALUES(dim_filial[Filial]),
-			                NOT ISBLANK(dim_filial[Filial])
-			                    && CALCULATE([Total Rotas], dim_calendario[IsSemanaAtual] = TRUE(), dim_filial[Tipo] = "Unidade") > 0
-			            ),
-			            "@Nome", CALCULATE(MAX(dim_filial[NomeResumido])),
-			            "@NaoPlan", CALCULATE([TabSem Rotas Nao Planejadas], dim_calendario[IsSemanaAtual] = TRUE(), dim_filial[Tipo] = "Unidade"),
-			            "@SemTempo", CALCULATE([TabSem Rotas Sem Tempo], dim_calendario[IsSemanaAtual] = TRUE(), dim_filial[Tipo] = "Unidade"),
-			            "@Over", CALCULATE([TabSem Rotas Overtime], dim_calendario[IsSemanaAtual] = TRUE(), dim_filial[Tipo] = "Unidade"),
-			            "@ForaJan", CALCULATE([TabSem Match Fora Janela], dim_calendario[IsSemanaAtual] = TRUE(), dim_filial[Tipo] = "Unidade")
-			        ),
-			        [@NaoPlan] + [@SemTempo] + [@Over] + [@ForaJan], DESC
-			    )
-			VAR _rows =
-			    CONCATENATEX(
-			        _tab,
-			        "<tr><td style='padding:7px 8px;font-size:11px;font-weight:700;color:#24324A;border-bottom:1px solid #F1F3F6'>" & [@Nome] & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;color:#24324A;border-bottom:1px solid #F1F3F6'>" & FORMAT([@NaoPlan], "#,##0") & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;color:#24324A;border-bottom:1px solid #F1F3F6'>" & FORMAT([@SemTempo], "#,##0") & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;color:#24324A;border-bottom:1px solid #F1F3F6'>" & FORMAT([@Over], "#,##0") & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;color:#24324A;border-bottom:1px solid #F1F3F6'>" & FORMAT([@ForaJan], "#,##0") & "</td>" &
-			        "<td style='padding:7px 8px;text-align:right;font-size:11px;font-weight:800;color:" & IF(([@NaoPlan] + [@SemTempo] + [@Over] + [@ForaJan]) > 0, "#E74C3C", "#4CAF50") & ";border-bottom:1px solid #F1F3F6'>" & FORMAT([@NaoPlan] + [@SemTempo] + [@Over] + [@ForaJan], "#,##0") & "</td></tr>",
-			        "",
-			        [@NaoPlan] + [@SemTempo] + [@Over] + [@ForaJan], DESC
-			    )
-			VAR _rowsFinal =
-			    IF(
-			        ISBLANK(_rows) || LEN(_rows) = 0,
-			        "<tr><td colspan='6' style='padding:12px;font-size:12px;color:#6A7282;text-align:center'>Sem alertas para a semana atual.</td></tr>",
-			        _rows
-			    )
-			RETURN
-			"<style>@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap');.card{font-family:'Baloo 2',sans-serif;padding:18px 20px;background:#fff;border:1px solid #E5E7EB;border-radius:14px;box-shadow:0 4px 14px rgba(68,26,128,.10)}.ttl{font-size:13px;font-weight:800;color:#4B2579;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;display:flex;align-items:center;gap:6px}table{width:100%;border-collapse:collapse}th{padding:6px 8px;text-align:left;font-size:10px;color:#8B93A4;font-weight:700;border-bottom:2px solid #E5E7EB}th.num{text-align:right}</style>" &
-			"<div class='card'><div class='ttl'><svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#5B2D8C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M12 8v5'/><path d='M12 16h.01'/></svg><span>Alertas por Filial - Semana Atual</span></div>" &
-			"<table><tr><th>FILIAL</th><th class='num'>NAO PLAN</th><th class='num'>SEM TEMPO</th><th class='num'>OVER</th><th class='num'>FORA JAN.</th><th class='num'>TOTAL</th></tr>" &
-			_rowsFinal &
-			"</table></div>"
-		isHidden
-		displayFolder: 90. Legado\01. HTML\03. Tabelas
-		lineageTag: c8cc058a-4ff4-4928-9590-4f308dd2dc66
 
 	/// Media de volumes por rota
 	measure 'Media Volumes por Rota' = DIVIDE([Total Volumes], [Total Rotas], 0)
@@ -4769,7 +4159,7 @@ table _Medidas
 			        _atual - _anterior,
 			        BLANK()
 			    )
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: 8afb4bc7-20c4-4662-b2b4-d4dcfe945c8a
 
@@ -4797,7 +4187,7 @@ table _Medidas
 			        _atual - _anterior,
 			        BLANK()
 			    )
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: 186aeedf-67cd-4038-b002-ff26d7215080
 
@@ -4811,7 +4201,7 @@ table _Medidas
 			        _atual - _anterior,
 			        BLANK()
 			    )
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: 02ddb57f-b2d1-41fa-94f0-254107423e9d
 
@@ -4830,7 +4220,7 @@ table _Medidas
 		lineageTag: 6772c922-72de-4492-8103-375a781954ba
 
 	measure 'KPI SPR Ped Trend D-1' = [Var D-1 SPR Pedidos]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: f1c32444-b626-4c00-8f77-4ef601aa901d
 
@@ -4865,7 +4255,7 @@ table _Medidas
 		lineageTag: fcc90a62-d892-4991-bbbe-58bb10374cb0
 
 	measure 'KPI SPR Vol Trend D-1' = [Var D-1 SPR Volumes]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: 051a259e-264e-48fe-bae3-24c1b03abef5
 
@@ -4940,7 +4330,7 @@ table _Medidas
 		lineageTag: 7d5e3612-67f7-4973-bdb7-3ff25c77b793
 
 	measure 'KPI ORH Trend D-1' = [Var D-1 ORH Tempo]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 47b50b22-22f2-4914-9f54-611ee035f095
 
@@ -4975,12 +4365,12 @@ table _Medidas
 		lineageTag: 2cc81c6f-5223-45ee-97c1-08234c49205f
 
 	measure 'KPI Desvio SPR Trend D-1' = [Var D-1 Desvio SPR Ped (pts)]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 2a693f9c-0a21-44f7-aa0f-a552b6f55b56
 
 	measure 'KPI Desvio SPR Trend WoW' = [Var WoW Desvio SPR Ped (pts)]
-		formatString: +0.0;-0.0;0
+		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 0724f1b9-7163-4068-b1e1-a7e65547f501
 
@@ -5001,6 +4391,7 @@ table _Medidas
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
+		description: Peso total transportado em quilogramas no periodo
 		formatString: #,##0.0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 99843bd6-4eeb-4de5-8e17-b45fa9670b35
@@ -5031,124 +4422,6 @@ table _Medidas
 		formatString: 0.0%
 		displayFolder: 01. Operacao\04. Medias e Tendencias
 		lineageTag: 6b4c7fe4-6db8-4b91-a777-5e6a60762fd2
-
-	measure 'TabSem Capacidade Veiculos Dia' = [Capacidade Veiculos Dia Total]
-		formatString: #,##0.0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 1cd8e8f4-55e0-49db-958f-b6f1a21b9a23
-
-	measure 'TabSem Capacidade Pedidos Dia' = [Capacidade Pedidos Dia Total]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 8dc404ab-c91e-47c5-a674-ef3fb89a1f24
-
-	measure 'TabSem Capacidade Volumes Dia' = [Capacidade Volumes Dia Total]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 61ac9be4-7d0d-4487-bd7b-26e8875b6825
-
-	measure 'TabSem Capacidade Peso Dia (kg)' = [Capacidade Peso Dia Total (kg)]
-		formatString: #,##0.0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 6ca36a06-1d34-4553-b2bb-d82693bb1026
-
-	measure 'TabSem Capacidade Veiculos Semana' = [Capacidade Veiculos Semana]
-		formatString: #,##0.0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: d1c1a7cc-df5c-40e1-9f5c-b69d30090927
-
-	measure 'TabSem Capacidade Pedidos Semana' = [Capacidade Pedidos Semana]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 4dc6590d-b22e-4624-acda-896fbeab9928
-
-	measure 'TabSem Capacidade Volumes Semana' = [Capacidade Volumes Semana]
-		formatString: #,##0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 70ac03e4-c667-455a-921c-12cc5c8ab429
-
-	measure 'TabSem Capacidade Peso Semana (kg)' = [Capacidade Peso Semana (kg)]
-		formatString: #,##0.0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: aeef743a-3336-42c4-b0c4-95bdd8f0bb2a
-
-	measure 'TabSem % Ocupacao Veiculos' = [Ocupacao Filial Veiculos (%)]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 690ce5fd-f94e-4ae9-a944-a16b66f6162b
-
-	measure 'TabSem % Ocupacao Pedidos' = [Ocupacao Filial Pedidos (%)]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 3c52d8dd-e10f-4755-a56f-83f46d2a232c
-
-	measure 'TabSem % Ocupacao Volumes' = [Ocupacao Filial Volumes (%)]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: d2948249-f0d0-4810-a52a-6c24e0d0ee2d
-
-	measure 'TabSem % Ocupacao Peso' = [Ocupacao Filial Peso (%)]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 7d2fb588-c7ec-40e9-a42a-d7a0a685172e
-
-	measure 'TabSem % Ocupacao Composta' = [Ocupacao Filial Composta (%)]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: e2f9a14c-c2cc-4aad-aa87-466df35f6d2f
-
-	measure 'TabSem Gap Veiculos Semana' = [Gap Capacidade Veiculos Semana]
-		formatString: +#,##0.0;-#,##0.0;0.0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 80ce7861-5f44-48ab-ab66-bb14a42ff230
-
-	measure 'TabSem Gap Pedidos Semana' = [Gap Capacidade Pedidos Semana]
-		formatString: +#,##0;-#,##0;0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 81fbba8d-9006-48cb-86eb-df86b8cfe331
-
-	measure 'TabSem Gap Volumes Semana' = [Gap Capacidade Volumes Semana]
-		formatString: +#,##0;-#,##0;0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 0bf0bb1a-3972-45aa-98a4-94564642e532
-
-	measure 'TabSem Gap Peso Semana (kg)' = [Gap Capacidade Peso Semana (kg)]
-		formatString: +#,##0.0;-#,##0.0;0.0
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: a8b51df1-42e3-4ef9-9b2a-ae4f3580a533
-
-	measure 'TabSem Status Capacidade Filial' = [Status Capacidade Filial Texto]
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 84d7f2a6-cfb0-4409-a87b-5ac6e7c9e934
-
-	measure 'TabSem Acao Capacidade Filial' = [Acao Capacidade Filial]
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 6e275656-7ae7-41dc-b649-5ffb80aa4d35
-
-	measure 'TabSem Performance Media (%)' = [Performance Semana Atual (%)]
-		formatString: 0.0%
-		isHidden
-		displayFolder: 90. Legado\03. Semanal\05. Capacidade
-		lineageTag: 9e4f49fd-d96d-49b6-82db-14df5d7e2236
 
 	measure 'Capacidade Volumes Dia Total' =
 			CALCULATE(
@@ -5960,27 +5233,66 @@ table _Medidas
 		dataCategory: ImageUrl
 
 	measure 'SVG Card Capacidade Peso' =
+
 			VAR _valorNum = [Ocupacao Filial Peso (%)]
-			VAR _status = SWITCH(TRUE(), ISBLANK(_valorNum), "SEM DADOS", _valorNum < 0.75, "SUBOCUPADA", _valorNum <= 0.95, "BALANCEADA", _valorNum <= 1.10, "SATURADA", "CRITICA")
-			VAR _cor = SWITCH(TRUE(), ISBLANK(_valorNum), "#6B7280", _valorNum < 0.75, "#1B7F79", _valorNum <= 0.95, "#1B8A5A", _valorNum <= 1.10, "#C98923", "#C44E3B")
-			VAR _valor = FORMAT(_valorNum, "0.0%")
-			VAR _media = FORMAT([Op Media Diaria Peso (kg)], "#,##0.0")
-			VAR _cap = FORMAT([Capacidade Peso Dia Total (kg)], "#,##0.0")
-			VAR _ratio = MIN(MAX(_valorNum, 0), 1)
+			VAR _temDados = NOT ISBLANK(_valorNum)
+
+			VAR _status =
+			    SWITCH(
+			        TRUE(),
+			        NOT _temDados, "SEM DADOS",
+			        _valorNum < 0.75, "SUBOCUPADA",
+			        _valorNum <= 0.95, "BALANCEADA",
+			        _valorNum <= 1.10, "SATURADA",
+			        "CRITICA"
+			    )
+
+			VAR _cor =
+			    SWITCH(
+			        TRUE(),
+			        NOT _temDados, "#6B7280",
+			        _valorNum < 0.75, "#1B7F79",
+			        _valorNum <= 0.95, "#1B8A5A",
+			        _valorNum <= 1.10, "#C98923",
+			        "#C44E3B"
+			    )
+
+			VAR _valor =
+			    IF(_temDados, FORMAT(_valorNum, "0.0%"), "—")
+
+			VAR _media =
+			    IF(
+			        ISBLANK([Op Media Diaria Peso (kg)]),
+			        "—",
+			        FORMAT([Op Media Diaria Peso (kg)], "#,##0.0")
+			    )
+
+			VAR _cap =
+			    IF(
+			        ISBLANK([Capacidade Peso Dia Total (kg)]),
+			        "—",
+			        FORMAT([Capacidade Peso Dia Total (kg)], "#,##0.0")
+			    )
+
+			-- barra: limita 0..1 e garante inteiro >= 0
+			VAR _ratio = MIN(MAX(COALESCE(_valorNum, 0), 0), 1)
+			VAR _w = MAX(0, ROUND(324 * _ratio, 0))
+
 			VAR _svg =
 			    "<svg xmlns='http://www.w3.org/2000/svg' width='360' height='136' viewBox='0 0 360 136'>"
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#FFFDF8' stroke='#E7DDD0'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>PESO / DIA</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold, Segoe UI, Arial' font-size='11' fill='#6A6F7D' letter-spacing='1'>PESO / DIA</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
-			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
-			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
-			        & "<text x='18' y='99' font-family='Segoe UI' font-size='12' fill='#5C6673'>Media " & _media & " kg vs cap " & _cap & " kg</text>"
-			        & "<text x='18' y='117' font-family='Segoe UI' font-size='11' fill='#324152'>Leitura de peso para saturacao de frota</text>"
+			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold, Segoe UI, Arial' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
+			        & "<text x='18' y='80' font-family='Segoe UI Semibold, Segoe UI, Arial' font-size='34' fill='#102536'>" & _valor & "</text>"
+			        & "<text x='18' y='99' font-family='Segoe UI, Arial' font-size='12' fill='#5C6673'>Media " & _media & " kg vs cap " & _cap & " kg</text>"
+			        & "<text x='18' y='117' font-family='Segoe UI, Arial' font-size='11' fill='#324152'>Leitura de peso para saturacao de frota</text>"
 			        & "<rect x='18' y='123' width='324' height='8' rx='4' fill='#E7DDD0'/>"
-			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
+			        & "<rect x='18' y='123' width='" & _w & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
+
 			RETURN
 			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
 		isHidden
