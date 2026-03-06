@@ -1492,26 +1492,31 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: acf9ad1f-3649-4437-bc33-d7a05c6c30fa
 
+	/// Valor calculado do KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Valor' = [SPR Vol Realizado]
 		formatString: 0.0
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: 89f972d6-16fc-4585-b59a-b499679da36c
 
+	/// Meta de referencia para o KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Meta' = [Meta Global SPR Vol]
 		formatString: 0.0
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: 3d2ceafd-9ea8-478d-87a6-87f0bc8fc71f
 
+	/// Diferenca absoluta entre valor e meta do KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Delta' = [KPI SPR Vol Valor] - [KPI SPR Vol Meta]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: 1efd0a19-e2eb-42ba-9506-f06a1eca2841
 
+	/// Diferenca percentual entre valor e meta do KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Delta%' = DIVIDE([KPI SPR Vol Valor] - [KPI SPR Vol Meta], [KPI SPR Vol Meta], 0)
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: 3df4532b-3755-414a-ba4b-2c9fffb83f24
 
+	/// Status semaforo do KPI SPR Volumes (stops-per-route volumes) (ok/atencao/critico)
 	measure 'KPI SPR Vol Status' =
 			VAR _delta = [KPI SPR Vol Delta%]
 			RETURN
@@ -1519,15 +1524,18 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: 98c816de-e631-48b3-9093-9713bc7f7e21
 
+	/// Cor condicional hex do KPI SPR Volumes (stops-per-route volumes) para formatacao visual
 	measure 'KPI SPR Vol Cor' = SWITCH([KPI SPR Vol Status], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: ecf16905-9937-4290-b996-1d9b0cc92585
 
+	/// Icone Unicode indicador de status do KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Icone' = SWITCH([KPI SPR Vol Status], "ok", "^", "atencao", "~", "critico", "v", "-")
 		isHidden
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: d0a224ad-ef31-4ec9-89c7-39f18a136d13
 
+	/// Texto formatado para card visual do KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Texto Card' =
 			VAR _val = FORMAT([KPI SPR Vol Valor], "0.0")
 			VAR _icon = [KPI SPR Vol Icone]
@@ -1537,12 +1545,14 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: bb0d4a52-f1ee-4552-b6d4-b4e03576e190
 
+	/// Valor calculado do KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Valor' = [% Entregas Efetivas]
 		formatString: 0.0%
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: f928f04a-ea20-421f-a3dc-b905115d0955
 
+	/// Meta de referencia para o KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Meta' =
 			VAR _metaFilial = [Meta Filial Entrega]
 			VAR _metaGlobal = [Meta Global % Entregas]
@@ -1552,18 +1562,21 @@ table _Medidas
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: c9d020dc-2e7d-4e4f-9488-348aaf8b62d9
 
+	/// Diferenca em pontos percentuais do KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Delta (pp)' = [KPI Entregas Valor] - [KPI Entregas Meta]
 		formatString: +0.0%;-0.0%;0.0%
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: 013d6dab-07bf-4248-85d5-e31ecbf2ab57
 
+	/// Diferenca percentual entre valor e meta do KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Delta%' = DIVIDE([KPI Entregas Valor] - [KPI Entregas Meta], [KPI Entregas Meta], 0)
 		formatString: +0.0%;-0.0%;0.0%
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: 3a02191d-a425-42ac-8551-9a8a79f6510b
 
+	/// Status semaforo do KPI Entregas (taxa de efetivacao) (ok/atencao/critico)
 	measure 'KPI Entregas Status' =
 			VAR _delta = [KPI Entregas Delta (pp)]
 			RETURN
@@ -1572,16 +1585,19 @@ table _Medidas
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: f9e8a950-c5ac-4ea4-8375-07883cdb1221
 
+	/// Cor condicional hex do KPI Entregas (taxa de efetivacao) para formatacao visual
 	measure 'KPI Entregas Cor' = SWITCH([KPI Entregas Status], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: ea39baa5-961c-4c8a-9cdd-0f3e2683faa7
 
+	/// Icone Unicode indicador de status do KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Icone' = SWITCH([KPI Entregas Status], "ok", "^", "atencao", "~", "critico", "v", "-")
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: 37b39e1b-0508-4a8c-8696-9563b2bf9088
 
+	/// Texto formatado para card visual do KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Texto Card' =
 			VAR _val = FORMAT([KPI Entregas Valor], "0.0%")
 			VAR _icon = [KPI Entregas Icone]
@@ -1597,21 +1613,25 @@ table _Medidas
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 0160cf23-fe1f-4474-a693-994ef87dd513
 
+	/// Meta de referencia para o KPI ORH (horas operacionais por rota)
 	measure 'KPI ORH Meta' = [Meta ORH Tempo (h)]
 		formatString: 0.0
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 6270f4a7-45f0-4015-adbe-a1e867f1f2cc
 
+	/// Diferenca absoluta entre valor e meta do KPI ORH (horas operacionais por rota)
 	measure 'KPI ORH Delta' = [KPI ORH Valor] - [KPI ORH Meta]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 0031487d-d3a6-42cf-9ed4-f28d14af4410
 
+	/// Diferenca percentual entre valor e meta do KPI ORH (horas operacionais por rota)
 	measure 'KPI ORH Delta%' = DIVIDE([KPI ORH Valor] - [KPI ORH Meta], [KPI ORH Meta], 0)
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: ad4d35ee-c91b-4ab7-8851-6190eccf4898
 
+	/// Status semaforo do KPI ORH (horas operacionais por rota) (ok/atencao/critico)
 	measure 'KPI ORH Status' =
 			VAR _val = [KPI ORH Valor]
 			VAR _meta = [KPI ORH Meta]
@@ -1626,10 +1646,12 @@ table _Medidas
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 48147f2b-ab19-46c6-8896-d17235a62761
 
+	/// Cor condicional hex do KPI ORH (horas operacionais por rota) para formatacao visual
 	measure 'KPI ORH Cor' = SWITCH([KPI ORH Status], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 56690be9-23a5-45ce-879a-8f54074e7c5c
 
+	/// Icone Unicode indicador de status do KPI ORH (horas operacionais por rota)
 	measure 'KPI ORH Icone' =
 			VAR _delta = [KPI ORH Delta]
 			RETURN
@@ -1638,6 +1660,7 @@ table _Medidas
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 339e650b-20bb-4316-bb87-c295aa913f12
 
+	/// Texto formatado para card visual do KPI ORH (horas operacionais por rota)
 	measure 'KPI ORH Texto Card' =
 			VAR _val = FORMAT([KPI ORH Valor], "0.0") & "h"
 			VAR _icon = [KPI ORH Icone]
@@ -1647,26 +1670,31 @@ table _Medidas
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 9774cc82-9a6f-4e20-8866-4b3b19419ef9
 
+	/// Valor calculado do KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Valor' = [Desvio SPR Ped Plan vs Real (pts)]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 8c589aed-9780-4bcd-a8ed-67d8917a5bf7
 
+	/// Meta de referencia para o KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Meta' = [Meta Global Desvio SPR Ped]
 		formatString: 0.0
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: f55f3558-15b8-406f-9fd1-c009a9aad502
 
+	/// Diferenca absoluta entre valor e meta do KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Delta' = [KPI Desvio SPR Valor] - [KPI Desvio SPR Meta]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: a7558a9d-713d-4832-ad79-512f54263fe8
 
+	/// Diferenca percentual entre valor e meta do KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Delta%' = DIVIDE(ABS([KPI Desvio SPR Valor]) - ABS([KPI Desvio SPR Meta]), ABS([KPI Desvio SPR Meta]), 0)
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: d8207bf0-2fd6-473f-ac1a-c0545342b511
 
+	/// Status semaforo do KPI Desvio SPR (variacao real vs meta) (ok/atencao/critico)
 	measure 'KPI Desvio SPR Status' =
 			VAR _val = [KPI Desvio SPR Valor]
 			VAR _meta = [KPI Desvio SPR Meta]
@@ -1681,15 +1709,18 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 00c14e7e-6280-46d5-b25b-12bb83425b31
 
+	/// Cor condicional hex do KPI Desvio SPR (variacao real vs meta) para formatacao visual
 	measure 'KPI Desvio SPR Cor' = SWITCH([KPI Desvio SPR Status], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 318a2556-9a8b-4982-9ba9-4e974ecaef56
 
+	/// Icone Unicode indicador de status do KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Icone' = SWITCH([KPI Desvio SPR Status], "ok", "o", "atencao", "~", "critico", "!", "-")
 		isHidden
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: affdaca2-877f-4ef7-a02c-2f5eab118d98
 
+	/// Texto formatado para card visual do KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Texto Card' =
 			VAR _val = FORMAT([KPI Desvio SPR Valor], "+0.0;-0.0;0") & " pts"
 			VAR _icon = [KPI Desvio SPR Icone]
@@ -1699,6 +1730,7 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: a0630a68-1af5-4340-8d2d-4e45d73e26bc
 
+	/// Nome da filial com pior SPR na semana
 	measure 'Pior Filial SPR Semana' =
 			VAR _tab =
 			    ADDCOLUMNS(
@@ -1711,6 +1743,7 @@ table _Medidas
 		displayFolder: 01. Operacao\03. Ranking e Participacao
 		lineageTag: d86ae3ba-040f-4cdf-b5f2-cceca771abc4
 
+	/// Valor SPR da pior filial na semana
 	measure 'Valor Pior Filial SPR Semana' =
 			VAR _tab =
 			    ADDCOLUMNS(
@@ -1722,11 +1755,13 @@ table _Medidas
 		displayFolder: 01. Operacao\03. Ranking e Participacao
 		lineageTag: 4e2c0f3c-dbdc-447e-b4a8-724a3a5e405b
 
+	/// Gap percentual da pior filial SPR em relacao a meta
 	measure 'Gap% Pior Filial SPR vs Meta' = DIVIDE([Valor Pior Filial SPR Semana] - [Meta Global SPR Ped], [Meta Global SPR Ped], 0)
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 01. Operacao\03. Ranking e Participacao
 		lineageTag: 9f63e5ac-17c9-44b3-9f7e-0f0328e47642
 
+	/// Nome da filial com pior taxa de entregas na semana
 	measure 'Pior Filial Entregas Semana' =
 			VAR _tab =
 			    ADDCOLUMNS(
@@ -1740,6 +1775,7 @@ table _Medidas
 		displayFolder: 98. Suporte\04. Entrega Operacional
 		lineageTag: 36f5314c-d7cf-456c-b064-5b67f09038c5
 
+	/// Valor da taxa de entregas da pior filial na semana
 	measure 'Valor Pior Filial Entregas Semana' =
 			VAR _tab =
 			    ADDCOLUMNS(
@@ -1752,12 +1788,14 @@ table _Medidas
 		displayFolder: 98. Suporte\04. Entrega Operacional
 		lineageTag: e69558ee-79e3-4fb2-ad14-d293f628664e
 
+	/// Gap percentual da pior filial em entregas vs meta
 	measure 'Gap% Pior Filial Entregas vs Meta' = DIVIDE([Valor Pior Filial Entregas Semana] - [Meta Global % Entregas], [Meta Global % Entregas], 0)
 		formatString: +0.0%;-0.0%;0.0%
 		isHidden
 		displayFolder: 98. Suporte\04. Entrega Operacional
 		lineageTag: ac6db92d-0f57-4670-834a-daac77f4e9c5
 
+	/// Nome da filial com pior ORH na semana
 	measure 'Pior Filial ORH Semana' =
 			VAR _tab =
 			    ADDCOLUMNS(
@@ -1770,6 +1808,7 @@ table _Medidas
 		displayFolder: 01. Operacao\03. Ranking e Participacao
 		lineageTag: 6613ba3c-c8ea-45e5-8193-6c6fb63458cc
 
+	/// Quantidade de filiais abaixo da meta SPR
 	measure 'Qtd Filiais Abaixo Meta SPR' =
 			VAR _meta = [Meta Global SPR Ped]
 			RETURN
@@ -1784,6 +1823,7 @@ table _Medidas
 		displayFolder: 01. Operacao\03. Ranking e Participacao
 		lineageTag: 38df9be0-2686-47ee-9fb4-cca480c8f018
 
+	/// Quantidade de filiais em faixa critica de SPR
 	measure 'Qtd Filiais Criticas SPR' =
 			VAR _meta = [Meta Global SPR Ped]
 			RETURN
@@ -1798,6 +1838,7 @@ table _Medidas
 		displayFolder: 01. Operacao\03. Ranking e Participacao
 		lineageTag: 1b1c370a-e43a-489f-a31e-ed5e12c21edb
 
+	/// Quantidade de filiais abaixo da meta de entregas
 	measure 'Qtd Filiais Abaixo Meta Entrega' =
 			VAR _meta = [Meta Global % Entregas]
 			RETURN
@@ -1813,6 +1854,7 @@ table _Medidas
 		displayFolder: 98. Suporte\04. Entrega Operacional
 		lineageTag: 6ece0d55-c7e4-429f-9470-96bb89f81273
 
+	/// Texto do alerta operacional ativo na janela
 	measure 'Alerta Operacional' =
 			VAR _naoPlan = [Op Rotas Nao Planejadas]
 			VAR _semTempo = [Op Rotas Sem Tempo]
@@ -1842,6 +1884,7 @@ table _Medidas
 		displayFolder: 01. Operacao\02. Alertas e Prioridades
 		lineageTag: 3898a2cc-853d-4e50-b283-2cceae2d6930
 
+	/// Nivel do alerta operacional (ok/atencao/critico)
 	measure 'Alerta Nivel' =
 			VAR _naoPlan = [Op Rotas Nao Planejadas]
 			VAR _semTempo = [Op Rotas Sem Tempo]
@@ -1858,10 +1901,12 @@ table _Medidas
 		displayFolder: 01. Operacao\02. Alertas e Prioridades
 		lineageTag: a7a2685a-6893-45b2-b7dd-8c3bde228bd8
 
+	/// Cor hex do nivel de alerta operacional
 	measure 'Alerta Cor' = SWITCH([Alerta Nivel], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		displayFolder: 01. Operacao\02. Alertas e Prioridades
 		lineageTag: 85157943-f2af-4998-8102-3851a0386651
 
+	/// Lista das 3 piores filiais em SPR
 	measure 'Top 3 Piores Filiais SPR' =
 			VAR _tab =
 			    TOPN(
@@ -1882,6 +1927,7 @@ table _Medidas
 		displayFolder: 01. Operacao\03. Ranking e Participacao
 		lineageTag: 637c8baf-7870-430a-876b-9d35c1a972a2
 
+	/// Lista das 3 piores filiais em taxa de entregas
 	measure 'Top 3 Piores Filiais Entregas' =
 			VAR _tab =
 			    TOPN(
@@ -3220,6 +3266,7 @@ table _Medidas
 		displayFolder: 98. Suporte\04. Entrega Operacional
 		lineageTag: 52ff68bf-12a3-4d6d-846d-84f8f373f17a
 
+	/// Percentual de ocupacao por pedidos por tipo de veiculo
 	measure 'Ocupacao Pedidos Tipo (%)' =
 			VAR _rotas =
 			    CALCULATE(
@@ -3240,6 +3287,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\03. Mix por Tipo
 		lineageTag: bb63a443-c266-49c0-bd79-9a5a9a42ccb0
 
+	/// Percentual de ocupacao por volumes por tipo de veiculo
 	measure 'Ocupacao Volumes Tipo (%)' =
 			VAR _rotas =
 			    CALCULATE(
@@ -3275,6 +3323,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\02. Ocupacao Geral
 		lineageTag: 85651700-2dea-42f3-a0f9-87b9e632d4fc
 
+	/// Quantidade de rotas acima da capacidade de volumes
 	measure 'Rotas Acima Cap Volumes' =
 			SUMX(
 			    FILTER(
@@ -3297,6 +3346,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\03. Mix por Tipo
 		lineageTag: aee60a54-6191-4b13-bf5d-71189f50ef37
 
+	/// Percentual de rotas acima da capacidade de volumes
 	measure '% Rotas Acima Cap Volumes' =
 			DIVIDE(
 			    [Rotas Acima Cap Volumes],
@@ -3313,6 +3363,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\03. Mix por Tipo
 		lineageTag: 0335cc63-c7ef-43ea-bd03-9818ba593277
 
+	/// Excesso medio de pedidos acima do P75
 	measure 'Excesso Medio Pedidos (acima P75)' =
 			VAR _cap = [Cap P75 Pedidos]
 			RETURN
@@ -3328,6 +3379,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\03. Mix por Tipo
 		lineageTag: 27a405f5-a2dd-4976-926a-c0ede7513649
 
+	/// Excesso medio de volumes acima do P75
 	measure 'Excesso Medio Volumes (acima P75)' =
 			VAR _cap = [Cap P75 Volumes]
 			RETURN
@@ -3343,6 +3395,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\03. Mix por Tipo
 		lineageTag: f7b5aef8-a421-4139-94ce-36b3cf62eb9d
 
+	/// Tipo de veiculo com ocupacao mais critica
 	measure 'Tipo Veiculo Critico Ocupacao' =
 			VAR _tab =
 			    TOPN(
@@ -3362,6 +3415,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\03. Mix por Tipo
 		lineageTag: 7f4d0ce8-1526-4e49-ac05-8cc8e0658584
 
+	/// Percentual de ocupacao por pedidos na semana atual
 	measure 'Ocupacao Pedidos Semana Atual (%)' =
 			CALCULATE(
 			    [Ocupacao Pedidos (%)],
@@ -3371,6 +3425,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\02. Ocupacao Geral
 		lineageTag: 058a184f-5c3e-4ba6-a762-26eda3e806bb
 
+	/// Percentual de ocupacao por volumes na semana atual
 	measure 'Ocupacao Volumes Semana Atual (%)' =
 			CALCULATE(
 			    [Ocupacao Volumes (%)],
@@ -3380,6 +3435,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\02. Ocupacao Geral
 		lineageTag: 25f2e6d5-acec-434f-bbe8-c73129dba2b1
 
+	/// [LEGADO] Tabela HTML consolidando metricas por filial na semana. Substituir por matriz nativa.
 	measure 'HTML Tabela Filiais Consolidado Semana' =
 			VAR _tab =
 			    TOPN(
@@ -3427,6 +3483,7 @@ table _Medidas
 		displayFolder: 90. Legado\01. HTML\03. Tabelas
 		lineageTag: ba15bb0b-e103-49ed-91e6-49190a6ae026
 
+	/// [LEGADO] Tabela HTML de ocupacao por tipo de veiculo na semana. Substituir por matriz nativa.
 	measure 'HTML Tabela Ocupacao Tipo Veiculo Semana' =
 			VAR _tab =
 			    TOPN(
@@ -3473,6 +3530,7 @@ table _Medidas
 		displayFolder: 90. Legado\01. HTML\03. Tabelas
 		lineageTag: d41563da-af10-440b-9c7a-613cb913a70f
 
+	/// [LEGADO] Ranking HTML de rotas criticas na semana. Substituir por visual nativo com formatacao condicional.
 	measure 'HTML Ranking Rotas Criticas Semana' =
 			VAR _rotas =
 			    FILTER(
@@ -3528,6 +3586,7 @@ table _Medidas
 		displayFolder: 90. Legado\01. HTML\02. Rankings
 		lineageTag: 1bd5dab6-b0fb-496c-b2f2-b162b7b10a34
 
+	/// Total de rotas base para calculo de ORH
 	measure 'Total Rotas ORH Base' =
 			CALCULATE(
 			    COUNTROWS(fato_rotas),
@@ -3539,6 +3598,7 @@ table _Medidas
 		displayFolder: 03. Jornada e ORH\01. ORH e Jornada
 		lineageTag: c5960b18-2990-401f-b3a1-1674a5e5ac4c
 
+	/// Total de rotas planejadas base para calculo de ORH
 	measure 'Total Rotas ORH Planejado Base' =
 			CALCULATE(
 			    COUNTROWS(fato_rotas),
@@ -3550,6 +3610,7 @@ table _Medidas
 		displayFolder: 03. Jornada e ORH\01. ORH e Jornada
 		lineageTag: 0a8cec47-22a6-4352-9d76-4141b2cd75d5
 
+	/// Total de rotas planejadas no periodo
 	measure 'Op Rotas Planejadas' =
 			CALCULATE(
 			    COUNTROWS(fato_planejado),
@@ -3560,6 +3621,7 @@ table _Medidas
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: 9508efdb-cda4-45be-a330-3a90a1748b80
 
+	/// Total de pedidos planejados no periodo
 	measure 'Op Pedidos Planejados' =
 			CALCULATE(
 			    SUM(fato_planejado[Pedidos Planejados]),
@@ -3570,6 +3632,7 @@ table _Medidas
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: 3db77805-238f-4c9f-8abb-84058396468c
 
+	/// Total de volumes planejados no periodo
 	measure 'Op Volumes Planejados' =
 			CALCULATE(
 			    SUM(fato_planejado[Volumes Planejados]),
@@ -3580,6 +3643,7 @@ table _Medidas
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: d941acf2-443f-4ac3-9231-5fb96884ca9d
 
+	/// Total de rotas realizadas no periodo
 	measure 'Op Rotas Realizadas' =
 			CALCULATE(
 			    COUNTROWS(fato_rotas),
@@ -3590,6 +3654,7 @@ table _Medidas
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: b7f0538b-99c9-4ebf-bcd5-610bdfa78c84
 
+	/// Total de pedidos realizados no periodo
 	measure 'Op Pedidos Realizados' =
 			CALCULATE(
 			    SUM(fato_rotas[Pedidos da Rota]),
@@ -3600,6 +3665,7 @@ table _Medidas
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: 19cc80a8-37ba-4d60-803a-cdcf82af7604
 
+	/// Total de volumes realizados no periodo
 	measure 'Op Volumes Realizados' =
 			CALCULATE(
 			    SUM(fato_rotas[Volumes da Rota]),
@@ -3610,6 +3676,7 @@ table _Medidas
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: f74ab674-52d0-4cf1-88d0-4c2580cda6b2
 
+	/// Quantidade de rotas aguardando aceite do motorista
 	measure 'Op Rotas Aguardando Aceite' =
 			COALESCE(
 			    CALCULATE(
@@ -3633,6 +3700,7 @@ table _Medidas
 		displayFolder: 01. Operacao\06. Status de Rota
 		lineageTag: 0816f699-1f25-4f4c-b78b-7b4d30774076
 
+	/// Quantidade de rotas em status carregado
 	measure 'Op Rotas Carregadas' =
 			COALESCE(
 			    CALCULATE(
@@ -3659,6 +3727,7 @@ table _Medidas
 		displayFolder: 01. Operacao\06. Status de Rota
 		lineageTag: 5c3c5a3f-b221-4b21-bd24-598a3b617519
 
+	/// Quantidade de rotas finalizadas no periodo
 	measure 'Op Rotas Finalizadas' =
 			COALESCE(
 			    CALCULATE(
@@ -3684,6 +3753,7 @@ table _Medidas
 		displayFolder: 01. Operacao\06. Status de Rota
 		lineageTag: e4fa68d2-c806-4ed3-b100-c9704f7e8e8e
 
+	/// Quantidade de rotas nao planejadas (extras)
 	measure 'Op Rotas Nao Planejadas' =
 			COALESCE(
 			    CALCULATE(
@@ -3703,6 +3773,7 @@ table _Medidas
 		displayFolder: 01. Operacao\06. Status de Rota
 		lineageTag: 12bb0d49-db8c-4966-aebe-cbed3b7b8ad6
 
+	/// Quantidade de rotas sem tempo habil na janela
 	measure 'Op Rotas Sem Tempo' =
 			COALESCE(
 			    CALCULATE(
@@ -3740,6 +3811,7 @@ table _Medidas
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: bf6649e3-7a00-4713-831f-d6046bdf1ea5
 
+	/// Texto do alerta prioritario para a torre de controle
 	measure 'Op Alerta Prioritario' =
 			VAR _naoPlan = [Op Rotas Nao Planejadas]
 			VAR _semTempo = [Op Rotas Sem Tempo]
@@ -3760,6 +3832,7 @@ table _Medidas
 		displayFolder: 01. Operacao\02. Alertas e Prioridades
 		lineageTag: acff4528-fe45-467b-971d-c133114f5111
 
+	/// [LEGADO] Painel HTML tipo torre de controle. Substituir por cards nativos + SVG.
 	measure 'HTML Torre Controle Operacional' =
 			VAR _rotPlan = [Op Rotas Planejadas]
 			VAR _pedPlan = [Op Pedidos Planejados]
@@ -3788,6 +3861,7 @@ table _Medidas
 		displayFolder: 90. Legado\01. HTML\05. Torre
 		lineageTag: c7cd96b5-55c3-4309-ad43-eefe3400ec49
 
+	/// Flag indicando se a rota possui planejamento
 	measure 'TblExp Se Planejado' =
 			VAR _pp = MAX(fato_rotas[Possui Planejado])
 			VAR _rp = SELECTEDVALUE(fato_rotas[Rota Planejada])
@@ -3795,10 +3869,12 @@ table _Medidas
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: a19ea755-6ce8-4362-b259-6b952b261c2f
 
+	/// Tipo de unidade operacional da rota
 	measure 'TblExp Tipo Unidade' = COALESCE(SELECTEDVALUE(dim_filial[Tipo]), "Sem Cadastro")
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: 99af2507-0494-41be-ba31-31daf1d5e605
 
+	/// Status de match temporal entre planejado e realizado
 	measure 'TblExp Match Temporais' =
 			VAR _m =
 			    COALESCE(MAX(fato_rotas[Possui Planejado]), 0)
@@ -3816,66 +3892,79 @@ table _Medidas
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: c23c1e01-bedc-46a1-921f-bb443ba9705c
 
+	/// Diferenca de pedidos planejado vs realizado por rota
 	measure 'TblExp Delta Pedidos Plan x Real' = SUM(fato_rotas[Pedidos da Rota]) - SUM(fato_rotas[Pedidos Planejados])
 		formatString: +#,##0;-#,##0;0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: 69414ff4-13cc-48d5-bf25-c0d58f427ce7
 
+	/// Diferenca de volumes planejado vs realizado por rota
 	measure 'TblExp Delta Volumes Plan x Real' = SUM(fato_rotas[Volumes da Rota]) - SUM(fato_rotas[Volumes Planejados])
 		formatString: +#,##0;-#,##0;0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: 56148fbb-358a-48f7-847e-97238d44e615
 
+	/// Diferenca de KM planejado vs realizado por rota
 	measure 'TblExp Delta KM Plan x Real' = SUM(fato_rotas[KM Realizado]) - SUM(fato_rotas[KM Planejado Plan])
 		formatString: +#,##0.0;-#,##0.0;0.0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: b8232994-284b-4f18-b707-2545492cdfd8
 
+	/// Diferenca de tempo planejado vs realizado em horas por rota
 	measure 'TblExp Delta Tempo Plan x Real (h)' = SUM(fato_rotas[Tempo Realizado (h)]) - SUM(fato_rotas[Tempo Planejado Plan (h)])
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: 9b9f1c70-5aa4-4b2a-a0d3-73749f7ad7c9
 
+	/// Percentual de entregas efetivas por rota (linha)
 	measure 'TblExp % Entregas Efetivas Linha' = DIVIDE(SUM(fato_rotas[Entregues]), SUM(fato_rotas[Entregues]) + SUM(fato_rotas[Insucessos]), 0)
 		formatString: 0.0%
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: e7260831-45ce-49b1-b0af-74e9314336dc
 
+	/// Percentual de insucessos por rota (linha)
 	measure 'TblExp % Insucessos Linha' = DIVIDE(SUM(fato_rotas[Insucessos]), SUM(fato_rotas[Entregues]) + SUM(fato_rotas[Insucessos]), 0)
 		formatString: 0.0%
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: db13788b-716a-4cfd-846d-f585c16a2339
 
+	/// SPR pedidos realizado por rota
 	measure 'TblExp SPR Ped Real Linha' = DIVIDE(SUM(fato_rotas[Pedidos da Rota]), COUNTROWS(fato_rotas), 0)
 		formatString: 0.0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: a54b8ccd-a442-453b-ac46-b7115e500534
 
+	/// SPR pedidos planejado por rota
 	measure 'TblExp SPR Ped Plan Linha' = DIVIDE(SUM(fato_rotas[Pedidos Planejados]), COUNTROWS(fato_rotas), 0)
 		formatString: 0.0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: 907f6b68-d9b3-4fea-848d-0a7789d37d82
 
+	/// Delta SPR pedidos por rota (real - planejado)
 	measure 'TblExp SPR Delta Ped Linha' = [TblExp SPR Ped Real Linha] - [TblExp SPR Ped Plan Linha]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: df468704-4034-45b5-a13c-5feead192030
 
+	/// SPR volumes realizado por rota
 	measure 'TblExp SPR Vol Real Linha' = DIVIDE(SUM(fato_rotas[Volumes da Rota]), COUNTROWS(fato_rotas), 0)
 		formatString: 0.0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: b42a084b-a9f5-4f72-8c0f-a8b1686c47ae
 
+	/// SPR volumes planejado por rota
 	measure 'TblExp SPR Vol Plan Linha' = DIVIDE(SUM(fato_rotas[Volumes Planejados]), COUNTROWS(fato_rotas), 0)
 		formatString: 0.0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: e14b23b1-2639-4f55-9962-d829b16726c1
 
+	/// Delta SPR volumes por rota (real - planejado)
 	measure 'TblExp SPR Delta Vol Linha' = [TblExp SPR Vol Real Linha] - [TblExp SPR Vol Plan Linha]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: e0169956-56e1-4fb2-842d-010da17d0ce3
 
+	/// Aderencia de pedidos real vs planejado por rota
 	measure 'TblExp Aderencia Pedidos Linha' =
 			VAR _tbl =
 			    ADDCOLUMNS(
@@ -3893,6 +3982,7 @@ table _Medidas
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: 353cb953-9275-4397-8505-f129296775a1
 
+	/// Aderencia de volumes real vs planejado por rota
 	measure 'TblExp Aderencia Volumes Linha' =
 			VAR _tbl =
 			    ADDCOLUMNS(
@@ -3910,26 +4000,31 @@ table _Medidas
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: 10dadc46-27f9-4078-bfc0-a66ecb953774
 
+	/// Flag indicando rota nao planejada (extra)
 	measure 'TblExp Flag Rota Nao Planejada' = IF([TblExp Se Planejado] = "Nao", 1, 0)
 		formatString: 0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: d8c1d435-a1ec-4b6e-91ed-0f076ed8c952
 
+	/// Flag indicando match temporal fora da janela D+/-1
 	measure 'TblExp Flag Match Fora D+/-1' = IF([TblExp Match Temporais] = "Fora D+/-1", 1, 0)
 		formatString: 0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: 0cbe4356-b01e-41a1-81f7-09b8f63911e1
 
+	/// Flag indicando rota sem tempo habil na janela
 	measure 'TblExp Flag Sem Tempo' = IF(COALESCE(SUM(fato_rotas[Tempo Realizado (h)]), 0) <= 0, 1, 0)
 		formatString: 0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: 47260211-c03a-4fb4-bd49-965c248a4136
 
+	/// Flag indicando rota com jornada acima de 8 horas
 	measure 'TblExp Flag Overtime 8h' = IF(COALESCE(SUM(fato_rotas[Tempo Realizado (h)]), 0) > 8, 1, 0)
 		formatString: 0
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: c8d84b89-8996-46ba-9b12-3dfdd214be84
 
+	/// Flag indicando rota acima da capacidade do veiculo
 	measure 'TblExp Flag Acima Capacidade' =
 			VAR _maxAd =
 			    MAX([TblExp Aderencia Pedidos Linha], [TblExp Aderencia Volumes Linha])
@@ -3938,6 +4033,7 @@ table _Medidas
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: 67e8c7e0-ca67-499d-8051-c0f1368f99bc
 
+	/// Tags operacionais concatenadas da rota para drill-through
 	measure 'TblExp Tags Operacionais' =
 			VAR _t1 = IF([TblExp Flag Rota Nao Planejada] = 1, "Nao Planejada", BLANK())
 			VAR _t2 = IF([TblExp Flag Match Fora D+/-1] = 1, "Match Fora Janela", BLANK())
@@ -3953,6 +4049,7 @@ table _Medidas
 		displayFolder: 07. Investigacao\01. Linha Operacional
 		lineageTag: e0bacc83-e272-46d2-94f4-3362d00bbf65
 
+	/// [LEGADO] Grafico de tendencia semanal em HTML. Substituir por visual de linha nativo.
 	measure 'HTML Grafico Tendencia Semanal' =
 			VAR _base =
 			    TOPN(
@@ -3996,6 +4093,7 @@ table _Medidas
 		displayFolder: 90. Legado\01. HTML\04. Graficos
 		lineageTag: c9caddd0-caa8-4853-b67d-4ef540032ebc
 
+	/// [LEGADO] Grafico de tendencia mensal em HTML. Substituir por visual de linha nativo.
 	measure 'HTML Grafico Tendencia Mensal' =
 			VAR _base =
 			    TOPN(
@@ -4039,6 +4137,7 @@ table _Medidas
 		displayFolder: 90. Legado\01. HTML\04. Graficos
 		lineageTag: af0fe834-e21e-4a1c-a85c-41d33bd4b8ff
 
+	/// [LEGADO] Grafico de barras por filial na semana em HTML. Substituir por grafico de barras nativo.
 	measure 'HTML Grafico Barras Filial Semana' =
 			VAR _tab =
 			    TOPN(
@@ -4099,6 +4198,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\01. Referencia de Capacidade
 		lineageTag: 147837e6-8e89-4191-9574-6ac316ac3ae1
 
+	/// Texto descritivo do status de capacidade
 	measure 'Status Capacidade Texto' =
 			SWITCH(
 			    [Status Capacidade],
@@ -4111,6 +4211,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\02. Ocupacao Geral
 		lineageTag: 4b1e9ea9-724b-40bd-ab2f-de37824fffbc
 
+	/// Cor condicional do status de capacidade
 	measure 'Status Capacidade Cor' =
 			SWITCH(
 			    [Status Capacidade],
@@ -4123,6 +4224,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\02. Ocupacao Geral
 		lineageTag: 6d84fcfe-746e-4263-bfa3-6c5aeeadd36d
 
+	/// Texto de acao recomendada para gestao de capacidade
 	measure 'Acao Capacidade' =
 			SWITCH(
 			    [Status Capacidade],
@@ -4191,30 +4293,36 @@ table _Medidas
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: 02ddb57f-b2d1-41fa-94f0-254107423e9d
 
+	/// Codigo numerico do status do KPI SPR Pedidos (stops-per-route pedidos)
 	measure 'KPI SPR Ped Status Codigo' = SWITCH([KPI SPR Ped Status], "ok", 1, "atencao", 0, "critico", -1, BLANK())
 		formatString: 0
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: 64ad266e-005d-4c34-bf5f-34a983b4f535
 
+	/// Texto descritivo do status do KPI SPR Pedidos (stops-per-route pedidos)
 	measure 'KPI SPR Ped Status Texto' = SWITCH([KPI SPR Ped Status], "ok", "Dentro da meta", "atencao", "Abaixo da meta, monitorar", "critico", "Abaixo da meta, agir", "Sem dados")
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: 9ee31332-00b0-401a-9239-96523cdfe3e1
 
+	/// Fonte de origem da meta do KPI SPR Pedidos (stops-per-route pedidos) (filial ou global)
 	measure 'KPI SPR Ped Origem Meta' = IF(NOT ISBLANK([Meta SPR Pedidos]), "meta-filial", "meta-global")
 		isHidden
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: 6772c922-72de-4492-8103-375a781954ba
 
+	/// Tendencia dia anterior do KPI SPR Pedidos (stops-per-route pedidos)
 	measure 'KPI SPR Ped Trend D-1' = [Var D-1 SPR Pedidos]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: f1c32444-b626-4c00-8f77-4ef601aa901d
 
+	/// Tendencia semana sobre semana do KPI SPR Pedidos (stops-per-route pedidos)
 	measure 'KPI SPR Ped Trend WoW' = [Var WoW SPR Pedidos (%)]
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: 4e984bef-1298-4985-8669-a92b0a717560
 
+	/// Texto de acao recomendada com base no status do KPI SPR Pedidos (stops-per-route pedidos)
 	measure 'KPI SPR Ped Acao' =
 			SWITCH(
 			    [KPI SPR Ped Status],
@@ -4226,30 +4334,36 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: 8ae7aa79-2b5e-4a26-a0d3-28049ab61b48
 
+	/// Codigo numerico do status do KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Status Codigo' = SWITCH([KPI SPR Vol Status], "ok", 1, "atencao", 0, "critico", -1, BLANK())
 		formatString: 0
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: a99bcd52-9e2d-414a-b6ac-e9f4e2e4a8dc
 
+	/// Texto descritivo do status do KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Status Texto' = SWITCH([KPI SPR Vol Status], "ok", "Dentro da referencia global", "atencao", "Abaixo da referencia global", "critico", "Muito abaixo da referencia global", "Sem dados")
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: 2a27d2ae-915e-4272-a9ac-945b45a7a448
 
+	/// Fonte de origem da meta do KPI SPR Volumes (stops-per-route volumes) (filial ou global)
 	measure 'KPI SPR Vol Origem Meta' = "meta-global"
 		isHidden
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: fcc90a62-d892-4991-bbbe-58bb10374cb0
 
+	/// Tendencia dia anterior do KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Trend D-1' = [Var D-1 SPR Volumes]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: 051a259e-264e-48fe-bae3-24c1b03abef5
 
+	/// Tendencia semana sobre semana do KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Trend WoW' = [Var WoW SPR Volumes (%)]
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: d8b98cd3-8765-4704-b0c4-3fe3248fd2f8
 
+	/// Texto de acao recomendada com base no status do KPI SPR Volumes (stops-per-route volumes)
 	measure 'KPI SPR Vol Acao' =
 			SWITCH(
 			    [KPI SPR Vol Status],
@@ -4261,34 +4375,40 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: b0dfb472-7e90-472c-9d0f-34b29c672e94
 
+	/// Codigo numerico do status do KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Status Codigo' = SWITCH([KPI Entregas Status], "ok", 1, "atencao", 0, "critico", -1, BLANK())
 		formatString: 0
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: 020b7dd3-9532-430e-9419-7a9413c43214
 
+	/// Texto descritivo do status do KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Status Texto' = SWITCH([KPI Entregas Status], "ok", "Entregas dentro da meta", "atencao", "Queda moderada de entregas", "critico", "Queda critica de entregas", "Sem dados")
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: 1045191c-b9d9-4e15-8a10-013fe8ead7ec
 
+	/// Fonte de origem da meta do KPI Entregas (taxa de efetivacao) (filial ou global)
 	measure 'KPI Entregas Origem Meta' = IF(NOT ISBLANK([Meta Filial Entrega]), "meta-filial", "meta-global")
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: 1abbaad2-b420-4f86-bf64-e289275bd49b
 
+	/// Tendencia dia anterior do KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Trend D-1' = [Var D-1 % Entregas]
 		formatString: +0.0%;-0.0%;0.0%
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: 57ddd15c-1a79-4049-97ce-368e276e618b
 
+	/// Tendencia semana sobre semana do KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Trend WoW' = [Var WoW % Entregas]
 		formatString: +0.0%;-0.0%;0.0%
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: e58d3d9d-3d9e-453b-a6ae-b26757a34a84
 
+	/// Texto de acao recomendada com base no status do KPI Entregas (taxa de efetivacao)
 	measure 'KPI Entregas Acao' =
 			SWITCH(
 			    [KPI Entregas Status],
@@ -4301,30 +4421,36 @@ table _Medidas
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: 5453a834-6b38-4881-8413-df7f72065683
 
+	/// Codigo numerico do status do KPI ORH (horas operacionais por rota)
 	measure 'KPI ORH Status Codigo' = SWITCH([KPI ORH Status], "ok", 1, "atencao", 0, "critico", -1, BLANK())
 		formatString: 0
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: dfedb211-3c0a-407c-b64a-7ecfbe8022d0
 
+	/// Texto descritivo do status do KPI ORH (horas operacionais por rota)
 	measure 'KPI ORH Status Texto' = SWITCH([KPI ORH Status], "ok", "Jornada dentro da faixa ideal", "atencao", "Jornada fora da faixa ideal", "critico", "Jornada critica", "Sem dados")
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 3759bcad-34d8-431c-b1d4-dffb80955817
 
+	/// Fonte de origem da meta do KPI ORH (horas operacionais por rota) (filial ou global)
 	measure 'KPI ORH Origem Meta' = "meta-global"
 		isHidden
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 7d5e3612-67f7-4973-bdb7-3ff25c77b793
 
+	/// Tendencia dia anterior do KPI ORH (horas operacionais por rota)
 	measure 'KPI ORH Trend D-1' = [Var D-1 ORH Tempo]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 47b50b22-22f2-4914-9f54-611ee035f095
 
+	/// Tendencia semana sobre semana do KPI ORH (horas operacionais por rota)
 	measure 'KPI ORH Trend WoW' = [Var WoW ORH Tempo (%)]
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 5c63aceb-1d44-40bb-9874-4b13e38393d0
 
+	/// Texto de acao recomendada com base no status do KPI ORH (horas operacionais por rota)
 	measure 'KPI ORH Acao' =
 			SWITCH(
 			    [KPI ORH Status],
@@ -4336,30 +4462,36 @@ table _Medidas
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: e559b7d7-0519-41aa-8a7a-e6330dc45155
 
+	/// Codigo numerico do status do KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Status Codigo' = SWITCH([KPI Desvio SPR Status], "ok", 1, "atencao", 0, "critico", -1, BLANK())
 		formatString: 0
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 59eeba80-94bb-4386-ab19-53b795d4a279
 
+	/// Texto descritivo do status do KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Status Texto' = SWITCH([KPI Desvio SPR Status], "ok", "Planejado aderente", "atencao", "Desvio moderado do planejamento", "critico", "Desvio critico do planejamento", "Sem dados")
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 3f428d15-1363-43bb-b393-ab679915e145
 
+	/// Fonte de origem da meta do KPI Desvio SPR (variacao real vs meta) (filial ou global)
 	measure 'KPI Desvio SPR Origem Meta' = "meta-global"
 		isHidden
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 2cc81c6f-5223-45ee-97c1-08234c49205f
 
+	/// Tendencia dia anterior do KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Trend D-1' = [Var D-1 Desvio SPR Ped (pts)]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 2a693f9c-0a21-44f7-aa0f-a552b6f55b56
 
+	/// Tendencia semana sobre semana do KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Trend WoW' = [Var WoW Desvio SPR Ped (pts)]
 		formatString: +0.0;-0.0;0.0
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 0724f1b9-7163-4068-b1e1-a7e65547f501
 
+	/// Texto de acao recomendada com base no status do KPI Desvio SPR (variacao real vs meta)
 	measure 'KPI Desvio SPR Acao' =
 			SWITCH(
 			    [KPI Desvio SPR Status],
@@ -4409,6 +4541,7 @@ table _Medidas
 		displayFolder: 01. Operacao\04. Medias e Tendencias
 		lineageTag: 6b4c7fe4-6db8-4b91-a777-5e6a60762fd2
 
+	/// Capacidade total diaria de volumes da filial
 	measure 'Capacidade Volumes Dia Total' =
 			CALCULATE(
 			    SUM(dim_filial[Capacidade Volume Dia]),
@@ -4419,6 +4552,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 7e663cf0-3e84-4528-b40e-733a9f0dd301
 
+	/// Capacidade total diaria de pedidos da filial
 	measure 'Capacidade Pedidos Dia Total' =
 			CALCULATE(
 			    SUM(dim_filial[Capacidade Pedidos Dia]),
@@ -4429,6 +4563,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: d90758ca-3916-485d-8b52-9f8d8dc4c302
 
+	/// Capacidade total diaria de peso da filial em kg
 	measure 'Capacidade Peso Dia Total (kg)' =
 			CALCULATE(
 			    SUM(dim_filial[Capacidade Peso Dia (kg)]),
@@ -4439,6 +4574,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: b66d01d7-b936-4a7d-bf00-65f619705d03
 
+	/// Capacidade total diaria de veiculos da filial
 	measure 'Capacidade Veiculos Dia Total' =
 			CALCULATE(
 			    SUM(dim_filial[Capacidade Veiculos Dia]),
@@ -4449,46 +4585,55 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: f2c14d8e-579f-4890-ad7c-b966661d2304
 
+	/// Capacidade semanal de volumes da filial
 	measure 'Capacidade Volumes Semana' = [Capacidade Volumes Dia Total] * [Op Dias com Dados]
 		formatString: #,##0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 5d20880b-e503-49ac-b1a9-87a4e7c3a705
 
+	/// Capacidade semanal de pedidos da filial
 	measure 'Capacidade Pedidos Semana' = [Capacidade Pedidos Dia Total] * [Op Dias com Dados]
 		formatString: #,##0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 728401c1-6501-4897-9a3d-3754ea60ec06
 
+	/// Capacidade semanal de peso da filial em kg
 	measure 'Capacidade Peso Semana (kg)' = [Capacidade Peso Dia Total (kg)] * [Op Dias com Dados]
 		formatString: #,##0.0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: a8fdc512-74b7-492e-8d3b-d8ad2db3d507
 
+	/// Capacidade semanal de veiculos da filial
 	measure 'Capacidade Veiculos Semana' = [Capacidade Veiculos Dia Total] * [Op Dias com Dados]
 		formatString: #,##0.0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 10c52f8d-0ac8-4ca1-b919-fdfd3f5e4208
 
+	/// Percentual de ocupacao por volumes da filial
 	measure 'Ocupacao Filial Volumes (%)' = DIVIDE([Op Media Diaria Volumes], [Capacidade Volumes Dia Total], BLANK())
 		formatString: 0.0%
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 8dbb4fe1-604b-4d1b-b2b3-6f5db97e7309
 
+	/// Percentual de ocupacao por pedidos da filial
 	measure 'Ocupacao Filial Pedidos (%)' = DIVIDE([Op Media Diaria Pedidos], [Capacidade Pedidos Dia Total], BLANK())
 		formatString: 0.0%
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 0e90f3b2-f2f3-4e57-a8ef-f1531c466d0a
 
+	/// Percentual de ocupacao por peso da filial
 	measure 'Ocupacao Filial Peso (%)' = DIVIDE([Op Media Diaria Peso (kg)], [Capacidade Peso Dia Total (kg)], BLANK())
 		formatString: 0.0%
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 209af81e-cab9-4461-b3dd-63260847fc0b
 
+	/// Percentual de ocupacao por veiculos da filial
 	measure 'Ocupacao Filial Veiculos (%)' = DIVIDE([Op Media Diaria Rotas], [Capacidade Veiculos Dia Total], BLANK())
 		formatString: 0.0%
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 6a82c3d7-c6d6-4472-88cb-48531c12720c
 
+	/// Ocupacao composta da filial (media ponderada pedidos+volumes+peso)
 	measure 'Ocupacao Filial Composta (%)' =
 			VAR _veic = [Ocupacao Filial Veiculos (%)]
 			VAR _ped = [Ocupacao Filial Pedidos (%)]
@@ -4509,6 +4654,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 7f34b013-a0ad-4cd6-bbf5-5b66d3cf970d
 
+	/// Status consolidado de capacidade da filial
 	measure 'Status Capacidade Filial' =
 			VAR _ocup = [Ocupacao Filial Composta (%)]
 			RETURN
@@ -4524,6 +4670,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: f81382bc-60c3-4ed7-9824-e7777c8cc10e
 
+	/// Texto descritivo do status de capacidade da filial
 	measure 'Status Capacidade Filial Texto' =
 			SWITCH(
 			    [Status Capacidade Filial],
@@ -4536,6 +4683,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: e12a7b74-bcde-4e00-82a8-bc3e9af34e0f
 
+	/// Cor condicional do status de capacidade da filial
 	measure 'Status Capacidade Filial Cor' =
 			SWITCH(
 			    [Status Capacidade Filial],
@@ -4548,6 +4696,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 9286c3ab-e114-44a6-b97f-777fba7a4610
 
+	/// Texto de acao recomendada para capacidade da filial
 	measure 'Acao Capacidade Filial' =
 			SWITCH(
 			    [Status Capacidade Filial],
@@ -4560,46 +4709,55 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 25f7c5c9-b380-44b5-b315-cb2a06d3af11
 
+	/// Gap entre demanda e capacidade diaria de volumes
 	measure 'Gap Capacidade Volumes Dia' = [Op Media Diaria Volumes] - [Capacidade Volumes Dia Total]
 		formatString: +#,##0.0;-#,##0.0;0.0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 9ff5224b-9174-414d-b6d7-e480ac287612
 
+	/// Gap entre demanda e capacidade diaria de pedidos
 	measure 'Gap Capacidade Pedidos Dia' = [Op Media Diaria Pedidos] - [Capacidade Pedidos Dia Total]
 		formatString: +#,##0.0;-#,##0.0;0.0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 1220a0ef-596f-40f5-b7e0-bfb07cbf7c13
 
+	/// Gap entre demanda e capacidade diaria de peso em kg
 	measure 'Gap Capacidade Peso Dia (kg)' = [Op Media Diaria Peso (kg)] - [Capacidade Peso Dia Total (kg)]
 		formatString: +#,##0.0;-#,##0.0;0.0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 0f6bfc30-9670-41e5-b278-e98250374114
 
+	/// Gap entre demanda e capacidade diaria de veiculos
 	measure 'Gap Capacidade Veiculos Dia' = [Op Media Diaria Rotas] - [Capacidade Veiculos Dia Total]
 		formatString: +#,##0.0;-#,##0.0;0.0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 343fa60b-98bf-4ba0-a9d8-3a2455e58f15
 
+	/// Gap entre demanda e capacidade semanal de volumes
 	measure 'Gap Capacidade Volumes Semana' = [Total Volumes] - [Capacidade Volumes Semana]
 		formatString: +#,##0;-#,##0;0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: c56cbba5-cf80-4860-bfe9-65f222655f16
 
+	/// Gap entre demanda e capacidade semanal de pedidos
 	measure 'Gap Capacidade Pedidos Semana' = [Total Pedidos] - [Capacidade Pedidos Semana]
 		formatString: +#,##0;-#,##0;0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: ab3f6996-d007-473a-bb2f-f5877840a217
 
+	/// Gap entre demanda e capacidade semanal de peso em kg
 	measure 'Gap Capacidade Peso Semana (kg)' = [Total Peso (kg)] - [Capacidade Peso Semana (kg)]
 		formatString: +#,##0.0;-#,##0.0;0.0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: ec85a90c-590b-4ae5-a5a2-c995dc10c318
 
+	/// Gap entre demanda e capacidade semanal de veiculos
 	measure 'Gap Capacidade Veiculos Semana' = [Total Rotas] - [Capacidade Veiculos Semana]
 		formatString: +#,##0.0;-#,##0.0;0.0
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: f0475d3b-5f95-4de8-ab1c-b4be3972cb19
 
+	/// Indicador de performance consolidada da semana atual
 	measure 'Performance Semana Atual (%)' =
 			CALCULATE(
 			    [Performance Media (%)],
@@ -4609,6 +4767,7 @@ table _Medidas
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: a3927f73-7f6f-4bcc-8da1-af307f526920
 
+	/// Indicador de performance consolidada da semana anterior
 	measure 'Performance Semana Anterior (%)' =
 			CALCULATE(
 			    [Performance Media (%)],
@@ -4618,6 +4777,7 @@ table _Medidas
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: 5c5847bf-b9a4-4a18-8ad4-d4d8b23dd321
 
+	/// Variacao semana sobre semana da performance consolidada em pp
 	measure 'Var WoW Performance (pp)' =
 			VAR _atual = [Performance Semana Atual (%)]
 			VAR _anterior = [Performance Semana Anterior (%)]
@@ -4631,6 +4791,7 @@ table _Medidas
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: 43d32589-e910-4d7e-9bf9-dcf8fb3e5622
 
+	/// SVG Card: KPI SPR Pedidos com status e tendencia
 	measure 'SVG Card SPR Ped' =
 			VAR _valor = FORMAT([KPI SPR Ped Valor], "0.0")
 			VAR _meta = FORMAT([KPI SPR Ped Meta], "0.0")
@@ -4665,6 +4826,7 @@ table _Medidas
 		lineageTag: 81974a78-4271-4b41-a112-7db7c202c87a
 		dataCategory: ImageUrl
 
+	/// SVG Card: KPI SPR Volumes com status e tendencia
 	measure 'SVG Card SPR Vol' =
 			VAR _valor = FORMAT([KPI SPR Vol Valor], "0.0")
 			VAR _meta = FORMAT([KPI SPR Vol Meta], "0.0")
@@ -4699,6 +4861,7 @@ table _Medidas
 		lineageTag: 50ceada3-44a1-479b-ab87-482238f20aef
 		dataCategory: ImageUrl
 
+	/// SVG Card: horas operacionais por rota (ORH/jornada)
 	measure 'SVG Card ORH' =
 			VAR _valor = FORMAT([KPI ORH Valor], "0.0")
 			VAR _meta = FORMAT([KPI ORH Meta], "0.0")
@@ -4733,6 +4896,7 @@ table _Medidas
 		lineageTag: 00657e90-e0bf-4e44-ad7c-4ccd6323e450
 		dataCategory: ImageUrl
 
+	/// SVG Card: visao consolidada de ocupacao/capacidade da filial
 	measure 'SVG Card Capacidade' =
 			VAR _valor = FORMAT([Ocupacao Composta (%)], "0.0%")
 			VAR _status = UPPER(COALESCE([Status Capacidade Texto], "SEM DADOS"))
@@ -4762,6 +4926,7 @@ table _Medidas
 		lineageTag: 551af43b-ae17-43b6-bea8-5de603b4cbf9
 		dataCategory: ImageUrl
 
+	/// SVG Card: score operacional consolidado (SPR+ORH+Cap)
 	measure 'SVG Card Score Operacional' =
 			VAR _valorNum = [Score Operacional]
 			VAR _valor = FORMAT(_valorNum, "0")
@@ -4807,6 +4972,7 @@ table _Medidas
 		lineageTag: 95a11bf9-978a-48e9-b1a1-c2152bf1565e
 		dataCategory: ImageUrl
 
+	/// SVG Card: produtividade em pedidos por hora
 	measure 'SVG Card Pedidos Hora' =
 			VAR _real = [Pedidos/h Realizado]
 			VAR _plan = [Pedidos/h Planejado]
@@ -4862,6 +5028,7 @@ table _Medidas
 		lineageTag: 9b6ca51e-1cad-4cef-bb70-b8a6d2b267e6
 		dataCategory: ImageUrl
 
+	/// SVG Card: eficiencia de km realizado vs planejado
 	measure 'SVG Card Eficiencia KM' =
 			VAR _valorNum = [Eficiencia KM (%)]
 			VAR _status =
@@ -4907,6 +5074,7 @@ table _Medidas
 		lineageTag: 7b69fc83-6c75-48f6-a0ff-1c9b96a6a996
 		dataCategory: ImageUrl
 
+	/// SVG Card: total de rotas na janela com variacao
 	measure 'SVG Card Total Rotas' =
 			VAR _valor = FORMAT([Total Rotas], "#,##0")
 			VAR _deltaDia = FORMAT([Var D-1 Rotas], "+#,##0;-#,##0;0")
@@ -4950,6 +5118,7 @@ table _Medidas
 		lineageTag: 1a9da8ab-3863-462a-a4cb-e0c789fdbe25
 		dataCategory: ImageUrl
 
+	/// SVG Card: total de rotas planejadas e progresso
 	measure 'SVG Card Rotas Planejadas' =
 			VAR _valor = FORMAT([Op Rotas Planejadas], "#,##0")
 			VAR _ped = FORMAT([Op Pedidos Planejados], "#,##0")
@@ -4995,6 +5164,7 @@ table _Medidas
 		lineageTag: 38a6fd40-61c6-4d45-b587-d9fd10ef9cff
 		dataCategory: ImageUrl
 
+	/// SVG Card: total de rotas realizadas e alertas
 	measure 'SVG Card Rotas Realizadas' =
 			VAR _valor = FORMAT([Op Rotas Realizadas], "#,##0")
 			VAR _ped = FORMAT([Op Pedidos Realizados], "#,##0")
@@ -5041,6 +5211,7 @@ table _Medidas
 		lineageTag: 911333b4-f36e-415c-bf99-eb7b07ad6d37
 		dataCategory: ImageUrl
 
+	/// SVG Card: total de pedidos com produtividade/hora
 	measure 'SVG Card Total Pedidos' =
 			VAR _valor = FORMAT([Total Pedidos], "#,##0")
 			VAR _deltaDia = FORMAT([Var D-1 Pedidos], "+#,##0;-#,##0;0")
@@ -5068,6 +5239,7 @@ table _Medidas
 		lineageTag: 91ae7bf6-f292-4f4c-9397-90065ec91ee2
 		dataCategory: ImageUrl
 
+	/// SVG Strip: alerta prioritario da torre operacional
 	measure 'SVG Strip Alerta Operacional' =
 			VAR _nivel = UPPER(COALESCE([Alerta Nivel], "ok"))
 			VAR _cor = COALESCE([Alerta Cor], "#6A7282")
@@ -5101,6 +5273,7 @@ table _Medidas
 		lineageTag: 01ccf0f7-0872-4810-bf19-173849d04e9a
 		dataCategory: ImageUrl
 
+	/// SVG Card: ocupacao composta consolidada da filial
 	measure 'SVG Card Ocupacao Composta' =
 			VAR _valorNum = [Ocupacao Filial Composta (%)]
 			VAR _valor = FORMAT(_valorNum, "0.0%")
@@ -5131,6 +5304,7 @@ table _Medidas
 		lineageTag: 672b4bff-3eec-42fd-b5e4-cc52332d4be5
 		dataCategory: ImageUrl
 
+	/// SVG Card: ocupacao de capacidade por veiculos/dia
 	measure 'SVG Card Capacidade Veiculos' =
 			VAR _valorNum = [Ocupacao Filial Veiculos (%)]
 			VAR _status = SWITCH(TRUE(), ISBLANK(_valorNum), "SEM DADOS", _valorNum < 0.75, "SUBOCUPADA", _valorNum <= 0.95, "BALANCEADA", _valorNum <= 1.10, "SATURADA", "CRITICA")
@@ -5160,6 +5334,7 @@ table _Medidas
 		lineageTag: e83d34bc-b376-4b92-8781-596603e44e04
 		dataCategory: ImageUrl
 
+	/// SVG Card: ocupacao de capacidade por pedidos/dia
 	measure 'SVG Card Capacidade Pedidos' =
 			VAR _valorNum = [Ocupacao Filial Pedidos (%)]
 			VAR _status = SWITCH(TRUE(), ISBLANK(_valorNum), "SEM DADOS", _valorNum < 0.75, "SUBOCUPADA", _valorNum <= 0.95, "BALANCEADA", _valorNum <= 1.10, "SATURADA", "CRITICA")
@@ -5189,6 +5364,7 @@ table _Medidas
 		lineageTag: 03d865da-a957-4722-be63-b58449917f51
 		dataCategory: ImageUrl
 
+	/// SVG Card: ocupacao de capacidade por volumes/dia
 	measure 'SVG Card Capacidade Volumes' =
 			VAR _valorNum = [Ocupacao Filial Volumes (%)]
 			VAR _status = SWITCH(TRUE(), ISBLANK(_valorNum), "SEM DADOS", _valorNum < 0.75, "SUBOCUPADA", _valorNum <= 0.95, "BALANCEADA", _valorNum <= 1.10, "SATURADA", "CRITICA")
@@ -5218,6 +5394,7 @@ table _Medidas
 		lineageTag: ee50bf43-f735-443b-b4fe-a11f1f39df30
 		dataCategory: ImageUrl
 
+	/// SVG Card: ocupacao de capacidade por peso/dia
 	measure 'SVG Card Capacidade Peso' =
 			
 			VAR _valorNum = [Ocupacao Filial Peso (%)]

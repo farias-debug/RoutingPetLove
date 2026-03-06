@@ -17,30 +17,46 @@
 
 ---
 
-## Grupo A — Substituir por Nativo (6 medidas)
+## Grupo A — Substituir por Nativo (6 medidas) ⏳ DESKTOP
 
-Cards simples (≤2100 chars), só valor + label.
+Cards simples (≤2100 chars), só valor + label. Todas já `isHidden` em `90. Legado`.
 
-| Medida | Chars | Ação |
-|--------|-------|------|
-| HTML Card KM Total | 1859 | → New Card nativo |
-| HTML Card Peso Total | 1873 | → New Card nativo |
-| HTML Card Total Volumes | 1892 | → New Card nativo |
-| HTML Card Veiculos | 1901 | → New Card nativo |
-| HTML Card Total Rotas | 1958 | → New Card nativo |
-| HTML Card Total Pedidos | 2051 | → New Card nativo |
+| Medida HTML | Medida Principal (New Card) | Medidas Secundárias |
+|-------------|---------------------------|---------------------|
+| HTML Card KM Total | Total KM Realizado (#,##0) | Eficiencia KM (%), Media KM por Rota |
+| HTML Card Peso Total | Total Peso (kg) (#,##0.0) | SPR Peso Realizado (kg/rota) |
+| HTML Card Total Volumes | Total Volumes (#,##0) | Media Volumes por Rota |
+| HTML Card Veiculos | Veiculos Ativos (#,##0) | Rotas por Veiculo Dia |
+| HTML Card Total Rotas | Total Rotas (#,##0) | Var D-1 Rotas, Var WoW Rotas |
+| HTML Card Total Pedidos | Total Pedidos (#,##0) | Var D-1 Pedidos, Var WoW Pedidos |
 
-## Grupo B — SVG Card Já Existe (7 medidas)
+**Passos Desktop (por card):**
+1. Selecionar visual HTML Content Viewer que usa a medida HTML
+2. Substituir por **New Card** visual
+3. Arrastar medida principal para o campo Value
+4. Arrastar medida secundária (variação) como Reference Label
+5. Ajustar formatação conforme tema
 
-| Medida HTML | SVG Equivalente |
-|-------------|-----------------|
-| HTML Card Capacidade | SVG Card Capacidade |
-| HTML Card Eficiencia KM | SVG Card Eficiencia KM |
-| HTML Card ORH | SVG Card ORH |
-| HTML Card SPR Ped | SVG Card SPR Ped |
-| HTML Card SPR Vol | SVG Card SPR Vol |
-| HTML Card Total Pedidos | SVG Card Total Pedidos |
-| HTML Card Total Rotas | SVG Card Total Rotas |
+## Grupo B — SVG Card Já Existe (7 medidas) ⏳ DESKTOP
+
+SVG Cards validadas (Grupo E ✅). Todas HTML já `isHidden` em `90. Legado`.
+
+| Medida HTML | SVG Equivalente (Image visual) | Status SVG |
+|-------------|-------------------------------|------------|
+| HTML Card Capacidade | SVG Card Capacidade | ✅ OK |
+| HTML Card Eficiencia KM | SVG Card Eficiencia KM | ✅ OK |
+| HTML Card ORH | SVG Card ORH | ✅ OK |
+| HTML Card SPR Ped | SVG Card SPR Ped | ✅ OK |
+| HTML Card SPR Vol | SVG Card SPR Vol | ✅ OK |
+| HTML Card Total Pedidos | SVG Card Total Pedidos | ✅ OK |
+| HTML Card Total Rotas | SVG Card Total Rotas | ✅ OK |
+
+**Passos Desktop (por card):**
+1. Selecionar visual HTML Content Viewer que usa a medida HTML
+2. Substituir por **Image** visual (visual nativo)
+3. Arrastar o SVG Card equivalente para o campo Image URL
+4. Definir `Image Size → Fit` e bordas off
+5. Validar renderização do SVG Card
 
 ## Grupo C — Criar SVG Template (20 medidas)
 
