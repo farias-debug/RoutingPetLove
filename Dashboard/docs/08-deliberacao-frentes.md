@@ -59,7 +59,7 @@ Três frentes paralelas com interdependências controladas:
 
 | Ação | Frente | Dep |
 |------|--------|-----|
-| Descriptions em massa (≥80% medidas) | Semântica | — |
+| Descriptions em massa (≥80% medidas) | Semântica | ✅ Concluído — 100% (`94fc99e`) |
 | Criar 3 KPI Packs (01, 04, 05) | Semântica | — |
 | Triar 98.Suporte (hidden vs expostas) | Semântica | — |
 | Criar página M4 Jornada/ORH | UX | Medidas 03.* validadas |
@@ -94,7 +94,7 @@ Três frentes paralelas com interdependências controladas:
 | Métrica | Baseline | Meta Fase 2 | Meta Final |
 |---------|----------|-------------|------------|
 | Medidas total | 389 → **381** | ≤375 | ≤340 |
-| Medidas com description | ~0% → **~53%** (204/381) | ≥80% | 100% |
+| Medidas com description | ~0% → **~53%** (204/381) → **100%** (381/381) | ~~≥80%~~ ✅ 100% | 100% |
 | LocalDateTables | 7 → **0** | 0 | 0 |
 | Medidas HTML legadas | 44 → **43 triadas (A:6 B:7 C:20 D:10)** | ≤10 | 0 |
 | SVG Cards validar | 17 → **17 triadas (grupo E)** | ≤5 erros | 0 erros |
