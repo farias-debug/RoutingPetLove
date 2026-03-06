@@ -69,7 +69,7 @@ data/CSV + data/XLSX + tab_auxiliar/*.xlsx
 | dim_tipo_veiculo | Dimensao | dim_tipo_veiculo.csv |
 | fato_rotas       | Fato     | fato_rotas.csv       |
 | fato_planejado   | Fato     | fato_planejado.csv   |
-| _Medidas         | Measures | 389 measures DAX     |
+| _Medidas         | Measures | 371 measures DAX     |
 | _Metas           | Params   | DAX inline           |
 
 ### Relacionamentos (N:1)

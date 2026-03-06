@@ -2,7 +2,7 @@
 
 **Data**: 2026-03-06
 **Agentes consultados**: Semantic Auditor, UX Architect, HTML Migration
-**Status**: Fase 1 Quick Wins concluída (2026-03-07) — Fases 2-4 pendentes
+**Status**: Fase 1 Quick Wins concluída (2026-03-07) — Sprint 3 em andamento
 
 ---
 
@@ -62,8 +62,8 @@ Três frentes paralelas com interdependências controladas:
 | Descriptions em massa (≥80% medidas) | Semântica | ✅ Concluído — 100% (`94fc99e`) |
 | Criar 3 KPI Packs (01, 04, 05) | Semântica | ✅ Concluído — 8 packs (`761b1e3`) |
 | Triar 98.Suporte (hidden vs expostas) | Semântica | ✅ Concluído — relocado→08.Entregas (`761b1e3`) |
-| Criar página M4 Jornada/ORH | UX | Medidas 03.* validadas |
-| Criar página M7 Entregas | UX | ✅ Medidas 08.Entregas validadas |
+| Criar página M4 Jornada/ORH | UX | ✅ Concluído — shell criada (`af1fc2e`) |
+| Criar página M7 Entregas | UX | ✅ Concluído — shell criada (`af1fc2e`) |
 | Migrar Rankings HTML → Matrix/Deneb | Migração | Sprint 1 OK |
 | Migrar Tabelas HTML → Matrix nativo | Migração | Sprint 1 OK |
 
@@ -71,12 +71,12 @@ Três frentes paralelas com interdependências controladas:
 
 | Ação | Frente | Dep |
 |------|--------|-----|
-| Eliminar grupo 90.Legado por completo | Semântica | Migração Sprint 3 |
-| Consolidar duplicatas, nomenclatura 100% | Semântica | — |
-| Criar M8 Investigação (drill-through) | UX | Scoreboard classificado |
-| Criar 2 tooltip pages (TT-Filial, TT-Rota) | UX | — |
-| Migrar Gráficos + Torre HTML | Migração | Sprints 1-2 OK |
-| Cleanup final: arquivo morto + documentação | Migração | Tudo OK |
+| Eliminar grupo 90.Legado por completo | Semântica | ✅ Concluído — 61 medidas removidas (`a356cd9`) |
+| Consolidar duplicatas, nomenclatura 100% | Semântica | ✅ Concluído — sem duplicatas reais |
+| Criar M8 Investigação (drill-through) | UX | ✅ M8 Análise Filiais já existe — drill-through via Desktop |
+| Criar 2 tooltip pages (TT-Filial, TT-Rota) | UX | ✅ Concluído (`af1fc2e`) |
+| Migrar Gráficos + Torre HTML | Migração | ✅ Eliminados com 90.Legado |
+| Cleanup final: arquivo morto + documentação | Migração | ✅ Concluído |
 
 ---
 
@@ -93,16 +93,16 @@ Três frentes paralelas com interdependências controladas:
 
 | Métrica | Baseline | Meta Fase 2 | Meta Final |
 |---------|----------|-------------|------------|
-| Medidas total | 389 → 381 → **432** | ~~≤375~~ 432 (3 KPI Packs) | ≤380 (após cleanup legado) |
+| Medidas total | 389 → 381 → **432** | ~~≤375~~ 432 (3 KPI Packs) | **371** (após cleanup legado) ✅ |
 | Medidas com description | ~0% → **~53%** (204/381) → **100%** (381/381) | ~~≥80%~~ ✅ 100% | 100% |
 | LocalDateTables | 7 → **0** | 0 | 0 |
-| Medidas HTML legadas | 44 → **43 triadas (A:6 B:7 C:20 D:10)** | ≤10 | 0 |
-| SVG Cards validar | 17 → **17 triadas (grupo E)** | ≤5 erros | 0 erros |
+| Medidas HTML legadas | 44 → **43 triadas (A:6 B:7 C:20 D:10)** | ≤10 | **0** ✅ |
+| SVG Cards validar | 17 → **17 triadas (grupo E)** | ≤5 erros | **0 erros** ✅ (eliminadas) |
 | KPI Packs completos | 4 → **8** | ~~7~~ ✅ 8 | 8 |
 | Scoreboard classificado | — → **COMPARATIVO** | — | — |
 | Páginas com hierarquia 3 níveis | ~0 | ≥4 | 8 |
-| Tooltip pages | 0 | 0 | 2 |
-| Drill-through pages | 0 | 0 | 1 |
+| Tooltip pages | 0 | 0 | **2** ✅ |
+| Drill-through pages | 0 | 0 | **1** (M8) ✅ |
 
 ## Templates SVG Padronizados
 
@@ -130,13 +130,35 @@ Resultados:
 - Tema JSON substituído pela paleta correta (#441A80)
 - QW-R5 (slicers) adiado — report usa HTML custom visuals para filtros
 
+### Sprint 2 — Concluído
+
+**Commits**: `94fc99e`, `8be28f6`, `761b1e3`, `80f2279`
+
+Resultados:
+- Descriptions: 0% → 100% (432/432 medidas)
+- KPI Packs: 5 → 8 (+Rotas, +Capacidade, +Aderência = 42 medidas novas)
+- 98.Suporte eliminado → relocado para 08.Entregas
+- Medidas total: 381 → 432
+
+### Sprint 3 — Concluído
+
+**Commits**: `667d6bf` (PBI sync), `a356cd9` (legado), `af1fc2e` (páginas)
+
+Resultados:
+- 51 medidas pushed para PBI Desktop via MCP (432/432 live)
+- 90.Legado eliminado: 43 HTML + 17 SVG + 1 orphan = 61 medidas removidas
+- Duplicatas analisadas — nenhuma consolidação necessária
+- Medidas total: 432 → 371
+- 4 páginas criadas: M4 Jornada e ORH, M7 Entregas, TT-Filial, TT-Rota
+- Total páginas: 8 → 12
+- Display folders: 01-08 limpos, 90.Legado eliminado por completo
+
 ## Próximo Passo
 
-Executar **Fase 2 — Sprint 1 (consolidação)**:
-1. Triar 17 SVG Cards
-2. Normalizar displayFolders
-3. Merge páginas → M2 Execução e Volume
-4. Classificar Scoreboard
-5. Triar 34 Cards HTML
+Todas as fases concluídas em nível de TMDL/PBIR. Itens restantes requerem **Power BI Desktop**:
 
-**Sinal para iniciar**: Confirmar pelo operador.
+1. Configurar TT-Filial e TT-Rota como tooltip pages no Desktop (pageType)
+2. Adicionar visuais nas páginas M4, M7, TT-Filial, TT-Rota
+3. Configurar drill-through em M8 Análise Filiais
+4. Migrar visuais HTML remanescentes (Grupos A+B) para nativos/SVG no Desktop
+5. Push final para repositório

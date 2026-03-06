@@ -9,7 +9,7 @@ applyTo:
 ## Contexto
 
 O modelo semântico do Painel Monitoramento Petlove está em formato TMDL (Tabular Model Definition Language).
-A tabela `_Medidas` contém 381 medidas DAX organizadas por display folders.
+A tabela `_Medidas` contém 371 medidas DAX organizadas por display folders.
 Todas as medidas devem ser gerenciadas exclusivamente nessa tabela.
 
 ## Tabelas do Modelo
@@ -21,7 +21,7 @@ Todas as medidas devem ser gerenciadas exclusivamente nessa tabela.
 | dim_tipo_veiculo | Dimensão | dim_tipo_veiculo.csv |
 | fato_rotas | Fato | fato_rotas.csv |
 | fato_planejado | Fato | fato_planejado.csv |
-| _Medidas | Measures | 381 medidas DAX |
+| _Medidas | Measures | 371 medidas DAX |
 | _Metas | Parâmetros | DAX inline |
 
 ## Relacionamentos (N:1)
@@ -43,6 +43,7 @@ Todas as medidas devem ser gerenciadas exclusivamente nessa tabela.
 01. Operacao\04. Medias e Tendencias         (~7 medidas)
 01. Operacao\05. Planejado vs Realizado      (~9 medidas)
 01. Operacao\06. Status de Rota              (~5 medidas)
+01. Operacao\07. KPI Rotas                   (14 medidas — pack KPI)
 02. SPR e Performance\01. SPR Base           (~15 medidas)
 02. SPR e Performance\02. Produtividade Hora (~10 medidas)
 02. SPR e Performance\03. Eficiencia KM      (~6 medidas)
@@ -55,10 +56,12 @@ Todas as medidas devem ser gerenciadas exclusivamente nessa tabela.
 04. Frota e Capacidade\02. Ocupacao Geral            (~12 medidas)
 04. Frota e Capacidade\03. Mix por Tipo              (~7 medidas)
 04. Frota e Capacidade\04. Filial e Semana           (~27 medidas)
+04. Frota e Capacidade\05. KPI Capacidade            (14 medidas — pack KPI)
 05. Plano vs Real\01. Desvios Absolutos      (~5 medidas)
 05. Plano vs Real\02. Aderencia Percentual   (~5 medidas)
 05. Plano vs Real\03. Cobertura e Match      (~5 medidas)
 05. Plano vs Real\04. Contexto de Execucao   (~4 medidas)
+05. Plano vs Real\05. KPI Aderencia          (14 medidas — pack KPI)
 07. Investigacao\01. Linha Operacional       (22 medidas TblExp)
 ```
 
@@ -68,22 +71,19 @@ Todas as medidas devem ser gerenciadas exclusivamente nessa tabela.
 06. Shared\01. Temporal                     (~41 medidas — referências de data)
 06. Shared\02. Metas\01. SPR                (~7 medidas)
 06. Shared\02. Metas\02. ORH                (~1 medida)
-06. Shared\03. SVG Cards                    (17 medidas — erros conhecidos, reavaliar)
-98. Suporte\01. Entrega                     (~7 medidas)
-98. Suporte\02. KPI Entrega                 (14 medidas — pack KPI)
-98. Suporte\03. Metas Entrega               (~2 medidas)
-98. Suporte\04. Entrega Operacional          (~9 medidas)
+06. Shared\03. SVG Cards                    (17 medidas — reavaliar)
+06. Shared\04. Metas Global                 (3 medidas meta-global)
+06. Shared\05. Var D-1                      (3 medidas variação dia anterior)
+06. Shared\06. Var WoW                      (3 medidas variação semana)
+08. Entregas\01. Entrega                    (~7 medidas)
+08. Entregas\02. KPI Entrega                (14 medidas — pack KPI)
+08. Entregas\03. Metas Entrega              (~2 medidas)
 ```
 
 ### Legado / Baixa prioridade
 
 ```
-90. Legado\01. HTML\01. Cards       (34 medidas — migrar para SVG/nativo)
-90. Legado\01. HTML\02. Rankings    (4 medidas — migrar para tabela nativa)
-90. Legado\01. HTML\03. Tabelas     (2 medidas — migrar para matrix nativa)
-90. Legado\01. HTML\04. Graficos    (3 medidas — descartar, nativo superior)
-90. Legado\01. HTML\05. Torre       (1 medida — decomp em KPI Cards)
-99. Backoffice\01. Nao Publicavel   (8 medidas — avaliar descarte)
+99. Backoffice\01. Nao Publicavel   (8 medidas — removidas na Fase 1)
 ```
 
 ### Padrão KPI Pack (14 medidas por KPI)
@@ -95,7 +95,7 @@ Valor, Meta, Delta, Delta%, Status, Status Codigo, Status Texto,
 Cor, Icone, Texto Card, Acao, Origem Meta, Trend D-1, Trend WoW
 ```
 
-KPI Packs existentes: SPR Pedidos, SPR Volumes, Desvio SPR, ORH, Entrega.
+KPI Packs existentes (8): SPR Pedidos, SPR Volumes, Desvio SPR, ORH, Entrega, Rotas, Capacidade, Aderência.
 
 ## Convenção de Nomenclatura de Medidas
 
