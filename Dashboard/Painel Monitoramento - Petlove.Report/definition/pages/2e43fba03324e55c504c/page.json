@@ -4,16 +4,5 @@
   "displayName": "M8 Análise Filiais",
   "displayOption": "FitToPage",
   "height": 720,
-  "width": 1280,
-  "type": "Drillthrough",
-  "visibility": "HiddenInViewMode",
-  "pageBinding": {
-    "name": "drillthrough-filial",
-    "type": "Drillthrough",
-    "parameters": [
-      {
-        "name": "param-filial"
-      }
-    ]
-  }
+  "width": 1280
 }
