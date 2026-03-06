@@ -24,21 +24,23 @@ table _Metas
 
 	partition _Metas = calculated
 		mode: import
-		source =
+		source = 
 				DATATABLE(
-				    "KPI", STRING,
-				    "Meta", DOUBLE,
-				    "Sentido", STRING,
-				    "Unidade", STRING,
-				    {
-				        { "SPR Ped Realizado", 42, "Maior=Melhor", "ped/rota" },
-				        { "SPR Ped Planejado", 52, "Maior=Melhor", "ped/rota" },
-				        { "SPR Vol Realizado", 67, "Maior=Melhor", "vol/rota" },
-				        { "SPR Vol Planejado", 73, "Maior=Melhor", "vol/rota" },
-				        { "Desvio SPR Ped", -3, "Menor=Melhor", "pts" },
-				        { "Desvio SPR Vol", -3, "Menor=Melhor", "pts" },
-				        { "ORH Tempo Rota", 7, "Alvo=Melhor", "horas" },
-				        { "% Entregas Efetivas", 0.98, "Maior=Melhor", "%" }
-				    }
+				"KPI",STRING,
+				"Meta",DOUBLE,
+				"Sentido",STRING,
+				"Unidade",STRING,
+				{
+				{"SPR Ped Realizado",42,"Maior=Melhor","ped/rota"},
+				{"SPR Ped Planejado",52,"Maior=Melhor","ped/rota"},
+				{"SPR Vol Realizado",67,"Maior=Melhor","vol/rota"},
+				{"SPR Vol Planejado",73,"Maior=Melhor","vol/rota"},
+				{"Desvio SPR Ped",-3,"Menor=Melhor","pts"},
+				{"Desvio SPR Vol",-3,"Menor=Melhor","pts"},
+				{"ORH Tempo Rota",7,"Alvo=Melhor","horas"},
+				{"% Entregas Efetivas",0.98,"Maior=Melhor","%"},
+				{"% Rotas Concluidas",0.95,"Maior=Melhor","%"},
+				{"Ocupacao Composta",0.85,"Alvo=Melhor","%"},
+				{"Aderencia Volumes",0.90,"Maior=Melhor","%"}
+				}
 				)
-
