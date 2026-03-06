@@ -4659,7 +4659,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 81974a78-4271-4b41-a112-7db7c202c87a
@@ -4693,7 +4693,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 50ceada3-44a1-479b-ab87-482238f20aef
@@ -4727,7 +4727,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 00657e90-e0bf-4e44-ad7c-4ccd6323e450
@@ -4756,7 +4756,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 551af43b-ae17-43b6-bea8-5de603b4cbf9
@@ -4801,7 +4801,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 95a11bf9-978a-48e9-b1a1-c2152bf1565e
@@ -4856,7 +4856,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 9b6ca51e-1cad-4cef-bb70-b8a6d2b267e6
@@ -4901,7 +4901,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 7b69fc83-6c75-48f6-a0ff-1c9b96a6a996
@@ -4944,7 +4944,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 1a9da8ab-3863-462a-a4cb-e0c789fdbe25
@@ -4989,7 +4989,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 38a6fd40-61c6-4d45-b587-d9fd10ef9cff
@@ -5035,7 +5035,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 911333b4-f36e-415c-bf99-eb7b07ad6d37
@@ -5062,7 +5062,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='#441A80'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 91ae7bf6-f292-4f4c-9397-90065ec91ee2
@@ -5095,7 +5095,7 @@ table _Medidas
 			        & "<text x='321' y='116' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='#F5F1E8'>Sem tempo " & _st & "</text>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 01ccf0f7-0872-4810-bf19-173849d04e9a
@@ -5125,7 +5125,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 672b4bff-3eec-42fd-b5e4-cc52332d4be5
@@ -5154,7 +5154,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: e83d34bc-b376-4b92-8781-596603e44e04
@@ -5183,7 +5183,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 03d865da-a957-4722-be63-b58449917f51
@@ -5212,7 +5212,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: ee50bf43-f735-443b-b4fe-a11f1f39df30
@@ -5280,7 +5280,7 @@ table _Medidas
 			        & "</svg>"
 			
 			RETURN
-			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
+			    "data:image/svg+xml;utf8," & SUBSTITUTE(_svg, "#", "%23")
 		isHidden
 		displayFolder: 06. Shared\03. SVG Cards
 		lineageTag: 4ff17a2b-c5ec-42db-9771-704067ba7bbf
