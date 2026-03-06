@@ -1,0 +1,200 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "tbl_scoreboard_filial",
+  "position": {
+    "x": 20,
+    "y": 478,
+    "z": 0,
+    "width": 1240,
+    "height": 222,
+    "tabOrder": 12
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_filial"
+                    }
+                  },
+                  "Property": "NomeResumido"
+                }
+              },
+              "queryRef": "dim_filial.NomeResumido",
+              "displayName": "Filial"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "SPR Ped Realizado"
+                }
+              },
+              "queryRef": "_Medidas.SPR Ped Realizado",
+              "displayName": "SPR Ped"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Meta SPR Pedidos"
+                }
+              },
+              "queryRef": "_Medidas.Meta SPR Pedidos",
+              "displayName": "Meta SPR"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Gap SPR vs Meta (pts)"
+                }
+              },
+              "queryRef": "_Medidas.Gap SPR vs Meta (pts)",
+              "displayName": "Gap SPR"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Pedidos/h Realizado"
+                }
+              },
+              "queryRef": "_Medidas.Pedidos/h Realizado",
+              "displayName": "Pedidos/h"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Volumes/h Realizado"
+                }
+              },
+              "queryRef": "_Medidas.Volumes/h Realizado",
+              "displayName": "Volumes/h"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Eficiencia KM (%)"
+                }
+              },
+              "queryRef": "_Medidas.Eficiencia KM (%)",
+              "displayName": "Eficiencia KM %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "KPI SPR Ped Status Texto"
+                }
+              },
+              "queryRef": "_Medidas.KPI SPR Ped Status Texto",
+              "displayName": "Status"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "KPI SPR Ped Acao"
+                }
+              },
+              "queryRef": "_Medidas.KPI SPR Ped Acao",
+              "displayName": "Acao"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Scoreboard semanal por filial'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Left'"
+                }
+              }
+            },
+            "titleWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

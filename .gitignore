@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# IDE
+.idea/
+.cursor/
+*.swp
+
+# Locais (nao rastreados)
+clawdbot/
+_archive/
+tmp/
+*.log
+formatting_schema.json
+semantic_schema.json

@@ -1,0 +1,18 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.black-formatter",
+    "ms-python.isort",
+    "ms-toolsai.jupyter",
+    "github.copilot",
+    "github.copilot-chat",
+    "github.vscode-github-actions",
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+    "mechatroner.rainbow-csv",
+    "GrapeCity.gc-excelviewer",
+    "redhat.vscode-yaml",
+    "ms-vscode.powershell"
+  ],
+  "unwantedRecommendations": []
+}

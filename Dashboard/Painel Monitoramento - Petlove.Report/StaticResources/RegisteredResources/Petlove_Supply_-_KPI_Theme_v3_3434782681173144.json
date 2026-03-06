@@ -1,0 +1,344 @@
+{
+  "name": "Petlove Supply - Control Tower",
+  "dataColors": [
+    "#143C5A",
+    "#1B7F79",
+    "#A36A1F",
+    "#6E8D5B",
+    "#C44E3B",
+    "#4B5563",
+    "#7C5E3A",
+    "#0F172A"
+  ],
+  "foreground": "#102536",
+  "foregroundNeutralSecondary": "#5C6673",
+  "foregroundNeutralTertiary": "#8A94A4",
+  "background": "#F5F1E8",
+  "backgroundLight": "#FFFCF6",
+  "backgroundNeutral": "#E6DED0",
+  "tableAccent": "#143C5A",
+  "good": "#1B8A5A",
+  "neutral": "#C98923",
+  "bad": "#C44E3B",
+  "maximum": "#143C5A",
+  "center": "#C98923",
+  "minimum": "#E8F1F8",
+  "null": "#C8CDD3",
+  "hyperlink": "#145DA0",
+  "visitedHyperlink": "#145DA0",
+  "textClasses": {
+    "callout": {
+      "fontSize": 28,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#102536"
+    },
+    "title": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#102536"
+    },
+    "header": {
+      "fontSize": 11,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#102536"
+    },
+    "label": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI",
+      "color": "#5C6673"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "visualHeader": [
+          {
+            "show": false
+          }
+        ],
+        "background": [
+          {
+            "show": true,
+            "transparency": 100
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "show": true,
+            "titleWrap": true,
+            "fontSize": 12,
+            "color": {
+              "solid": {
+                "color": "#102536"
+              }
+            },
+            "alignment": "Left"
+          }
+        ]
+      }
+    },
+    "slicer": {
+      "*": {
+        "general": [
+          {
+            "responsive": true
+          }
+        ],
+        "background": [
+          {
+            "show": true,
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "show": true,
+            "titleWrap": true,
+            "fontSize": 11,
+            "alignment": "Left"
+          }
+        ]
+      }
+    },
+    "card": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "show": false
+          }
+        ]
+      }
+    },
+    "multiRowCard": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "show": false
+          }
+        ]
+      }
+    },
+    "lineChart": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "show": true,
+            "titleWrap": true,
+            "fontSize": 12
+          }
+        ]
+      }
+    },
+    "clusteredBarChart": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "show": true,
+            "titleWrap": true,
+            "fontSize": 12
+          }
+        ]
+      }
+    },
+    "table": {
+      "*": {
+        "general": [
+          {
+            "responsive": true,
+            "keepLayerOrder": true
+          }
+        ],
+        "background": [
+          {
+            "show": true,
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "show": true,
+            "titleWrap": true,
+            "fontSize": 12,
+            "alignment": "Left"
+          }
+        ],
+        "columnHeaders": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#5C6673"
+              }
+            },
+            "backColor": {
+              "solid": {
+                "color": "#F7F2E8"
+              }
+            },
+            "outline": "None",
+            "fontSize": 10,
+            "bold": true
+          }
+        ],
+        "values": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#102536"
+              }
+            },
+            "backColor": {
+              "solid": {
+                "color": "#FFFCF6"
+              }
+            },
+            "outline": "BottomOnly"
+          }
+        ],
+        "grid": [
+          {
+            "gridVertical": false,
+            "gridHorizontal": true,
+            "outlineColor": {
+              "solid": {
+                "color": "#E6DED0"
+              }
+            },
+            "imageHeight": 124
+          }
+        ]
+      }
+    },
+    "tableEx": {
+      "*": {
+        "general": [
+          {
+            "responsive": true,
+            "keepLayerOrder": true
+          }
+        ],
+        "background": [
+          {
+            "show": true,
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "show": true,
+            "titleWrap": true,
+            "fontSize": 12,
+            "alignment": "Left"
+          }
+        ],
+        "columnHeaders": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#5C6673"
+              }
+            },
+            "backColor": {
+              "solid": {
+                "color": "#F7F2E8"
+              }
+            },
+            "outline": "None",
+            "fontSize": 10,
+            "bold": true
+          }
+        ],
+        "values": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#102536"
+              }
+            },
+            "backColor": {
+              "solid": {
+                "color": "#FFFCF6"
+              }
+            },
+            "outline": "BottomOnly"
+          }
+        ],
+        "grid": [
+          {
+            "gridVertical": false,
+            "gridHorizontal": true,
+            "outlineColor": {
+              "solid": {
+                "color": "#E6DED0"
+              }
+            },
+            "imageHeight": 124
+          }
+        ]
+      }
+    }
+  }
+}

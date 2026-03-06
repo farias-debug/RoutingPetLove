@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "card_ader_km",
+  "position": {
+    "x": 340,
+    "y": 100,
+    "z": 0,
+    "width": 145,
+    "height": 90,
+    "tabOrder": 6
+  },
+  "visual": {
+    "visualType": "card",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Aderencia KM (%)"
+                }
+              },
+              "queryRef": "_Medidas.Aderencia KM (%)",
+              "displayName": "Aderencia KM %"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,150 @@
+/// Dimensao de filiais com tipo operacional, meta SPR e capacidade operacional
+table dim_filial
+	lineageTag: af5afef6-9b1d-49a9-8fdd-dc9e79c8dadd
+
+	column Filial
+		dataType: string
+		lineageTag: 27ccbb84-0a71-4579-bde2-16dd2e619727
+		summarizeBy: none
+		sourceColumn: Filial
+
+		annotation SummarizationSetBy = Automatic
+
+	column Codigo
+		dataType: int64
+		formatString: 0
+		lineageTag: 83f5551d-677c-4cda-b91a-857fa3235ef3
+		summarizeBy: sum
+		sourceColumn: Codigo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tipo
+		dataType: string
+		lineageTag: d8bf0311-23d5-4eab-ba96-4fe3adf2a2d4
+		summarizeBy: none
+		sourceColumn: Tipo
+
+		annotation SummarizationSetBy = Automatic
+
+	column MetaSPR
+		dataType: int64
+		lineageTag: acb52356-b6cf-495a-b828-2d725e842712
+		summarizeBy: sum
+		sourceColumn: MetaSPR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Regiao geografica da filial (Norte, Nordeste, Centro-Oeste, Sudeste, Sul)
+	column Regiao
+		dataType: string
+		lineageTag: 045e0491-872c-4298-a504-fdcf27a72642
+		sourceColumn: Regiao
+
+	column 'CD Origem'
+		dataType: string
+		lineageTag: 96428c3c-bb27-4925-8247-d439d378bb53
+		summarizeBy: none
+		sourceColumn: CD Origem
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tabela
+		dataType: string
+		lineageTag: 4d640e93-4d7a-4eff-a769-33b272450087
+		summarizeBy: none
+		sourceColumn: Tabela
+
+		annotation SummarizationSetBy = Automatic
+
+	column NomeResumido
+		dataType: string
+		lineageTag: 9872565d-c493-434e-85cb-5ab000458ff2
+		summarizeBy: none
+		sourceColumn: NomeResumido
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Capacidade Volume Dia'
+		dataType: int64
+		formatString: 0
+		lineageTag: 608b99a2-974a-4f63-9333-b90395af59da
+		summarizeBy: sum
+		sourceColumn: Capacidade Volume Dia
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Capacidade Veiculos Dia'
+		dataType: double
+		formatString: 0.0
+		lineageTag: e1b94f31-b0b1-4c2c-8d5a-4d4df35b1f01
+		summarizeBy: sum
+		sourceColumn: Capacidade Veiculos Dia
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Capacidade Pedidos Dia'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7ef4a6dc-7cbc-4c28-8d6f-a6e112d8a912
+		summarizeBy: sum
+		sourceColumn: Capacidade Pedidos Dia
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Capacidade Peso Dia (kg)'
+		dataType: double
+		formatString: #,##0.0
+		lineageTag: 2c6245c8-9e96-4c99-a6a7-d255fc0f80d7
+		summarizeBy: sum
+		sourceColumn: Capacidade Peso Dia (kg)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition dim_filial = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\Users\lucas.batista\Documents\Projetos\Dashboard\data\tab_auxiliar\dim_filial.xlsx"), null, true),
+				    FilialSheet = Source{[Item="dim_filial", Kind="Sheet"]}[Data],
+				    Promoted = Table.PromoteHeaders(FilialSheet, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"CD Origem", type text}, {"Tabela", type any}, {"Filial", type text}, {"Codigo", Int64.Type}, {"Nome Filial", type text}, {"Tipo", type text}, {"MetaSPR", Int64.Type}, {"Regiao", type text}, {"Capacidade Volume Dia", Int64.Type}}),
+				    Renamed = Table.RenameColumns(Typed, {{"Nome Filial", "NomeResumido"}}),
+				    FactSource = Csv.Document(File.Contents("C:\Users\lucas.batista\Documents\Projetos\Dashboard\output\powerbi\fato_rotas.csv"), [Delimiter=";", Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				    FactPromoted = Table.PromoteHeaders(FactSource, [PromoteAllScalars=true]),
+				    FactSelected = Table.SelectColumns(FactPromoted, {"Filial", "Data Referencia", "Rota", "Pedidos da Rota", "Volumes da Rota", "Peso (kg)"}),
+				    FactDates = Table.TransformColumns(FactSelected, {{"Data Referencia", each if _ = null or _ = "" then null else Date.FromText(_, [Format="yyyy-MM-dd", Culture="en-US"]), type date}}),
+				    FactTyped = Table.TransformColumnTypes(FactDates, {{"Filial", type text}, {"Rota", type text}, {"Pedidos da Rota", Int64.Type}, {"Volumes da Rota", Int64.Type}, {"Peso (kg)", type number}}, "pt-BR"),
+				    MaxDate = try List.Max(List.RemoveNulls(Table.Column(FactTyped, "Data Referencia"))) otherwise null,
+				    WindowStart = if MaxDate = null then null else Date.AddDays(MaxDate, -55),
+				    FactWindow = if WindowStart = null then Table.SelectRows(FactTyped, each false) else Table.SelectRows(FactTyped, each [Data Referencia] <> null and [Data Referencia] >= WindowStart and [Volumes da Rota] <> null and [Volumes da Rota] > 0),
+				    ByFilial = Table.Group(FactWindow, {"Filial"}, {{"RotasPeriodo", each Table.RowCount(_), Int64.Type}, {"PedidosTotal", each List.Sum(List.RemoveNulls(Table.Column(_, "Pedidos da Rota"))), type number}, {"VolumesTotal", each List.Sum(List.RemoveNulls(Table.Column(_, "Volumes da Rota"))), type number}, {"PesoTotal", each List.Sum(List.RemoveNulls(Table.Column(_, "Peso (kg)"))), type number}}),
+				    GlobalRotas = Table.RowCount(FactWindow),
+				    GlobalVolumes = List.Sum(List.RemoveNulls(Table.Column(FactWindow, "Volumes da Rota"))),
+				    GlobalPedidos = List.Sum(List.RemoveNulls(Table.Column(FactWindow, "Pedidos da Rota"))),
+				    GlobalPeso = List.Sum(List.RemoveNulls(Table.Column(FactWindow, "Peso (kg)"))),
+				    GlobalVolumePorRota = if GlobalRotas = 0 or GlobalVolumes = null then null else GlobalVolumes / GlobalRotas,
+				    GlobalPedidosPorVolume = if GlobalVolumes = null or GlobalVolumes = 0 then null else GlobalPedidos / GlobalVolumes,
+				    GlobalPesoPorVolume = if GlobalVolumes = null or GlobalVolumes = 0 then null else GlobalPeso / GlobalVolumes,
+				    WithVolumeRef = Table.AddColumn(ByFilial, "VolumePorRotaRef", each if [RotasPeriodo] = null or [RotasPeriodo] = 0 or [VolumesTotal] = null then GlobalVolumePorRota else [VolumesTotal] / [RotasPeriodo], type number),
+				    WithPedidosRef = Table.AddColumn(WithVolumeRef, "PedidosPorVolumeRef", each if [VolumesTotal] = null or [VolumesTotal] = 0 or [PedidosTotal] = null then GlobalPedidosPorVolume else [PedidosTotal] / [VolumesTotal], type number),
+				    WithPesoRef = Table.AddColumn(WithPedidosRef, "PesoPorVolumeRefKg", each if [VolumesTotal] = null or [VolumesTotal] = 0 or [PesoTotal] = null then GlobalPesoPorVolume else [PesoTotal] / [VolumesTotal], type number),
+				    Merged = Table.NestedJoin(Renamed, {"Filial"}, WithPesoRef, {"Filial"}, "CapacidadeOperacional", JoinKind.LeftOuter),
+				    Expanded = Table.ExpandTableColumn(Merged, "CapacidadeOperacional", {"VolumePorRotaRef", "PedidosPorVolumeRef", "PesoPorVolumeRefKg"}, {"VolumePorRotaRef", "PedidosPorVolumeRef", "PesoPorVolumeRefKg"}),
+				    WithCapacidadeVeiculos = Table.AddColumn(Expanded, "Capacidade Veiculos Dia", each let _cap = [Capacidade Volume Dia], _ref = [VolumePorRotaRef] in if _cap = null or _ref = null or _ref = 0 then null else Number.Round(_cap / _ref, 1), type number),
+				    WithCapacidadePedidos = Table.AddColumn(WithCapacidadeVeiculos, "Capacidade Pedidos Dia", each let _cap = [Capacidade Volume Dia], _ref = [PedidosPorVolumeRef] in if _cap = null or _ref = null then null else Int64.From(Number.Round(_cap * _ref, 0)), Int64.Type),
+				    WithCapacidadePeso = Table.AddColumn(WithCapacidadePedidos, "Capacidade Peso Dia (kg)", each let _cap = [Capacidade Volume Dia], _ref = [PesoPorVolumeRefKg] in if _cap = null or _ref = null then null else Number.Round(_cap * _ref, 1), type number),
+				    Final = Table.RemoveColumns(WithCapacidadePeso, {"VolumePorRotaRef", "PedidosPorVolumeRef", "PesoPorVolumeRefKg"})
+				in
+				    Final
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegacao
+

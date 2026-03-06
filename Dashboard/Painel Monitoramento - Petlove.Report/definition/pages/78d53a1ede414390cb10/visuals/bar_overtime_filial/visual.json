@@ -1,0 +1,142 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "bar_overtime_filial",
+  "position": {
+    "x": 970,
+    "y": 210,
+    "z": 0,
+    "height": 220,
+    "width": 290,
+    "tabOrder": 11
+  },
+  "visual": {
+    "visualType": "deneb7E15AEF80B9E4D4F8E12924291ECE89A",
+    "query": {
+      "queryState": {
+        "dataset": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_filial"
+                    }
+                  },
+                  "Property": "NomeResumido"
+                }
+              },
+              "queryRef": "dim_filial.NomeResumido",
+              "active": true,
+              "displayName": "category"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "% Rotas Overtime (>8h)"
+                }
+              },
+              "queryRef": "_Medidas.% Rotas Overtime (>8h)",
+              "displayName": "value"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "_Medidas"
+                  }
+                },
+                "Property": "% Rotas Overtime (>8h)"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "objects": {
+      "vega": [
+        {
+          "properties": {
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'vegaLite'"
+                }
+              }
+            },
+            "jsonSpec": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \"autosize\": {\"type\": \"fit\", \"contains\": \"padding\"}, \"background\": null, \"title\": {\"text\": \"Overtime por filial\", \"anchor\": \"start\", \"color\": \"#13283A\", \"font\": \"Segoe UI Semibold\", \"fontSize\": 13, \"offset\": 8}, \"data\": {\"name\": \"dataset\"}, \"width\": \"container\", \"height\": \"container\", \"transform\": [{\"window\": [{\"op\": \"rank\", \"as\": \"rank\"}], \"sort\": [{\"field\": \"value\", \"order\": \"descending\"}]}, {\"filter\": \"datum.rank <= 6\"}, {\"calculate\": \"\\'#C44E3B\\'\", \"as\": \"tone\"}], \"layer\": [{\"mark\": {\"type\": \"bar\", \"cornerRadiusEnd\": 8, \"height\": 18}, \"encoding\": {\"y\": {\"field\": \"category\", \"type\": \"nominal\", \"sort\": \"-x\", \"axis\": {\"title\": null, \"labelColor\": \"#68727D\", \"labelFontSize\": 11, \"labelLimit\": 120, \"ticks\": false, \"domain\": false}}, \"x\": {\"field\": \"value\", \"type\": \"quantitative\", \"axis\": {\"title\": null, \"labelColor\": \"#68727D\", \"labelFontSize\": 10, \"gridColor\": \"#E5DDCF\", \"tickCount\": 4, \"format\": \".0%\"}}, \"color\": {\"field\": \"tone\", \"type\": \"nominal\", \"scale\": null}}}, {\"mark\": {\"type\": \"text\", \"align\": \"left\", \"baseline\": \"middle\", \"dx\": 8, \"font\": \"Segoe UI Semibold\", \"fontSize\": 11, \"color\": \"#13283A\"}, \"encoding\": {\"y\": {\"field\": \"category\", \"type\": \"nominal\", \"sort\": \"-x\"}, \"x\": {\"field\": \"value\", \"type\": \"quantitative\"}, \"text\": {\"field\": \"value\", \"type\": \"quantitative\", \"format\": \".0%\"}}}], \"config\": {\"view\": {\"stroke\": null}}}'"
+                }
+              }
+            },
+            "jsonConfig": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{}'"
+                }
+              }
+            },
+            "renderMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'svg'"
+                }
+              }
+            },
+            "enableTooltips": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableContextMenu": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableSelection": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

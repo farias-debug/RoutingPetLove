@@ -1,0 +1,32 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["dim_filial","fato_rotas","fato_planejado","dim_tipo_veiculo"]
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode"]
+
+ref table dim_filial
+ref table fato_rotas
+ref table dim_calendario
+ref table fato_planejado
+ref table _Medidas
+ref table _Metas
+ref table DateTableTemplate_e2c61278-6fe2-4dfc-89bd-fcaeaa0e72a9
+ref table LocalDateTable_f94047f8-ee04-40ca-ab82-55389abadc0c
+ref table LocalDateTable_1eef1a67-00f5-475d-85ef-80237fe34e23
+ref table LocalDateTable_84f26fb9-6f50-42e5-84a2-6b78b634352a
+ref table LocalDateTable_201033d2-b2d5-43e0-ab33-bb7938d7a304
+ref table LocalDateTable_82dda4d5-11b5-4034-a753-6725708e0e9f
+ref table LocalDateTable_df0cebaf-10cc-4ee4-b4c6-3b5ab1925aa5
+ref table LocalDateTable_41d8d7fd-d75d-4208-be54-d86bd4c80a60
+ref table dim_tipo_veiculo
+
+ref cultureInfo pt-BR
+

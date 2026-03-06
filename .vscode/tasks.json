@@ -1,0 +1,173 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    // ════════════════════════════════════════════════════════
+    //  PIPELINE DIÁRIO
+    // ════════════════════════════════════════════════════════
+    {
+      "label": "📊 Pipeline: Atualização Diária Completa",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/daily_pipeline.ps1"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "📊 Pipeline: Apenas Transform (sem Git)",
+      "type": "shell",
+      "command": "${workspaceFolder}/Dashboard/.venv/Scripts/python.exe",
+      "args": [
+        "${workspaceFolder}/Dashboard/scripts/transform.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/Dashboard"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    // ════════════════════════════════════════════════════════
+    //  EXTRAÇÃO TMS
+    // ════════════════════════════════════════════════════════
+    {
+      "label": "🧹 TMS: Extrair Relatório (Playwright)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/Dashboard/scripts/extrair_monitoramento_rotas.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/Dashboard"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    // ════════════════════════════════════════════════════════
+    //  GIT / GITHUB
+    // ════════════════════════════════════════════════════════
+    {
+      "label": "🔄 Git: Commit + Push Diário",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/git_daily_sync.ps1"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🔄 Git: Status Rápido",
+      "type": "shell",
+      "command": "git",
+      "args": [
+        "status",
+        "--short"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "📋 GitHub: Ver Issues Abertas",
+      "type": "shell",
+      "command": "gh",
+      "args": [
+        "issue",
+        "list",
+        "--state",
+        "open",
+        "--limit",
+        "20"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "📋 GitHub: Criar Issue de Melhoria",
+      "type": "shell",
+      "command": "gh",
+      "args": [
+        "issue",
+        "create",
+        "--title",
+        "${input:issueTitle}",
+        "--body",
+        "${input:issueBody}",
+        "--label",
+        "enhancement"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    // ════════════════════════════════════════════════════════
+    //  DIAGNÓSTICO
+    // ════════════════════════════════════════════════════════
+    {
+      "label": "🔍 Diagnóstico: Health Check Completo",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/health_check.ps1"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "issueTitle",
+      "type": "promptString",
+      "description": "Título da issue"
+    },
+    {
+      "id": "issueBody",
+      "type": "promptString",
+      "description": "Descrição da issue"
+    }
+  ]
+}

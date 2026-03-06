@@ -1,0 +1,19 @@
+# Dados brutos (local)
+data/
+
+# Saida pipeline (regeneravel)
+output/
+
+# Power BI binario
+*.pbix
+
+# Ambiente
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+
+# Temporarios
+downloads/
+manifests/
+theme/

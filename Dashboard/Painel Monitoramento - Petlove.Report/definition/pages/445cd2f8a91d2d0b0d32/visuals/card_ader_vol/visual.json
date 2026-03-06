@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "card_ader_vol",
+  "position": {
+    "x": 180,
+    "y": 100,
+    "z": 0,
+    "width": 145,
+    "height": 90,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "card",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Aderencia Volumes (%)"
+                }
+              },
+              "queryRef": "_Medidas.Aderencia Volumes (%)",
+              "displayName": "Aderencia Volumes %"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

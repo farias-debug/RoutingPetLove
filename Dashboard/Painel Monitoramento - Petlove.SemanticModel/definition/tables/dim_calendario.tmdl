@@ -1,0 +1,349 @@
+/// Calendario 2026 completo - tabela calculada DAX
+table dim_calendario
+	lineageTag: a4ab11b2-f88f-4477-82ab-b3c8b96c53b2
+	dataCategory: Time
+
+	column Data
+		isKey
+		formatString: Short Date
+		lineageTag: 976e6674-4e96-46b0-baea-48ffd04d4551
+		isNameInferred
+		sourceColumn: [Data]
+
+	column Ano
+		lineageTag: 31a6cde5-ef3c-4851-875b-9926fbfefe09
+		isNameInferred
+		sourceColumn: [Ano]
+
+	column Trimestre
+		lineageTag: c4a04a36-30c9-46b4-8d4b-72d2a804aa4d
+		isNameInferred
+		sourceColumn: [Trimestre]
+
+	column Mes
+		lineageTag: 283a613d-bb25-40f2-bb50-75976f61fe76
+		isNameInferred
+		sourceColumn: [Mes]
+
+	column MesNome
+		lineageTag: 4e977111-64f3-4058-a107-9ea088cc11ea
+		isNameInferred
+		sourceColumn: [MesNome]
+		sortByColumn: Mes
+
+	column MesAno
+		lineageTag: 384dfc76-cd0d-42b5-ad9a-8f362e25e8ce
+		isNameInferred
+		sourceColumn: [MesAno]
+		sortByColumn: AnoMes
+
+	column Semana
+		lineageTag: b6d859c7-eacc-4dcd-984f-77b527ed17e5
+		isNameInferred
+		sourceColumn: [Semana]
+
+	column DiaSemanaNum
+		lineageTag: e873de37-016a-4b60-b6e6-0a06871b6bec
+		isNameInferred
+		sourceColumn: [DiaSemanaNum]
+
+	column DiaSemana
+		lineageTag: 1b9430e5-03ea-49cb-877e-711d2619a44b
+		isNameInferred
+		sourceColumn: [DiaSemana]
+		sortByColumn: DiaSemanaNum
+
+	column DiaDoAno
+		lineageTag: 527cad53-8137-48cc-b988-1d5fcb6d0086
+		isNameInferred
+		sourceColumn: [DiaDoAno]
+
+	column FimDeSemana
+		lineageTag: 2aee0d20-8980-4da2-affc-21ea1ecd4a22
+		isNameInferred
+		sourceColumn: [FimDeSemana]
+
+	column AnoSemana
+		lineageTag: 9200b431-ae65-4af6-872c-8b79acb419ff
+		isNameInferred
+		sourceColumn: [AnoSemana]
+
+	column AnoMes
+		lineageTag: aad9743e-34ec-442d-9181-6a048eb259c3
+		isNameInferred
+		sourceColumn: [AnoMes]
+
+	column Semestre
+		lineageTag: fdab6c10-ee4e-4bfc-a00c-ac37be546b52
+		isNameInferred
+		sourceColumn: [Semestre]
+
+	column MesAbrev
+		lineageTag: 8b54e6af-0758-4c7a-b14c-ebf6403650ac
+		isNameInferred
+		sourceColumn: [MesAbrev]
+		sortByColumn: Mes
+
+	column DiaUtil
+		lineageTag: 365c0108-bae9-48d7-86fe-9720dfbded92
+		isNameInferred
+		sourceColumn: [DiaUtil]
+
+	column SemanaInicio
+		lineageTag: 5d10c503-abf4-4c6d-bedf-dd8467cc16a5
+		isNameInferred
+		sourceColumn: [SemanaInicio]
+
+	column SemanaFim
+		lineageTag: a9f32694-e116-481a-9ef1-051dd51ebbc0
+		isNameInferred
+		sourceColumn: [SemanaFim]
+
+	column SemanaLabel
+		lineageTag: f3427b9d-a8c1-413f-b22e-8c718d7fa820
+		isNameInferred
+		sourceColumn: [SemanaLabel]
+		sortByColumn: ISOAnoSemanaSort
+
+	column SemanaDoMes
+		lineageTag: b704b613-43b7-43da-ba14-6757949064f0
+		isNameInferred
+		sourceColumn: [SemanaDoMes]
+
+	column QuinzenaDoMes
+		lineageTag: 0a65fc45-3291-42e5-ad7d-ae86ca8ad979
+		isNameInferred
+		sourceColumn: [QuinzenaDoMes]
+
+	column AnoSemanaLabel
+		lineageTag: 509fbd6a-ab98-4a3b-84b8-0797ae99670a
+		isNameInferred
+		sourceColumn: [AnoSemanaLabel]
+		sortByColumn: ISOAnoSemanaSort
+
+	column MesDia
+		lineageTag: 0c144aa9-35db-4c96-bfbf-00afb2f69ac1
+		isNameInferred
+		sourceColumn: [MesDia]
+		sortByColumn: Data
+
+	column IsUltimaData
+		lineageTag: 0cadf7aa-d109-47a4-b2f6-16d12b581191
+		isNameInferred
+		sourceColumn: [IsUltimaData]
+
+	column IsAnterior
+		lineageTag: a148f876-4ab8-489b-9fd2-0f192710b4b2
+		isNameInferred
+		sourceColumn: [IsAnterior]
+
+	column IsAteUltimaData
+		lineageTag: 0c2764f5-fa17-438f-b15d-c48a4226ab97
+		isNameInferred
+		sourceColumn: [IsAteUltimaData]
+
+	column IsFuturo
+		lineageTag: 2029c61e-d57b-4653-8f7f-d28ec9b6dcd9
+		isNameInferred
+		sourceColumn: [IsFuturo]
+
+	column DiasAteUltimaData
+		lineageTag: 55167543-85bd-43c8-a129-576d6edab8f2
+		isNameInferred
+		sourceColumn: [DiasAteUltimaData]
+
+	column IsSemanaAtual
+		lineageTag: be3d3600-2526-4adb-a961-413dd48a2945
+		isNameInferred
+		sourceColumn: [IsSemanaAtual]
+
+	column IsSemanaAnterior
+		lineageTag: e0fc57d9-92ed-4229-b29c-96f295e55e42
+		isNameInferred
+		sourceColumn: [IsSemanaAnterior]
+
+	column IsMesAtual
+		lineageTag: 8651ed79-fa17-44c4-b9b3-2af025bd3387
+		isNameInferred
+		sourceColumn: [IsMesAtual]
+
+	column IsMesAnterior
+		lineageTag: 00d0082e-b8d6-4c4e-bd7a-9e32050ea36a
+		isNameInferred
+		sourceColumn: [IsMesAnterior]
+
+	column IsTrimestreAtual
+		lineageTag: 57ae54bb-837b-4b09-b241-043041ccea20
+		isNameInferred
+		sourceColumn: [IsTrimestreAtual]
+
+	column IsUltimos7Dias
+		lineageTag: 183400b1-12c5-4ced-a2c6-3f499fc8daec
+		isNameInferred
+		sourceColumn: [IsUltimos7Dias]
+
+	column IsUltimos14Dias
+		lineageTag: 138644b8-2415-4915-b0e2-bbfe20baa281
+		isNameInferred
+		sourceColumn: [IsUltimos14Dias]
+
+	column IsUltimos30Dias
+		lineageTag: 390a072b-9020-47df-a3c1-dcf778e376a4
+		isNameInferred
+		sourceColumn: [IsUltimos30Dias]
+
+	column IsUltimos90Dias
+		lineageTag: b9bbdd86-f633-400d-bdc9-8f66ef9624a0
+		isNameInferred
+		sourceColumn: [IsUltimos90Dias]
+
+	column PeriodoLabel
+		lineageTag: 27bb1a33-dd8a-4f1c-9387-5dfc1d3ff5da
+		isNameInferred
+		sourceColumn: [PeriodoLabel]
+
+	column TrimestreLabel
+		lineageTag: 7babb85a-cf28-44a3-ade6-2dff38b9caa0
+		isNameInferred
+		sourceColumn: [TrimestreLabel]
+
+	column SemestreLabel
+		lineageTag: 966d91a1-16f8-48c5-b662-87a0129fe7db
+		isNameInferred
+		sourceColumn: [SemestreLabel]
+
+	column ISOSemana
+		lineageTag: b0632622-19c7-4a53-9d22-e0abcc317d26
+		isNameInferred
+		sourceColumn: [ISOSemana]
+
+	column ISOAno
+		lineageTag: a4119a06-442d-4f11-bca5-2fb57d99e167
+		isNameInferred
+		sourceColumn: [ISOAno]
+
+	column ISOAnoSemana
+		lineageTag: 4b1ae0c9-5122-4a6d-aeb9-02c00e36012d
+		isNameInferred
+		sourceColumn: [ISOAnoSemana]
+
+	column ISODiaSemana
+		lineageTag: ac6c76cf-3469-4052-a6e8-ffe8c5315973
+		isNameInferred
+		sourceColumn: [ISODiaSemana]
+
+	column ISOAnoSemanaSort
+		lineageTag: 9a3adefa-17a2-4554-812b-64e1b5776dea
+		isNameInferred
+		sourceColumn: [ISOAnoSemanaSort]
+
+	column MesNomeAbrev3
+		lineageTag: 9fb97234-862c-46a9-b38b-06e2bddcbdc7
+		isNameInferred
+		sourceColumn: [MesNomeAbrev3]
+		sortByColumn: Mes
+
+	column MesLabel
+		lineageTag: 6a7ad58f-c433-4b2a-8df6-3b9c1ea8541f
+		isNameInferred
+		sourceColumn: [MesLabel]
+		sortByColumn: AnoMes
+
+	column DataLabel
+		lineageTag: d415b32c-8f2a-4a4e-aadd-c6475b1ec43b
+		isNameInferred
+		sourceColumn: [DataLabel]
+		sortByColumn: Data
+
+	column DiaLabel
+		lineageTag: baa4420b-1dbd-4ba4-98b8-aa11b1e0ee8c
+		isNameInferred
+		sourceColumn: [DiaLabel]
+		sortByColumn: Data
+
+	column SemanaCurtaLabel
+		lineageTag: 35439122-7a45-4edf-87f1-5f68e1796999
+		isNameInferred
+		sourceColumn: [SemanaCurtaLabel]
+		sortByColumn: ISOAnoSemanaSort
+
+	partition dim_calendario = calculated
+		mode: import
+		source =
+				VAR _Hoje        = TODAY()
+				VAR _MinDate     = DATE(YEAR(_Hoje), 1, 1)
+				VAR _MaxDate     = _Hoje
+				VAR _UltimaData  = _Hoje
+				VAR _IniSemAt    = _UltimaData - WEEKDAY(_UltimaData, 2) + 1
+				VAR _IniMesAt    = DATE(YEAR(_UltimaData), MONTH(_UltimaData), 1)
+				RETURN
+				ADDCOLUMNS(
+				    SELECTCOLUMNS(CALENDAR(_MinDate, _MaxDate), "Data", [Date]),
+				    "Ano",            YEAR([Data]),
+				    "Trimestre",      QUARTER([Data]),
+				    "Semestre",       IF(MONTH([Data]) <= 6, 1, 2),
+				    "Mes",            MONTH([Data]),
+				    "MesNome",        FORMAT([Data], "MMMM"),
+				    "MesAbrev",       FORMAT([Data], "MMM"),
+				    "MesAno",         FORMAT([Data], "MMMM YYYY"),
+				    "MesLabel",       FORMAT([Data], "MMM/YY"),
+				    "Semana",         WEEKNUM([Data], 21),
+				    "DiaSemanaNum",   WEEKDAY([Data], 2) - 1,
+				    "DiaSemana",      FORMAT([Data], "DDDD"),
+				    "DataLabel",      FORMAT([Data], "DD/MM/YYYY"),
+				    "DiaLabel",       FORMAT([Data], "DDD, DD/MM"),
+				    "DiaDoAno",       INT([Data] - DATE(YEAR([Data]), 1, 1)) + 1,
+				    "DiaUtil",        IF(WEEKDAY([Data], 2) <= 5, 1, 0),
+				    "FimDeSemana",    IF(WEEKDAY([Data], 2) > 5, 1, 0),
+				    "SemanaInicio",   [Data] - WEEKDAY([Data], 2) + 1,
+				    "SemanaFim",      [Data] - WEEKDAY([Data], 2) + 7,
+				    "SemanaLabel",    "Sem " & FORMAT(WEEKNUM([Data], 21), "00") & " (" & FORMAT([Data] - WEEKDAY([Data], 2) + 1, "DD/MM") & " - " & FORMAT([Data] - WEEKDAY([Data], 2) + 7, "DD/MM") & ")",
+				    "SemanaCurtaLabel","S" & FORMAT(WEEKNUM([Data], 21), "00") & " · " & FORMAT([Data] - WEEKDAY([Data], 2) + 1, "DD/MM") & " a " & FORMAT([Data] - WEEKDAY([Data], 2) + 7, "DD/MM"),
+				    "SemanaDoMes",    INT((DAY([Data]) - 1) / 7) + 1,
+				    "QuinzenaDoMes",  IF(DAY([Data]) <= 15, 1, 2),
+				    "AnoSemana",      FORMAT(YEAR([Data]), "0000") & "-S" & FORMAT(WEEKNUM([Data], 21), "00"),
+				    "AnoMes",         FORMAT([Data], "YYYY-MM"),
+				    "AnoSemanaLabel", FORMAT(YEAR([Data]), "0000") & " - Sem " & FORMAT(WEEKNUM([Data], 21), "00"),
+				    "MesDia",         FORMAT([Data], "DD/MM"),
+				    "ISOSemana",      WEEKNUM([Data], 21),
+				    "ISOAno",
+				        VAR _sem = WEEKNUM([Data], 21)
+				        VAR _mes = MONTH([Data])
+				        RETURN
+				            IF(_sem >= 52 && _mes = 1, YEAR([Data]) - 1,
+				               IF(_sem = 1 && _mes = 12, YEAR([Data]) + 1, YEAR([Data]))),
+				    "ISOAnoSemana",
+				        VAR _sem = WEEKNUM([Data], 21)
+				        VAR _mes = MONTH([Data])
+				        VAR _isoAno =
+				            IF(_sem >= 52 && _mes = 1, YEAR([Data]) - 1,
+				               IF(_sem = 1 && _mes = 12, YEAR([Data]) + 1, YEAR([Data])))
+				        RETURN FORMAT(_isoAno, "0000") & "-W" & FORMAT(_sem, "00"),
+				    "ISODiaSemana",   WEEKDAY([Data], 2),
+				    "ISOAnoSemanaSort",
+				        VAR _sem = WEEKNUM([Data], 21)
+				        VAR _mes = MONTH([Data])
+				        VAR _isoAno =
+				            IF(_sem >= 52 && _mes = 1, YEAR([Data]) - 1,
+				               IF(_sem = 1 && _mes = 12, YEAR([Data]) + 1, YEAR([Data])))
+				        RETURN _isoAno * 100 + _sem,
+				    "MesNomeAbrev3",  UPPER(LEFT(FORMAT([Data], "MMM"), 3)),
+				    "IsUltimaData",      [Data] = _UltimaData,
+				    "IsAnterior",        [Data] = _UltimaData - 1,
+				    "IsAteUltimaData",   [Data] <= _UltimaData,
+				    "IsFuturo",          [Data] > _UltimaData,
+				    "DiasAteUltimaData", INT(_UltimaData - [Data]),
+				    "IsSemanaAtual",     [Data] >= _IniSemAt && [Data] <= _UltimaData,
+				    "IsSemanaAnterior",  [Data] >= _IniSemAt - 7 && [Data] < _IniSemAt,
+				    "IsMesAtual",        YEAR([Data]) = YEAR(_UltimaData) && MONTH([Data]) = MONTH(_UltimaData),
+				    "IsMesAnterior",     YEAR([Data]) = YEAR(EDATE(_UltimaData, -1)) && MONTH([Data]) = MONTH(EDATE(_UltimaData, -1)),
+				    "IsTrimestreAtual",  YEAR([Data]) = YEAR(_UltimaData) && QUARTER([Data]) = QUARTER(_UltimaData),
+				    "IsUltimos7Dias",    [Data] >= _UltimaData - 6  && [Data] <= _UltimaData,
+				    "IsUltimos14Dias",   [Data] >= _UltimaData - 13 && [Data] <= _UltimaData,
+				    "IsUltimos30Dias",   [Data] >= _UltimaData - 29 && [Data] <= _UltimaData,
+				    "IsUltimos90Dias",   [Data] >= _UltimaData - 89 && [Data] <= _UltimaData,
+				    "PeriodoLabel",      SWITCH(TRUE(), [Data] = _UltimaData, "Ultimo Dia", [Data] = _UltimaData - 1, "D-1", [Data] >= _UltimaData - 6 && [Data] < _UltimaData, "Ult 7d", [Data] >= _UltimaData - 29 && [Data] < _UltimaData - 6, "Ult 30d", [Data] < _UltimaData - 29, "Historico", "Futuro"),
+				    "TrimestreLabel",    "T" & FORMAT(QUARTER([Data]), "0") & " " & FORMAT(YEAR([Data]), "0000"),
+				    "SemestreLabel",     IF(MONTH([Data]) <= 6, "1o Sem", "2o Sem") & " " & FORMAT(YEAR([Data]), "0000")
+				)
+

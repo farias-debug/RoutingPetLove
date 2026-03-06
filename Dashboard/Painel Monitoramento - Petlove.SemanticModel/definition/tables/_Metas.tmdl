@@ -1,0 +1,44 @@
+/// Tabela de metas/parametros globais KPI. Sem relacionamento - consulta via LOOKUPVALUE.
+table _Metas
+	lineageTag: e1fc416a-a6de-4f2b-b58f-2a750b1aa832
+
+	column KPI
+		lineageTag: da4d8fea-017f-4702-a39c-6cc7c0fe4739
+		isNameInferred
+		sourceColumn: [KPI]
+
+	column Meta
+		lineageTag: 7f0c52d0-44bc-4319-89ff-cc9f620de5f2
+		isNameInferred
+		sourceColumn: [Meta]
+
+	column Sentido
+		lineageTag: b3c8d06f-2d80-4cda-b80d-8dac9e04eeee
+		isNameInferred
+		sourceColumn: [Sentido]
+
+	column Unidade
+		lineageTag: 07d342f8-2a17-46ce-8950-78feb120e2d1
+		isNameInferred
+		sourceColumn: [Unidade]
+
+	partition _Metas = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "KPI", STRING,
+				    "Meta", DOUBLE,
+				    "Sentido", STRING,
+				    "Unidade", STRING,
+				    {
+				        { "SPR Ped Realizado", 42, "Maior=Melhor", "ped/rota" },
+				        { "SPR Ped Planejado", 52, "Maior=Melhor", "ped/rota" },
+				        { "SPR Vol Realizado", 67, "Maior=Melhor", "vol/rota" },
+				        { "SPR Vol Planejado", 73, "Maior=Melhor", "vol/rota" },
+				        { "Desvio SPR Ped", -3, "Menor=Melhor", "pts" },
+				        { "Desvio SPR Vol", -3, "Menor=Melhor", "pts" },
+				        { "ORH Tempo Rota", 7, "Alvo=Melhor", "horas" },
+				        { "% Entregas Efetivas", 0.98, "Maior=Melhor", "%" }
+				    }
+				)
+

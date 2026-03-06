@@ -1,0 +1,12 @@
+{
+  "name": "dashboard-tms-extractor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "extract:tms": "node ./scripts/extrair_relatorio_tms.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.52.0"
+  }
+}

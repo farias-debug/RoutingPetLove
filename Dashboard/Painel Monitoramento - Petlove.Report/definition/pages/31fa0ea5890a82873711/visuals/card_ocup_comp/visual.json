@@ -1,0 +1,152 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "card_ocup_comp",
+  "position": {
+    "x": 20,
+    "y": 96,
+    "z": 0,
+    "height": 132,
+    "width": 224,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "deneb7E15AEF80B9E4D4F8E12924291ECE89A",
+    "query": {
+      "queryState": {
+        "dataset": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Ocupacao Composta (%)"
+                }
+              },
+              "queryRef": "_Medidas.Ocupacao Composta (%)",
+              "displayName": "value"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Status Capacidade Cor"
+                }
+              },
+              "queryRef": "_Medidas.Status Capacidade Cor",
+              "displayName": "tone"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Status Capacidade Texto"
+                }
+              },
+              "queryRef": "_Medidas.Status Capacidade Texto",
+              "displayName": "status"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Acao Capacidade"
+                }
+              },
+              "queryRef": "_Medidas.Acao Capacidade",
+              "displayName": "footer"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "objects": {
+      "vega": [
+        {
+          "properties": {
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'vegaLite'"
+                }
+              }
+            },
+            "jsonSpec": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \"autosize\": {\"type\": \"fit\", \"contains\": \"padding\"}, \"background\": null, \"data\": {\"name\": \"dataset\"}, \"width\": \"container\", \"height\": \"container\", \"transform\": [{\"calculate\": \"0\", \"as\": \"_x\"}, {\"calculate\": \"0\", \"as\": \"_y\"}, {\"calculate\": \"isValid(datum.tone) && datum.tone != \\'\\' ? datum.tone : \\'#143C5A\\'\", \"as\": \"tone\"}, {\"calculate\": \"isValid(datum.value) ? format(datum.value, \\'.1%\\') : \\'-\\'\", \"as\": \"value_fmt\"}, {\"calculate\": \"\\'\\'\", \"as\": \"delta_fmt\"}, {\"calculate\": \"isValid(datum.status) ? \\'\\' + datum.status : \\'\\'\", \"as\": \"subtitle_fmt\"}, {\"calculate\": \"isValid(datum.footer) ? substring(datum.footer, 0, 58) : \\'\\'\", \"as\": \"footer_fmt\"}], \"layer\": [{\"mark\": {\"type\": \"rect\", \"cornerRadius\": 18, \"fill\": \"#FFF9F0\", \"stroke\": \"#E6DCCD\", \"strokeWidth\": 1}, \"encoding\": {\"x\": {\"datum\": 0, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"x2\": {\"datum\": 100}, \"y\": {\"datum\": 0, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"y2\": {\"datum\": 100}}}, {\"mark\": {\"type\": \"rect\", \"cornerRadiusTopLeft\": 18, \"cornerRadiusBottomLeft\": 18}, \"encoding\": {\"x\": {\"datum\": 0, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"x2\": {\"datum\": 4}, \"y\": {\"datum\": 0, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"y2\": {\"datum\": 100}, \"color\": {\"field\": \"tone\", \"type\": \"nominal\", \"scale\": null}}}, {\"mark\": {\"type\": \"text\", \"align\": \"left\", \"baseline\": \"top\", \"font\": \"Segoe UI Semibold\", \"fontSize\": 12, \"color\": \"#68727D\"}, \"encoding\": {\"x\": {\"datum\": 12, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"y\": {\"datum\": 12, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"text\": {\"value\": \"OCUPACAO COMPOSTA\"}}}, {\"mark\": {\"type\": \"text\", \"align\": \"left\", \"baseline\": \"middle\", \"font\": \"Segoe UI Semibold\", \"fontSize\": 30, \"color\": \"#13283A\"}, \"encoding\": {\"x\": {\"datum\": 12, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"y\": {\"datum\": 48, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"text\": {\"field\": \"value_fmt\"}}}, {\"transform\": [{\"filter\": \"datum.delta_fmt != \\'\\'\"}], \"mark\": {\"type\": \"text\", \"align\": \"right\", \"baseline\": \"top\", \"font\": \"Segoe UI Semibold\", \"fontSize\": 11}, \"encoding\": {\"x\": {\"datum\": 92, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"y\": {\"datum\": 14, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"text\": {\"field\": \"delta_fmt\"}, \"color\": {\"field\": \"tone\", \"type\": \"nominal\", \"scale\": null}}}, {\"transform\": [{\"filter\": \"datum.subtitle_fmt != \\'\\'\"}], \"mark\": {\"type\": \"text\", \"align\": \"left\", \"baseline\": \"top\", \"font\": \"Segoe UI\", \"fontSize\": 11, \"color\": \"#68727D\"}, \"encoding\": {\"x\": {\"datum\": 12, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"y\": {\"datum\": 70, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"text\": {\"field\": \"subtitle_fmt\"}}}, {\"transform\": [{\"filter\": \"datum.footer_fmt != \\'\\'\"}], \"mark\": {\"type\": \"text\", \"align\": \"left\", \"baseline\": \"bottom\", \"font\": \"Segoe UI Semibold\", \"fontSize\": 10, \"color\": \"#13283A\"}, \"encoding\": {\"x\": {\"datum\": 12, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"y\": {\"datum\": 92, \"type\": \"quantitative\", \"scale\": {\"domain\": [0, 100]}, \"axis\": null}, \"text\": {\"field\": \"footer_fmt\"}}}], \"config\": {\"view\": {\"stroke\": null}}}'"
+                }
+              }
+            },
+            "jsonConfig": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{}'"
+                }
+              }
+            },
+            "renderMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'svg'"
+                }
+              }
+            },
+            "enableTooltips": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableContextMenu": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableSelection": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

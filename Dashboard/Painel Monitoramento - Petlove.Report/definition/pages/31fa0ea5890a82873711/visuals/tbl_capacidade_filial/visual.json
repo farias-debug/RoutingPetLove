@@ -1,0 +1,200 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "tbl_capacidade_filial",
+  "position": {
+    "x": 20,
+    "y": 478,
+    "z": 0,
+    "width": 1240,
+    "height": 222,
+    "tabOrder": 11
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_filial"
+                    }
+                  },
+                  "Property": "NomeResumido"
+                }
+              },
+              "queryRef": "dim_filial.NomeResumido",
+              "displayName": "Filial"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Ocupacao Filial Veiculos (%)"
+                }
+              },
+              "queryRef": "_Medidas.Ocupacao Filial Veiculos (%)",
+              "displayName": "Ocup. Veiculos %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Ocupacao Filial Pedidos (%)"
+                }
+              },
+              "queryRef": "_Medidas.Ocupacao Filial Pedidos (%)",
+              "displayName": "Ocup. Pedidos %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Ocupacao Filial Volumes (%)"
+                }
+              },
+              "queryRef": "_Medidas.Ocupacao Filial Volumes (%)",
+              "displayName": "Ocup. Volumes %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Ocupacao Filial Composta (%)"
+                }
+              },
+              "queryRef": "_Medidas.Ocupacao Filial Composta (%)",
+              "displayName": "Ocup. Composta %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Gap Capacidade Volumes Semana"
+                }
+              },
+              "queryRef": "_Medidas.Gap Capacidade Volumes Semana",
+              "displayName": "Gap Vol. Semana"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Gap Capacidade Pedidos Semana"
+                }
+              },
+              "queryRef": "_Medidas.Gap Capacidade Pedidos Semana",
+              "displayName": "Gap Ped. Semana"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Status Capacidade Filial Texto"
+                }
+              },
+              "queryRef": "_Medidas.Status Capacidade Filial Texto",
+              "displayName": "Status"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Acao Capacidade Filial"
+                }
+              },
+              "queryRef": "_Medidas.Acao Capacidade Filial",
+              "displayName": "Acao"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Capacidade semanal por filial'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Left'"
+                }
+              }
+            },
+            "titleWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

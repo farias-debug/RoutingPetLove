@@ -1,0 +1,44 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "slc_data",
+  "position": {
+    "x": 20,
+    "y": 20,
+    "z": 0,
+    "height": 60,
+    "width": 320,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_calendario"
+                    }
+                  },
+                  "Property": "Data"
+                }
+              },
+              "queryRef": "dim_calendario.Data",
+              "active": true,
+              "displayName": "Data"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "syncGroup": {
+      "groupName": "sync_data",
+      "fieldChanges": true,
+      "filterChanges": true
+    }
+  }
+}

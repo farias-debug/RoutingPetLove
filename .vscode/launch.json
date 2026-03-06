@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Transform Pipeline (debug)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/Dashboard/scripts/transform.py",
+      "cwd": "${workspaceFolder}/Dashboard",
+      "python": "${workspaceFolder}/Dashboard/.venv/Scripts/python.exe",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/Dashboard"
+      }
+    }
+  ]
+}

@@ -1,0 +1,3585 @@
+{
+  "generated_at": "2026-03-05T20:17:24",
+  "model_definition_path": "C:\\Users\\lucas.batista\\Documents\\Projetos\\Dashboard\\Painel Monitoramento - Petlove.SemanticModel\\definition",
+  "report_definition_path": "C:\\Users\\lucas.batista\\Documents\\Projetos\\Dashboard\\Painel Monitoramento - Petlove.Report\\definition",
+  "tables": [
+    {
+      "name": "_Medidas",
+      "columns": [
+        {
+          "name": "_",
+          "data_type": null,
+          "source_column": "[_]",
+          "summarize_by": null,
+          "line": 4742
+        }
+      ],
+      "measures": [
+        {
+          "name": "Total Rotas",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "#,##0",
+          "line": 7
+        },
+        {
+          "name": "Total Entregas",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "#,##0",
+          "line": 18
+        },
+        {
+          "name": "Total Insucessos",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "#,##0",
+          "line": 29
+        },
+        {
+          "name": "% Entregas Efetivas",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "0.0%",
+          "line": 40
+        },
+        {
+          "name": "% Insucessos",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "0.0%",
+          "line": 46
+        },
+        {
+          "name": "Total KM Realizado",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "#,##0",
+          "line": 52
+        },
+        {
+          "name": "Media KM por Rota",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "0.0",
+          "line": 63
+        },
+        {
+          "name": "Total Pedidos",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "#,##0",
+          "line": 69
+        },
+        {
+          "name": "Total Volumes",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "#,##0",
+          "line": 80
+        },
+        {
+          "name": "Media Pedidos por Rota",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "0.0",
+          "line": 91
+        },
+        {
+          "name": "Veiculos Ativos",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "#,##0",
+          "line": 97
+        },
+        {
+          "name": "% Rotas Concluidas",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "0.0%",
+          "line": 108
+        },
+        {
+          "name": "Tempo Medio Planejado (h)",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "0.0",
+          "line": 114
+        },
+        {
+          "name": "Tempo Medio Realizado (h)",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "0.0",
+          "line": 130
+        },
+        {
+          "name": "Utilizacao Jornada 8h (%)",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "0.0%",
+          "line": 146
+        },
+        {
+          "name": "Ociosidade Jornada 8h (%)",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "0.0%",
+          "line": 152
+        },
+        {
+          "name": "Desvio Absoluto Pedidos",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "+#,##0;-#,##0;0",
+          "line": 158
+        },
+        {
+          "name": "Desvio Absoluto Volumes",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "+#,##0;-#,##0;0",
+          "line": 164
+        },
+        {
+          "name": "Desvio Absoluto Peso",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "+#,##0;-#,##0;0",
+          "line": 170
+        },
+        {
+          "name": "Desvio Absoluto KM",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "+#,##0;-#,##0;0",
+          "line": 176
+        },
+        {
+          "name": "Desvio Absoluto Tempo",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "+0.0;-0.0;0",
+          "line": 182
+        },
+        {
+          "name": "Aderencia Pedidos (%)",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "0.0%",
+          "line": 188
+        },
+        {
+          "name": "Aderencia Volumes (%)",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "0.0%",
+          "line": 194
+        },
+        {
+          "name": "Aderencia Peso (%)",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "0.0%",
+          "line": 200
+        },
+        {
+          "name": "Aderencia KM (%)",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "0.0%",
+          "line": 206
+        },
+        {
+          "name": "Aderencia Tempo (%)",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "0.0%",
+          "line": 212
+        },
+        {
+          "name": "Cobertura Rotas (%)",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "0.0%",
+          "line": 218
+        },
+        {
+          "name": "Desvio SPR Pedidos (pts)",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "+0.0;-0.0;0",
+          "line": 224
+        },
+        {
+          "name": "Desvio SPR Volumes (pts)",
+          "display_folder": "04. Desvios Plan x Real",
+          "format_string": "+0.0;-0.0;0",
+          "line": 230
+        },
+        {
+          "name": "Pedidos/h Planejado",
+          "display_folder": "05. Produtividade/h",
+          "format_string": "0.0",
+          "line": 236
+        },
+        {
+          "name": "Pedidos/h Realizado",
+          "display_folder": "05. Produtividade/h",
+          "format_string": "0.0",
+          "line": 242
+        },
+        {
+          "name": "Volumes/h Planejado",
+          "display_folder": "05. Produtividade/h",
+          "format_string": "0.0",
+          "line": 248
+        },
+        {
+          "name": "Volumes/h Realizado",
+          "display_folder": "05. Produtividade/h",
+          "format_string": "0.0",
+          "line": 254
+        },
+        {
+          "name": "Peso/h Planejado (kg/h)",
+          "display_folder": "05. Produtividade/h",
+          "format_string": "0.0",
+          "line": 260
+        },
+        {
+          "name": "Peso/h Realizado (kg/h)",
+          "display_folder": "05. Produtividade/h",
+          "format_string": "0.0",
+          "line": 266
+        },
+        {
+          "name": "Entregas Efetivas/h",
+          "display_folder": "05. Produtividade/h",
+          "format_string": "0.0",
+          "line": 272
+        },
+        {
+          "name": "Desvio Pedidos/h",
+          "display_folder": "05. Produtividade/h",
+          "format_string": "+0.0;-0.0;0",
+          "line": 278
+        },
+        {
+          "name": "Desvio Volumes/h",
+          "display_folder": "05. Produtividade/h",
+          "format_string": "+0.0;-0.0;0",
+          "line": 284
+        },
+        {
+          "name": "Desvio Peso/h",
+          "display_folder": "05. Produtividade/h",
+          "format_string": "+0.0;-0.0;0",
+          "line": 290
+        },
+        {
+          "name": "Pedidos/KM Planejado",
+          "display_folder": "06. Eficiencia KM",
+          "format_string": "0.00",
+          "line": 296
+        },
+        {
+          "name": "Pedidos/KM Realizado",
+          "display_folder": "06. Eficiencia KM",
+          "format_string": "0.00",
+          "line": 302
+        },
+        {
+          "name": "Volumes/KM Realizado",
+          "display_folder": "06. Eficiencia KM",
+          "format_string": "0.00",
+          "line": 308
+        },
+        {
+          "name": "Peso/KM Realizado (kg/km)",
+          "display_folder": "06. Eficiencia KM",
+          "format_string": "0.00",
+          "line": 314
+        },
+        {
+          "name": "Desvio Pedidos/KM",
+          "display_folder": "06. Eficiencia KM",
+          "format_string": "+0.00;-0.00;0",
+          "line": 320
+        },
+        {
+          "name": "Eficiencia KM (%)",
+          "display_folder": "06. Eficiencia KM",
+          "format_string": "0.0%",
+          "line": 326
+        },
+        {
+          "name": "Cap P75 Pedidos",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0",
+          "line": 332
+        },
+        {
+          "name": "Cap P75 Volumes",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0",
+          "line": 366
+        },
+        {
+          "name": "Cap P75 Peso (kg)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0",
+          "line": 400
+        },
+        {
+          "name": "Cap P75 KM",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0",
+          "line": 434
+        },
+        {
+          "name": "Cap P75 Tempo (h)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0",
+          "line": 449
+        },
+        {
+          "name": "Cap Media Pedidos",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0",
+          "line": 464
+        },
+        {
+          "name": "Cap Media Volumes",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0",
+          "line": 498
+        },
+        {
+          "name": "Cap Media Peso (kg)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0",
+          "line": 532
+        },
+        {
+          "name": "Ocupacao Pedidos (%)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 566
+        },
+        {
+          "name": "Ocupacao Volumes (%)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 599
+        },
+        {
+          "name": "Ocupacao Peso (%)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 632
+        },
+        {
+          "name": "Rotas Acima Cap Pedidos",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "#,##0",
+          "line": 665
+        },
+        {
+          "name": "% Rotas Acima Cap",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 689
+        },
+        {
+          "name": "Rotas por Veiculo Dia",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.00",
+          "line": 709
+        },
+        {
+          "name": "Status Capacidade",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0",
+          "line": 717
+        },
+        {
+          "name": "% Baixas/Pedidos",
+          "display_folder": "08. Eficacia de Entrega",
+          "format_string": "0.0%",
+          "line": 733
+        },
+        {
+          "name": "Taxa Insucesso MA7",
+          "display_folder": "08. Eficacia de Entrega",
+          "format_string": "0.0%",
+          "line": 739
+        },
+        {
+          "name": "Taxa Sucesso MA7",
+          "display_folder": "08. Eficacia de Entrega",
+          "format_string": "0.0%",
+          "line": 749
+        },
+        {
+          "name": "Var D-1 Rotas",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+#,##0;-#,##0;0",
+          "line": 759
+        },
+        {
+          "name": "Var D-1 Pedidos",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+#,##0;-#,##0;0",
+          "line": 773
+        },
+        {
+          "name": "Var D-1 % Entregas",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 787
+        },
+        {
+          "name": "Var WoW Rotas",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 801
+        },
+        {
+          "name": "Var WoW Pedidos",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 815
+        },
+        {
+          "name": "Var WoW % Entregas",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0 pp;-0.0 pp;0.0 pp",
+          "line": 829
+        },
+        {
+          "name": "MA7 Rotas",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "0.0",
+          "line": 843
+        },
+        {
+          "name": "MA7 % Entregas Efetivas",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "0.0%",
+          "line": 853
+        },
+        {
+          "name": "% Match Mesmo Dia",
+          "display_folder": "10. Reconciliacao",
+          "format_string": "0.0%",
+          "line": 863
+        },
+        {
+          "name": "% Match D±1",
+          "display_folder": "10. Reconciliacao",
+          "format_string": "0.0%",
+          "line": 889
+        },
+        {
+          "name": "% Sem Planejado",
+          "display_folder": "10. Reconciliacao",
+          "format_string": "0.0%",
+          "line": 915
+        },
+        {
+          "name": "% Fora Janela D±1",
+          "display_folder": "10. Reconciliacao",
+          "format_string": "0.0%",
+          "line": 941
+        },
+        {
+          "name": "Gap Medio Plan vs Real (dias)",
+          "display_folder": "10. Reconciliacao",
+          "format_string": "0.0",
+          "line": 967
+        },
+        {
+          "name": "Performance Media (%)",
+          "display_folder": "10. Reconciliacao",
+          "format_string": "0.0%",
+          "line": 973
+        },
+        {
+          "name": "% Rotas com Ajudante",
+          "display_folder": "10. Reconciliacao",
+          "format_string": "0.0%",
+          "line": 979
+        },
+        {
+          "name": "Total Rotas Unidade",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "#,##0",
+          "line": 990
+        },
+        {
+          "name": "Total Pedidos Unidade",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "#,##0",
+          "line": 1000
+        },
+        {
+          "name": "Total Volumes Unidade",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "#,##0",
+          "line": 1010
+        },
+        {
+          "name": "SPR Ped Realizado",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "0.0",
+          "line": 1020
+        },
+        {
+          "name": "SPR Vol Realizado",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "0.0",
+          "line": 1026
+        },
+        {
+          "name": "SPR Peso Realizado (kg/rota)",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "0.0",
+          "line": 1032
+        },
+        {
+          "name": "SPR KM Realizado (km/rota)",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "0.0",
+          "line": 1046
+        },
+        {
+          "name": "SPR Ped Planejado",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "0.0",
+          "line": 1060
+        },
+        {
+          "name": "SPR Vol Planejado",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "0.0",
+          "line": 1078
+        },
+        {
+          "name": "SPR Peso Planejado (kg/rota)",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "0.0",
+          "line": 1096
+        },
+        {
+          "name": "SPR KM Planejado (km/rota)",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "0.0",
+          "line": 1114
+        },
+        {
+          "name": "Meta SPR Pedidos",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "0.0",
+          "line": 1132
+        },
+        {
+          "name": "Gap SPR vs Meta (pts)",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1142
+        },
+        {
+          "name": "Desvio SPR Ped Plan vs Real (pts)",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1148
+        },
+        {
+          "name": "Desvio SPR Vol Plan vs Real (pts)",
+          "display_folder": "02. SPR - Densidade",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1154
+        },
+        {
+          "name": "Meta ORH Tempo (h)",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "0.0",
+          "line": 1160
+        },
+        {
+          "name": "Gap ORH vs Meta (h)",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1166
+        },
+        {
+          "name": "Horas Ociosas Totais",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "#,##0.0",
+          "line": 1172
+        },
+        {
+          "name": "% Rotas Curtas (<4h)",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "0.0%",
+          "line": 1186
+        },
+        {
+          "name": "% Rotas Overtime (>8h)",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "0.0%",
+          "line": 1203
+        },
+        {
+          "name": "Potencial Consolidacao (rotas)",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "#,##0",
+          "line": 1219
+        },
+        {
+          "name": "Economia Potencial (h)",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "0.0",
+          "line": 1234
+        },
+        {
+          "name": "Status ORH",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": null,
+          "line": 1240
+        },
+        {
+          "name": "Meta Global SPR Ped",
+          "display_folder": "11. Metas e Parametros",
+          "format_string": "0.0",
+          "line": 1257
+        },
+        {
+          "name": "Meta Global SPR Ped Plan",
+          "display_folder": "11. Metas e Parametros",
+          "format_string": "0.0",
+          "line": 1263
+        },
+        {
+          "name": "Meta Global SPR Vol",
+          "display_folder": "11. Metas e Parametros",
+          "format_string": "0.0",
+          "line": 1269
+        },
+        {
+          "name": "Meta Global SPR Vol Plan",
+          "display_folder": "11. Metas e Parametros",
+          "format_string": "0.0",
+          "line": 1275
+        },
+        {
+          "name": "Meta Global Desvio SPR Ped",
+          "display_folder": "11. Metas e Parametros",
+          "format_string": "0.0",
+          "line": 1281
+        },
+        {
+          "name": "Meta Global Desvio SPR Vol",
+          "display_folder": "11. Metas e Parametros",
+          "format_string": "0.0",
+          "line": 1287
+        },
+        {
+          "name": "Meta Global ORH",
+          "display_folder": "11. Metas e Parametros",
+          "format_string": "0.0",
+          "line": 1293
+        },
+        {
+          "name": "Meta Global % Entregas",
+          "display_folder": "11. Metas e Parametros",
+          "format_string": "0.0%",
+          "line": 1299
+        },
+        {
+          "name": "Meta Filial SPR",
+          "display_folder": "11. Metas e Parametros",
+          "format_string": "0.0",
+          "line": 1305
+        },
+        {
+          "name": "Meta Filial Entrega",
+          "display_folder": "11. Metas e Parametros",
+          "format_string": "0.0%",
+          "line": 1315
+        },
+        {
+          "name": "SLA Ciclo P50 (h)",
+          "display_folder": "_Nao Publicavel",
+          "format_string": "0.0",
+          "line": 1320
+        },
+        {
+          "name": "SLA Ciclo P90 (h)",
+          "display_folder": "_Nao Publicavel",
+          "format_string": "0.0",
+          "line": 1325
+        },
+        {
+          "name": "% Rotas Sem Data Final",
+          "display_folder": "_Nao Publicavel",
+          "format_string": "0.0%",
+          "line": 1330
+        },
+        {
+          "name": "Tempo Medio Ciclo (h)",
+          "display_folder": "_Nao Publicavel",
+          "format_string": "0.0",
+          "line": 1335
+        },
+        {
+          "name": "Custo por Rota (R$)",
+          "display_folder": "_Nao Publicavel",
+          "format_string": "#,##0.00",
+          "line": 1340
+        },
+        {
+          "name": "Custo por Pedido (R$)",
+          "display_folder": "_Nao Publicavel",
+          "format_string": "#,##0.00",
+          "line": 1345
+        },
+        {
+          "name": "Custo por KM (R$/km)",
+          "display_folder": "_Nao Publicavel",
+          "format_string": "#,##0.00",
+          "line": 1350
+        },
+        {
+          "name": "Custo por Entrega Efetiva (R$)",
+          "display_folder": "_Nao Publicavel",
+          "format_string": "#,##0.00",
+          "line": 1355
+        },
+        {
+          "name": "Var D-1 SPR Pedidos",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1361
+        },
+        {
+          "name": "Var D-1 ORH Tempo",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1375
+        },
+        {
+          "name": "Var WoW SPR Pedidos (%)",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1389
+        },
+        {
+          "name": "Var WoW ORH Tempo (%)",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1403
+        },
+        {
+          "name": "Var MoM Rotas (%)",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1417
+        },
+        {
+          "name": "Var MoM SPR Pedidos (%)",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1431
+        },
+        {
+          "name": "Var MoM % Entregas (pp)",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0 pp;-0.0 pp;0.0 pp",
+          "line": 1445
+        },
+        {
+          "name": "Var MoM ORH Tempo (%)",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1459
+        },
+        {
+          "name": "Rotas YTD",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "#,##0",
+          "line": 1473
+        },
+        {
+          "name": "Pedidos YTD",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "#,##0",
+          "line": 1479
+        },
+        {
+          "name": "Volumes YTD",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "#,##0",
+          "line": 1485
+        },
+        {
+          "name": "SPR Ped YTD",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "0.0",
+          "line": 1491
+        },
+        {
+          "name": "% Entregas YTD",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "0.0%",
+          "line": 1497
+        },
+        {
+          "name": "Rotas Semana Atual",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "#,##0",
+          "line": 1503
+        },
+        {
+          "name": "Rotas Semana Anterior",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "#,##0",
+          "line": 1515
+        },
+        {
+          "name": "SPR Ped Semana Atual",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "0.0",
+          "line": 1527
+        },
+        {
+          "name": "SPR Ped Semana Anterior",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "0.0",
+          "line": 1539
+        },
+        {
+          "name": "Delta Semana Rotas",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+#,##0;-#,##0;0",
+          "line": 1551
+        },
+        {
+          "name": "Delta Semana SPR Ped",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1562
+        },
+        {
+          "name": "MA7 SPR Pedidos",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "0.0",
+          "line": 1573
+        },
+        {
+          "name": "MA7 ORH Tempo",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "0.0",
+          "line": 1583
+        },
+        {
+          "name": "MA7 Pedidos",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "0.0",
+          "line": 1593
+        },
+        {
+          "name": "Var MoM Pedidos (%)",
+          "display_folder": "09. Variacoes Temporais",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1603
+        },
+        {
+          "name": "KPI SPR Ped Valor",
+          "display_folder": "12. KPI Cards",
+          "format_string": "0.0",
+          "line": 1617
+        },
+        {
+          "name": "KPI SPR Ped Meta",
+          "display_folder": "12. KPI Cards",
+          "format_string": "0.0",
+          "line": 1623
+        },
+        {
+          "name": "KPI SPR Ped Delta",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1632
+        },
+        {
+          "name": "KPI SPR Ped Delta%",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1638
+        },
+        {
+          "name": "KPI SPR Ped Status",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1644
+        },
+        {
+          "name": "KPI SPR Ped Cor",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1658
+        },
+        {
+          "name": "KPI SPR Ped Icone",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1670
+        },
+        {
+          "name": "KPI SPR Ped Texto Card",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1682
+        },
+        {
+          "name": "KPI SPR Vol Valor",
+          "display_folder": "12. KPI Cards",
+          "format_string": "0.0",
+          "line": 1690
+        },
+        {
+          "name": "KPI SPR Vol Meta",
+          "display_folder": "12. KPI Cards",
+          "format_string": "0.0",
+          "line": 1695
+        },
+        {
+          "name": "KPI SPR Vol Delta",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1700
+        },
+        {
+          "name": "KPI SPR Vol Delta%",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1705
+        },
+        {
+          "name": "KPI SPR Vol Status",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1710
+        },
+        {
+          "name": "KPI SPR Vol Cor",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1717
+        },
+        {
+          "name": "KPI SPR Vol Icone",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1721
+        },
+        {
+          "name": "KPI SPR Vol Texto Card",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1725
+        },
+        {
+          "name": "KPI Entregas Valor",
+          "display_folder": "12. KPI Cards",
+          "format_string": "0.0%",
+          "line": 1733
+        },
+        {
+          "name": "KPI Entregas Meta",
+          "display_folder": "12. KPI Cards",
+          "format_string": "0.0%",
+          "line": 1738
+        },
+        {
+          "name": "KPI Entregas Delta (pp)",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1746
+        },
+        {
+          "name": "KPI Entregas Delta%",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1751
+        },
+        {
+          "name": "KPI Entregas Status",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1756
+        },
+        {
+          "name": "KPI Entregas Cor",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1763
+        },
+        {
+          "name": "KPI Entregas Icone",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1767
+        },
+        {
+          "name": "KPI Entregas Texto Card",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1771
+        },
+        {
+          "name": "KPI ORH Valor",
+          "display_folder": "12. KPI Cards",
+          "format_string": "0.0",
+          "line": 1779
+        },
+        {
+          "name": "KPI ORH Meta",
+          "display_folder": "12. KPI Cards",
+          "format_string": "0.0",
+          "line": 1784
+        },
+        {
+          "name": "KPI ORH Delta",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1789
+        },
+        {
+          "name": "KPI ORH Delta%",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1794
+        },
+        {
+          "name": "KPI ORH Status",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1799
+        },
+        {
+          "name": "KPI ORH Cor",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1813
+        },
+        {
+          "name": "KPI ORH Icone",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1817
+        },
+        {
+          "name": "KPI ORH Texto Card",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1824
+        },
+        {
+          "name": "KPI Desvio SPR Valor",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1832
+        },
+        {
+          "name": "KPI Desvio SPR Meta",
+          "display_folder": "12. KPI Cards",
+          "format_string": "0.0",
+          "line": 1837
+        },
+        {
+          "name": "KPI Desvio SPR Delta",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0;-0.0;0",
+          "line": 1842
+        },
+        {
+          "name": "KPI Desvio SPR Delta%",
+          "display_folder": "12. KPI Cards",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1847
+        },
+        {
+          "name": "KPI Desvio SPR Status",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1852
+        },
+        {
+          "name": "KPI Desvio SPR Cor",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1866
+        },
+        {
+          "name": "KPI Desvio SPR Icone",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1870
+        },
+        {
+          "name": "KPI Desvio SPR Texto Card",
+          "display_folder": "12. KPI Cards",
+          "format_string": null,
+          "line": 1874
+        },
+        {
+          "name": "Pior Filial SPR Semana",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 1882
+        },
+        {
+          "name": "Valor Pior Filial SPR Semana",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": "0.0",
+          "line": 1894
+        },
+        {
+          "name": "Gap% Pior Filial SPR vs Meta",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1905
+        },
+        {
+          "name": "Pior Filial Entregas Semana",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 1910
+        },
+        {
+          "name": "Valor Pior Filial Entregas Semana",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": "0.0%",
+          "line": 1922
+        },
+        {
+          "name": "Gap% Pior Filial Entregas vs Meta",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": "+0.0%;-0.0%;0.0%",
+          "line": 1933
+        },
+        {
+          "name": "Pior Filial ORH Semana",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 1938
+        },
+        {
+          "name": "Qtd Filiais Abaixo Meta SPR",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": "#,##0",
+          "line": 1950
+        },
+        {
+          "name": "Qtd Filiais Criticas SPR",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": "#,##0",
+          "line": 1964
+        },
+        {
+          "name": "Qtd Filiais Abaixo Meta Entrega",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": "#,##0",
+          "line": 1978
+        },
+        {
+          "name": "Alerta Operacional",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 1992
+        },
+        {
+          "name": "Alerta Nivel",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 2013
+        },
+        {
+          "name": "Alerta Cor",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 2026
+        },
+        {
+          "name": "Top 3 Piores Filiais SPR",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 2030
+        },
+        {
+          "name": "Top 3 Piores Filiais Entregas",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 2050
+        },
+        {
+          "name": "HTML Card SPR Ped",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2071
+        },
+        {
+          "name": "HTML Card SPR Vol",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2100
+        },
+        {
+          "name": "HTML Card Entregas",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2129
+        },
+        {
+          "name": "HTML Card ORH",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2157
+        },
+        {
+          "name": "HTML Card Alerta",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2186
+        },
+        {
+          "name": "HTML Ranking SPR Semana",
+          "display_folder": "14. HTML Content\\02. Tabelas e Rankings",
+          "format_string": null,
+          "line": 2218
+        },
+        {
+          "name": "HTML Ranking Entregas Semana",
+          "display_folder": "14. HTML Content\\02. Tabelas e Rankings",
+          "format_string": null,
+          "line": 2266
+        },
+        {
+          "name": "HTML Card ORH Cenarios",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2314
+        },
+        {
+          "name": "HTML Card Total Rotas",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2351
+        },
+        {
+          "name": "HTML Card Total Pedidos",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2370
+        },
+        {
+          "name": "HTML Card Total Volumes",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2389
+        },
+        {
+          "name": "HTML Card KM Total",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2407
+        },
+        {
+          "name": "HTML Card Veiculos",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2426
+        },
+        {
+          "name": "HTML Card Peso Total",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2444
+        },
+        {
+          "name": "HTML Card Variacao Diaria",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2462
+        },
+        {
+          "name": "HTML Card Produtividade",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2502
+        },
+        {
+          "name": "HTML Card Eficiencia KM",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2538
+        },
+        {
+          "name": "HTML Card Capacidade",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2565
+        },
+        {
+          "name": "HTML Card Reconciliacao",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2597
+        },
+        {
+          "name": "HTML Ranking ORH Semana",
+          "display_folder": "14. HTML Content\\02. Tabelas e Rankings",
+          "format_string": null,
+          "line": 2630
+        },
+        {
+          "name": "HTML Card Semana Resumo",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2678
+        },
+        {
+          "name": "HTML Card Comparativo Semanal",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2714
+        },
+        {
+          "name": "HTML Card Aderencia Radar",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2750
+        },
+        {
+          "name": "HTML Card Filial Spotlight",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2784
+        },
+        {
+          "name": "HTML Card Status Frota",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2825
+        },
+        {
+          "name": "HTML Card SPR Plan vs Real",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2854
+        },
+        {
+          "name": "HTML Card YTD Resumo",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2887
+        },
+        {
+          "name": "HTML Card MoM Resumo",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2920
+        },
+        {
+          "name": "HTML Card Performance Geral",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2956
+        },
+        {
+          "name": "HTML Card Alerta Filiais",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 2992
+        },
+        {
+          "name": "HTML Card Progresso Metas",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 3018
+        },
+        {
+          "name": "HTML Card SPR Peso",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 3046
+        },
+        {
+          "name": "HTML Card SPR KM",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 3058
+        },
+        {
+          "name": "HTML Card Ocupacao Frota",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 3070
+        },
+        {
+          "name": "HTML Card Desvio SPR",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 3093
+        },
+        {
+          "name": "HTML Card Consolidacao",
+          "display_folder": "14. HTML Content\\01. Cards KPI",
+          "format_string": null,
+          "line": 3124
+        },
+        {
+          "name": "Score SPR (0-100)",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 3153
+        },
+        {
+          "name": "Score Entrega (0-100)",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 3163
+        },
+        {
+          "name": "Score Operacional",
+          "display_folder": "13. Rankings e Alertas KPI",
+          "format_string": null,
+          "line": 3173
+        },
+        {
+          "name": "KM Total Planejado",
+          "display_folder": "10. Reconciliacao",
+          "format_string": "#,##0.0",
+          "line": 3188
+        },
+        {
+          "name": "Op Status SPR",
+          "display_folder": "15. Torre de Controle Operacional\\03. Status e Tendencias",
+          "format_string": "0",
+          "line": 3194
+        },
+        {
+          "name": "Op Status Entregas",
+          "display_folder": "15. Torre de Controle Operacional\\03. Status e Tendencias",
+          "format_string": "0",
+          "line": 3209
+        },
+        {
+          "name": "Op Status ORH",
+          "display_folder": "15. Torre de Controle Operacional\\03. Status e Tendencias",
+          "format_string": "0",
+          "line": 3224
+        },
+        {
+          "name": "Op Rank SPR Filial",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "0",
+          "line": 3240
+        },
+        {
+          "name": "Op Rank Entregas Filial",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "0",
+          "line": 3257
+        },
+        {
+          "name": "Op Rank Score Filial",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "0",
+          "line": 3274
+        },
+        {
+          "name": "Op Dias com Dados",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "0",
+          "line": 3291
+        },
+        {
+          "name": "Op Media Diaria Rotas",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0.0",
+          "line": 3303
+        },
+        {
+          "name": "Op Media Diaria Pedidos",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0.0",
+          "line": 3309
+        },
+        {
+          "name": "Op Rotas Filial %",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "0.0%",
+          "line": 3315
+        },
+        {
+          "name": "Op Pedidos Filial %",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "0.0%",
+          "line": 3326
+        },
+        {
+          "name": "Op Tendencia SPR",
+          "display_folder": "15. Torre de Controle Operacional\\03. Status e Tendencias",
+          "format_string": "0",
+          "line": 3337
+        },
+        {
+          "name": "Op Tendencia Entregas",
+          "display_folder": "15. Torre de Controle Operacional\\03. Status e Tendencias",
+          "format_string": "0",
+          "line": 3354
+        },
+        {
+          "name": "Card SPR Pedidos Real",
+          "display_folder": "12. KPI Cards",
+          "format_string": "0.0",
+          "line": 3371
+        },
+        {
+          "name": "Peso (kg)",
+          "display_folder": "01. Resumo Executivo",
+          "format_string": "#,##0.0",
+          "line": 3376
+        },
+        {
+          "name": "Ocupacao Pedidos Tipo (%)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 3388
+        },
+        {
+          "name": "Ocupacao Volumes Tipo (%)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 3398
+        },
+        {
+          "name": "Ocupacao Peso Tipo (%)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 3408
+        },
+        {
+          "name": "Ocupacao Composta (%)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 3418
+        },
+        {
+          "name": "Rotas Acima Cap Volumes",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "#,##0",
+          "line": 3436
+        },
+        {
+          "name": "% Rotas Acima Cap Volumes",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 3459
+        },
+        {
+          "name": "Excesso Medio Pedidos (acima P75)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0",
+          "line": 3478
+        },
+        {
+          "name": "Excesso Medio Volumes (acima P75)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0",
+          "line": 3493
+        },
+        {
+          "name": "Tipo Veiculo Critico Ocupacao",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": null,
+          "line": 3508
+        },
+        {
+          "name": "Ocupacao Pedidos Semana Atual (%)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 3527
+        },
+        {
+          "name": "Ocupacao Volumes Semana Atual (%)",
+          "display_folder": "07. Frota e Capacidade",
+          "format_string": "0.0%",
+          "line": 3536
+        },
+        {
+          "name": "HTML Tabela Filiais Consolidado Semana",
+          "display_folder": "14. HTML Content\\02. Tabelas e Rankings",
+          "format_string": null,
+          "line": 3545
+        },
+        {
+          "name": "HTML Tabela Ocupacao Tipo Veiculo Semana",
+          "display_folder": "14. HTML Content\\02. Tabelas e Rankings",
+          "format_string": null,
+          "line": 3591
+        },
+        {
+          "name": "HTML Ranking Rotas Criticas Semana",
+          "display_folder": "14. HTML Content\\02. Tabelas e Rankings",
+          "format_string": null,
+          "line": 3636
+        },
+        {
+          "name": "Total Rotas ORH Base",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "#,##0",
+          "line": 3690
+        },
+        {
+          "name": "Total Rotas ORH Planejado Base",
+          "display_folder": "03. ORH - Unidade e Cenarios",
+          "format_string": "#,##0",
+          "line": 3701
+        },
+        {
+          "name": "Op Rotas Planejadas",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3712
+        },
+        {
+          "name": "Op Pedidos Planejados",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3722
+        },
+        {
+          "name": "Op Volumes Planejados",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3732
+        },
+        {
+          "name": "Op Rotas Realizadas",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3742
+        },
+        {
+          "name": "Op Pedidos Realizados",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3752
+        },
+        {
+          "name": "Op Volumes Realizados",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3762
+        },
+        {
+          "name": "Op Rotas Aguardando Aceite",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3772
+        },
+        {
+          "name": "Op Rotas Carregadas",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3795
+        },
+        {
+          "name": "Op Rotas Finalizadas",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3821
+        },
+        {
+          "name": "Op Rotas Nao Planejadas",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3846
+        },
+        {
+          "name": "Op Rotas Sem Tempo",
+          "display_folder": "15. Torre de Controle Operacional\\01. Fluxo e Volume",
+          "format_string": "#,##0",
+          "line": 3865
+        },
+        {
+          "name": "Op Progresso Rotas (%)",
+          "display_folder": "15. Torre de Controle Operacional\\03. Status e Tendencias",
+          "format_string": "0.0%",
+          "line": 3884
+        },
+        {
+          "name": "Op Progresso Pedidos (%)",
+          "display_folder": "15. Torre de Controle Operacional\\03. Status e Tendencias",
+          "format_string": "0.0%",
+          "line": 3889
+        },
+        {
+          "name": "Op Progresso Volumes (%)",
+          "display_folder": "15. Torre de Controle Operacional\\03. Status e Tendencias",
+          "format_string": "0.0%",
+          "line": 3894
+        },
+        {
+          "name": "Op Alerta Prioritario",
+          "display_folder": "15. Torre de Controle Operacional\\02. Alertas",
+          "format_string": null,
+          "line": 3899
+        },
+        {
+          "name": "HTML Torre Controle Operacional",
+          "display_folder": "14. HTML Content\\02. Tabelas e Rankings",
+          "format_string": null,
+          "line": 3914
+        },
+        {
+          "name": "TblExp Se Planejado",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": null,
+          "line": 3941
+        },
+        {
+          "name": "TblExp Tipo Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": null,
+          "line": 3948
+        },
+        {
+          "name": "TblExp Match Temporais",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": null,
+          "line": 3952
+        },
+        {
+          "name": "TblExp Delta Pedidos Plan x Real",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "+#,##0;-#,##0;0",
+          "line": 3969
+        },
+        {
+          "name": "TblExp Delta Volumes Plan x Real",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "+#,##0;-#,##0;0",
+          "line": 3974
+        },
+        {
+          "name": "TblExp Delta KM Plan x Real",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "+#,##0.0;-#,##0.0;0.0",
+          "line": 3979
+        },
+        {
+          "name": "TblExp Delta Tempo Plan x Real (h)",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "+0.0;-0.0;0.0",
+          "line": 3984
+        },
+        {
+          "name": "TblExp % Entregas Efetivas Linha",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0.0%",
+          "line": 3989
+        },
+        {
+          "name": "TblExp % Insucessos Linha",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0.0%",
+          "line": 3994
+        },
+        {
+          "name": "TblExp SPR Ped Real Linha",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0.0",
+          "line": 3999
+        },
+        {
+          "name": "TblExp SPR Ped Plan Linha",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0.0",
+          "line": 4004
+        },
+        {
+          "name": "TblExp SPR Delta Ped Linha",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "+0.0;-0.0;0.0",
+          "line": 4009
+        },
+        {
+          "name": "TblExp SPR Vol Real Linha",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0.0",
+          "line": 4014
+        },
+        {
+          "name": "TblExp SPR Vol Plan Linha",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0.0",
+          "line": 4019
+        },
+        {
+          "name": "TblExp SPR Delta Vol Linha",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "+0.0;-0.0;0.0",
+          "line": 4024
+        },
+        {
+          "name": "TblExp Aderencia Pedidos Linha",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0.00",
+          "line": 4029
+        },
+        {
+          "name": "TblExp Aderencia Volumes Linha",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0.00",
+          "line": 4046
+        },
+        {
+          "name": "TblExp Flag Rota Nao Planejada",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0",
+          "line": 4063
+        },
+        {
+          "name": "TblExp Flag Match Fora D+/-1",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0",
+          "line": 4068
+        },
+        {
+          "name": "TblExp Flag Sem Tempo",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0",
+          "line": 4073
+        },
+        {
+          "name": "TblExp Flag Overtime 8h",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0",
+          "line": 4078
+        },
+        {
+          "name": "TblExp Flag Acima Capacidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": "0",
+          "line": 4083
+        },
+        {
+          "name": "TblExp Tags Operacionais",
+          "display_folder": "19. Tabeloes Exportacao DAX\\01. Linha Operacional",
+          "format_string": null,
+          "line": 4091
+        },
+        {
+          "name": "TblDia Rotas Planejadas",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4106
+        },
+        {
+          "name": "TblDia Rotas Planejadas Executadas",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4117
+        },
+        {
+          "name": "TblDia % Execucao Rotas",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "0.0%",
+          "line": 4128
+        },
+        {
+          "name": "TblDia Pedidos Planejados",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4134
+        },
+        {
+          "name": "TblDia Volumes Planejados",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4145
+        },
+        {
+          "name": "TblDia % Execucao Pedidos",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "0.0%",
+          "line": 4156
+        },
+        {
+          "name": "TblDia % Execucao Volumes",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "0.0%",
+          "line": 4162
+        },
+        {
+          "name": "TblDia Match Mesmo Dia",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4168
+        },
+        {
+          "name": "TblDia Match D+/-1",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4185
+        },
+        {
+          "name": "TblDia Match Fora Janela",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4202
+        },
+        {
+          "name": "TblDia % Match Mesmo Dia",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "0.0%",
+          "line": 4219
+        },
+        {
+          "name": "TblDia % Match D+/-1",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "0.0%",
+          "line": 4227
+        },
+        {
+          "name": "TblDia % Match Fora Janela",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "0.0%",
+          "line": 4235
+        },
+        {
+          "name": "TblDia Rotas Nao Planejadas",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4243
+        },
+        {
+          "name": "TblDia Rotas Sem Tempo",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4260
+        },
+        {
+          "name": "TblDia Rotas Overtime",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4276
+        },
+        {
+          "name": "TblDia Alertas Total",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4287
+        },
+        {
+          "name": "TblDia Alertas Criticos",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4297
+        },
+        {
+          "name": "TblDia Status Operacional",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": null,
+          "line": 4307
+        },
+        {
+          "name": "TblDia Total Rotas Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4321
+        },
+        {
+          "name": "TblDia Total Pedidos Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4327
+        },
+        {
+          "name": "TblDia Total Volumes Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "#,##0",
+          "line": 4333
+        },
+        {
+          "name": "TblDia SPR Ped Realizado Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "0.0",
+          "line": 4339
+        },
+        {
+          "name": "TblDia SPR Ped Planejado Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "0.0",
+          "line": 4345
+        },
+        {
+          "name": "TblDia SPR Delta Ped Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\99. Legado TblDia",
+          "format_string": "+0.0;-0.0;0.0",
+          "line": 4351
+        },
+        {
+          "name": "TabSem Rotas Planejadas",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4357
+        },
+        {
+          "name": "TabSem Rotas Planejadas Executadas",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4362
+        },
+        {
+          "name": "TabSem % Execucao Rotas",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "0.0%",
+          "line": 4367
+        },
+        {
+          "name": "TabSem Pedidos Planejados",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4372
+        },
+        {
+          "name": "TabSem Volumes Planejados",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4377
+        },
+        {
+          "name": "TabSem % Execucao Pedidos",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "0.0%",
+          "line": 4382
+        },
+        {
+          "name": "TabSem % Execucao Volumes",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "0.0%",
+          "line": 4387
+        },
+        {
+          "name": "TabSem Match Mesmo Dia",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4392
+        },
+        {
+          "name": "TabSem Match D+/-1",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4397
+        },
+        {
+          "name": "TabSem Match Fora Janela",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4402
+        },
+        {
+          "name": "TabSem % Match Mesmo Dia",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "0.0%",
+          "line": 4407
+        },
+        {
+          "name": "TabSem % Match D+/-1",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "0.0%",
+          "line": 4412
+        },
+        {
+          "name": "TabSem % Match Fora Janela",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "0.0%",
+          "line": 4417
+        },
+        {
+          "name": "TabSem Rotas Nao Planejadas",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4422
+        },
+        {
+          "name": "TabSem Rotas Sem Tempo",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4427
+        },
+        {
+          "name": "TabSem Rotas Overtime",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4432
+        },
+        {
+          "name": "TabSem Alertas Total",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4437
+        },
+        {
+          "name": "TabSem Alertas Criticos",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4442
+        },
+        {
+          "name": "TabSem Status Operacional",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": null,
+          "line": 4447
+        },
+        {
+          "name": "TabSem Total Rotas Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4451
+        },
+        {
+          "name": "TabSem Total Pedidos Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4456
+        },
+        {
+          "name": "TabSem Total Volumes Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "#,##0",
+          "line": 4461
+        },
+        {
+          "name": "TabSem SPR Ped Realizado Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "0.0",
+          "line": 4466
+        },
+        {
+          "name": "TabSem SPR Ped Planejado Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "0.0",
+          "line": 4471
+        },
+        {
+          "name": "TabSem SPR Delta Ped Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\02. KPI Semanal",
+          "format_string": "+0.0;-0.0;0.0",
+          "line": 4476
+        },
+        {
+          "name": "TabMes Rotas",
+          "display_folder": "19. Tabeloes Exportacao DAX\\03. KPI Mensal",
+          "format_string": "#,##0",
+          "line": 4481
+        },
+        {
+          "name": "TabMes Pedidos",
+          "display_folder": "19. Tabeloes Exportacao DAX\\03. KPI Mensal",
+          "format_string": "#,##0",
+          "line": 4486
+        },
+        {
+          "name": "TabMes Volumes",
+          "display_folder": "19. Tabeloes Exportacao DAX\\03. KPI Mensal",
+          "format_string": "#,##0",
+          "line": 4491
+        },
+        {
+          "name": "TabMes % Entregas Efetivas",
+          "display_folder": "19. Tabeloes Exportacao DAX\\03. KPI Mensal",
+          "format_string": "0.0%",
+          "line": 4496
+        },
+        {
+          "name": "TabMes SPR Ped Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\03. KPI Mensal",
+          "format_string": "0.0",
+          "line": 4501
+        },
+        {
+          "name": "TabMes ORH Utilizacao Unidade",
+          "display_folder": "19. Tabeloes Exportacao DAX\\03. KPI Mensal",
+          "format_string": "0.0%",
+          "line": 4511
+        },
+        {
+          "name": "HTML Grafico Tendencia Semanal",
+          "display_folder": "14. HTML Content\\03. Graficos Semanais e Mensais",
+          "format_string": null,
+          "line": 4521
+        },
+        {
+          "name": "HTML Grafico Tendencia Mensal",
+          "display_folder": "14. HTML Content\\03. Graficos Semanais e Mensais",
+          "format_string": null,
+          "line": 4563
+        },
+        {
+          "name": "HTML Tabela Hierarquia Semana Filial Rota",
+          "display_folder": "14. HTML Content\\02. Tabelas e Rankings",
+          "format_string": null,
+          "line": 4605
+        },
+        {
+          "name": "HTML Grafico Barras Filial Semana",
+          "display_folder": "14. HTML Content\\04. Filial e Drilldown",
+          "format_string": null,
+          "line": 4658
+        },
+        {
+          "name": "HTML Tabela Alertas Filial Semana",
+          "display_folder": "14. HTML Content\\04. Filial e Drilldown",
+          "format_string": null,
+          "line": 4697
+        }
+      ],
+      "partitions": [
+        {
+          "name": "_Medidas",
+          "kind": "calculated",
+          "files": [],
+          "locales": [],
+          "source_preview": "ROW(\"_\", 0)",
+          "line": 4748
+        }
+      ]
+    },
+    {
+      "name": "_Metas",
+      "columns": [
+        {
+          "name": "KPI",
+          "data_type": null,
+          "source_column": "[KPI]",
+          "summarize_by": null,
+          "line": 5
+        },
+        {
+          "name": "Meta",
+          "data_type": null,
+          "source_column": "[Meta]",
+          "summarize_by": null,
+          "line": 10
+        },
+        {
+          "name": "Sentido",
+          "data_type": null,
+          "source_column": "[Sentido]",
+          "summarize_by": null,
+          "line": 15
+        },
+        {
+          "name": "Unidade",
+          "data_type": null,
+          "source_column": "[Unidade]",
+          "summarize_by": null,
+          "line": 20
+        }
+      ],
+      "measures": [],
+      "partitions": [
+        {
+          "name": "_Metas",
+          "kind": "calculated",
+          "files": [],
+          "locales": [],
+          "source_preview": "DATATABLE(",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "name": "DateTableTemplate_e2c61278-6fe2-4dfc-89bd-fcaeaa0e72a9",
+      "columns": [
+        {
+          "name": "Date",
+          "data_type": "dateTime",
+          "source_column": "[Date]",
+          "summarize_by": "none",
+          "line": 6
+        },
+        {
+          "name": "Ano = YEAR([Date])",
+          "data_type": "int64",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 18
+        },
+        {
+          "name": "MonthNo = MONTH([Date])",
+          "data_type": "int64",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 30
+        },
+        {
+          "name": "Mês = FORMAT([Date], \"MMMM\")",
+          "data_type": "string",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 42
+        },
+        {
+          "name": "QuarterNo = INT(([MonthNo] + 2) / 3)",
+          "data_type": "int64",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 54
+        },
+        {
+          "name": "Trimestre = \"Qtr \" & [QuarterNo]",
+          "data_type": "string",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 66
+        },
+        {
+          "name": "Dia = DAY([Date])",
+          "data_type": "int64",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 78
+        }
+      ],
+      "measures": [],
+      "partitions": [
+        {
+          "name": "DateTableTemplate_e2c61278-6fe2-4dfc-89bd-fcaeaa0e72a9",
+          "kind": "calculated",
+          "files": [],
+          "locales": [],
+          "source_preview": "Calendar(Date(2015,1,1), Date(2015,1,1))",
+          "line": 111
+        }
+      ]
+    },
+    {
+      "name": "dim_calendario",
+      "columns": [
+        {
+          "name": "Data",
+          "data_type": null,
+          "source_column": "[Data]",
+          "summarize_by": null,
+          "line": 6
+        },
+        {
+          "name": "Ano",
+          "data_type": null,
+          "source_column": "[Ano]",
+          "summarize_by": null,
+          "line": 13
+        },
+        {
+          "name": "Trimestre",
+          "data_type": null,
+          "source_column": "[Trimestre]",
+          "summarize_by": null,
+          "line": 18
+        },
+        {
+          "name": "Mes",
+          "data_type": null,
+          "source_column": "[Mes]",
+          "summarize_by": null,
+          "line": 23
+        },
+        {
+          "name": "MesNome",
+          "data_type": null,
+          "source_column": "[MesNome]",
+          "summarize_by": null,
+          "line": 28
+        },
+        {
+          "name": "MesAno",
+          "data_type": null,
+          "source_column": "[MesAno]",
+          "summarize_by": null,
+          "line": 34
+        },
+        {
+          "name": "Semana",
+          "data_type": null,
+          "source_column": "[Semana]",
+          "summarize_by": null,
+          "line": 40
+        },
+        {
+          "name": "DiaSemanaNum",
+          "data_type": null,
+          "source_column": "[DiaSemanaNum]",
+          "summarize_by": null,
+          "line": 45
+        },
+        {
+          "name": "DiaSemana",
+          "data_type": null,
+          "source_column": "[DiaSemana]",
+          "summarize_by": null,
+          "line": 50
+        },
+        {
+          "name": "DiaDoAno",
+          "data_type": null,
+          "source_column": "[DiaDoAno]",
+          "summarize_by": null,
+          "line": 56
+        },
+        {
+          "name": "FimDeSemana",
+          "data_type": null,
+          "source_column": "[FimDeSemana]",
+          "summarize_by": null,
+          "line": 61
+        },
+        {
+          "name": "AnoSemana",
+          "data_type": null,
+          "source_column": "[AnoSemana]",
+          "summarize_by": null,
+          "line": 66
+        },
+        {
+          "name": "AnoMes",
+          "data_type": null,
+          "source_column": "[AnoMes]",
+          "summarize_by": null,
+          "line": 71
+        },
+        {
+          "name": "Semestre",
+          "data_type": null,
+          "source_column": "[Semestre]",
+          "summarize_by": null,
+          "line": 76
+        },
+        {
+          "name": "MesAbrev",
+          "data_type": null,
+          "source_column": "[MesAbrev]",
+          "summarize_by": null,
+          "line": 81
+        },
+        {
+          "name": "DiaUtil",
+          "data_type": null,
+          "source_column": "[DiaUtil]",
+          "summarize_by": null,
+          "line": 87
+        },
+        {
+          "name": "SemanaInicio",
+          "data_type": null,
+          "source_column": "[SemanaInicio]",
+          "summarize_by": null,
+          "line": 92
+        },
+        {
+          "name": "SemanaFim",
+          "data_type": null,
+          "source_column": "[SemanaFim]",
+          "summarize_by": null,
+          "line": 97
+        },
+        {
+          "name": "SemanaLabel",
+          "data_type": null,
+          "source_column": "[SemanaLabel]",
+          "summarize_by": null,
+          "line": 102
+        },
+        {
+          "name": "SemanaDoMes",
+          "data_type": null,
+          "source_column": "[SemanaDoMes]",
+          "summarize_by": null,
+          "line": 108
+        },
+        {
+          "name": "QuinzenaDoMes",
+          "data_type": null,
+          "source_column": "[QuinzenaDoMes]",
+          "summarize_by": null,
+          "line": 113
+        },
+        {
+          "name": "AnoSemanaLabel",
+          "data_type": null,
+          "source_column": "[AnoSemanaLabel]",
+          "summarize_by": null,
+          "line": 118
+        },
+        {
+          "name": "MesDia",
+          "data_type": null,
+          "source_column": "[MesDia]",
+          "summarize_by": null,
+          "line": 124
+        },
+        {
+          "name": "IsUltimaData",
+          "data_type": null,
+          "source_column": "[IsUltimaData]",
+          "summarize_by": null,
+          "line": 130
+        },
+        {
+          "name": "IsAnterior",
+          "data_type": null,
+          "source_column": "[IsAnterior]",
+          "summarize_by": null,
+          "line": 135
+        },
+        {
+          "name": "IsAteUltimaData",
+          "data_type": null,
+          "source_column": "[IsAteUltimaData]",
+          "summarize_by": null,
+          "line": 140
+        },
+        {
+          "name": "IsFuturo",
+          "data_type": null,
+          "source_column": "[IsFuturo]",
+          "summarize_by": null,
+          "line": 145
+        },
+        {
+          "name": "DiasAteUltimaData",
+          "data_type": null,
+          "source_column": "[DiasAteUltimaData]",
+          "summarize_by": null,
+          "line": 150
+        },
+        {
+          "name": "IsSemanaAtual",
+          "data_type": null,
+          "source_column": "[IsSemanaAtual]",
+          "summarize_by": null,
+          "line": 155
+        },
+        {
+          "name": "IsSemanaAnterior",
+          "data_type": null,
+          "source_column": "[IsSemanaAnterior]",
+          "summarize_by": null,
+          "line": 160
+        },
+        {
+          "name": "IsMesAtual",
+          "data_type": null,
+          "source_column": "[IsMesAtual]",
+          "summarize_by": null,
+          "line": 165
+        },
+        {
+          "name": "IsMesAnterior",
+          "data_type": null,
+          "source_column": "[IsMesAnterior]",
+          "summarize_by": null,
+          "line": 170
+        },
+        {
+          "name": "IsTrimestreAtual",
+          "data_type": null,
+          "source_column": "[IsTrimestreAtual]",
+          "summarize_by": null,
+          "line": 175
+        },
+        {
+          "name": "IsUltimos7Dias",
+          "data_type": null,
+          "source_column": "[IsUltimos7Dias]",
+          "summarize_by": null,
+          "line": 180
+        },
+        {
+          "name": "IsUltimos14Dias",
+          "data_type": null,
+          "source_column": "[IsUltimos14Dias]",
+          "summarize_by": null,
+          "line": 185
+        },
+        {
+          "name": "IsUltimos30Dias",
+          "data_type": null,
+          "source_column": "[IsUltimos30Dias]",
+          "summarize_by": null,
+          "line": 190
+        },
+        {
+          "name": "IsUltimos90Dias",
+          "data_type": null,
+          "source_column": "[IsUltimos90Dias]",
+          "summarize_by": null,
+          "line": 195
+        },
+        {
+          "name": "PeriodoLabel",
+          "data_type": null,
+          "source_column": "[PeriodoLabel]",
+          "summarize_by": null,
+          "line": 200
+        },
+        {
+          "name": "TrimestreLabel",
+          "data_type": null,
+          "source_column": "[TrimestreLabel]",
+          "summarize_by": null,
+          "line": 205
+        },
+        {
+          "name": "SemestreLabel",
+          "data_type": null,
+          "source_column": "[SemestreLabel]",
+          "summarize_by": null,
+          "line": 210
+        },
+        {
+          "name": "ISOSemana",
+          "data_type": null,
+          "source_column": "[ISOSemana]",
+          "summarize_by": null,
+          "line": 215
+        },
+        {
+          "name": "ISOAno",
+          "data_type": null,
+          "source_column": "[ISOAno]",
+          "summarize_by": null,
+          "line": 220
+        },
+        {
+          "name": "ISOAnoSemana",
+          "data_type": null,
+          "source_column": "[ISOAnoSemana]",
+          "summarize_by": null,
+          "line": 225
+        },
+        {
+          "name": "ISODiaSemana",
+          "data_type": null,
+          "source_column": "[ISODiaSemana]",
+          "summarize_by": null,
+          "line": 230
+        },
+        {
+          "name": "ISOAnoSemanaSort",
+          "data_type": null,
+          "source_column": "[ISOAnoSemanaSort]",
+          "summarize_by": null,
+          "line": 235
+        },
+        {
+          "name": "MesNomeAbrev3",
+          "data_type": null,
+          "source_column": "[MesNomeAbrev3]",
+          "summarize_by": null,
+          "line": 240
+        },
+        {
+          "name": "MesLabel",
+          "data_type": null,
+          "source_column": "[MesLabel]",
+          "summarize_by": null,
+          "line": 246
+        },
+        {
+          "name": "DataLabel",
+          "data_type": null,
+          "source_column": "[DataLabel]",
+          "summarize_by": null,
+          "line": 252
+        },
+        {
+          "name": "DiaLabel",
+          "data_type": null,
+          "source_column": "[DiaLabel]",
+          "summarize_by": null,
+          "line": 258
+        },
+        {
+          "name": "SemanaCurtaLabel",
+          "data_type": null,
+          "source_column": "[SemanaCurtaLabel]",
+          "summarize_by": null,
+          "line": 264
+        }
+      ],
+      "measures": [],
+      "partitions": [
+        {
+          "name": "dim_calendario",
+          "kind": "calculated",
+          "files": [],
+          "locales": [],
+          "source_preview": "VAR _Hoje        = TODAY()",
+          "line": 270
+        }
+      ]
+    },
+    {
+      "name": "dim_filial",
+      "columns": [
+        {
+          "name": "Filial",
+          "data_type": "string",
+          "source_column": "Filial",
+          "summarize_by": "none",
+          "line": 5
+        },
+        {
+          "name": "Codigo",
+          "data_type": "string",
+          "source_column": "Codigo",
+          "summarize_by": "none",
+          "line": 13
+        },
+        {
+          "name": "NomeResumido",
+          "data_type": "string",
+          "source_column": "NomeResumido",
+          "summarize_by": "none",
+          "line": 21
+        },
+        {
+          "name": "Tipo",
+          "data_type": "string",
+          "source_column": "Tipo",
+          "summarize_by": "none",
+          "line": 29
+        },
+        {
+          "name": "MetaSPR",
+          "data_type": "double",
+          "source_column": "MetaSPR",
+          "summarize_by": "sum",
+          "line": 37
+        },
+        {
+          "name": "Regiao",
+          "data_type": "string",
+          "source_column": "Regiao",
+          "summarize_by": null,
+          "line": 48
+        },
+        {
+          "name": "MetaEntrega",
+          "data_type": "double",
+          "source_column": "MetaEntrega",
+          "summarize_by": null,
+          "line": 54
+        }
+      ],
+      "measures": [],
+      "partitions": [
+        {
+          "name": "dim_filial",
+          "kind": "m",
+          "files": [
+            "C:\\Users\\lucas.batista\\Documents\\Projetos\\Dashboard\\data\\tab_auxiliar\\dim_filial.xlsx"
+          ],
+          "locales": [
+            "pt-BR"
+          ],
+          "source_preview": "let",
+          "line": 60
+        }
+      ]
+    },
+    {
+      "name": "dim_tipo_veiculo",
+      "columns": [
+        {
+          "name": "TipoVeiculo",
+          "data_type": "string",
+          "source_column": "TipoVeiculo",
+          "summarize_by": "none",
+          "line": 5
+        },
+        {
+          "name": "Categoria",
+          "data_type": "string",
+          "source_column": "Categoria",
+          "summarize_by": "none",
+          "line": 13
+        },
+        {
+          "name": "Ordem",
+          "data_type": "int64",
+          "source_column": "Ordem",
+          "summarize_by": "none",
+          "line": 21
+        },
+        {
+          "name": "JanelaReferenciaDias",
+          "data_type": "int64",
+          "source_column": "JanelaReferenciaDias",
+          "summarize_by": "none",
+          "line": 30
+        },
+        {
+          "name": "DataInicioReferencia",
+          "data_type": "dateTime",
+          "source_column": "DataInicioReferencia",
+          "summarize_by": "none",
+          "line": 39
+        },
+        {
+          "name": "DataFimReferencia",
+          "data_type": "dateTime",
+          "source_column": "DataFimReferencia",
+          "summarize_by": "none",
+          "line": 48
+        },
+        {
+          "name": "RotasAmostra",
+          "data_type": "int64",
+          "source_column": "RotasAmostra",
+          "summarize_by": "none",
+          "line": 57
+        },
+        {
+          "name": "CapP75PedidosRef",
+          "data_type": "double",
+          "source_column": "CapP75PedidosRef",
+          "summarize_by": "none",
+          "line": 66
+        },
+        {
+          "name": "CapP75VolumesRef",
+          "data_type": "double",
+          "source_column": "CapP75VolumesRef",
+          "summarize_by": "none",
+          "line": 74
+        },
+        {
+          "name": "CapP75PesoKgRef",
+          "data_type": "double",
+          "source_column": "CapP75PesoKgRef",
+          "summarize_by": "none",
+          "line": 82
+        },
+        {
+          "name": "CapMediaPedidosRef",
+          "data_type": "double",
+          "source_column": "CapMediaPedidosRef",
+          "summarize_by": "none",
+          "line": 90
+        },
+        {
+          "name": "CapMediaVolumesRef",
+          "data_type": "double",
+          "source_column": "CapMediaVolumesRef",
+          "summarize_by": "none",
+          "line": 98
+        },
+        {
+          "name": "CapMediaPesoKgRef",
+          "data_type": "double",
+          "source_column": "CapMediaPesoKgRef",
+          "summarize_by": "none",
+          "line": 106
+        }
+      ],
+      "measures": [],
+      "partitions": [
+        {
+          "name": "dim_tipo_veiculo",
+          "kind": "m",
+          "files": [
+            "C:\\Users\\lucas.batista\\Documents\\Projetos\\Dashboard\\output\\powerbi\\dim_tipo_veiculo.csv"
+          ],
+          "locales": [
+            "pt-BR"
+          ],
+          "source_preview": "let",
+          "line": 114
+        }
+      ]
+    },
+    {
+      "name": "fato_planejado",
+      "columns": [
+        {
+          "name": "IdCarga",
+          "data_type": "int64",
+          "source_column": "IdCarga",
+          "summarize_by": null,
+          "line": 5
+        },
+        {
+          "name": "Data Planejada",
+          "data_type": "dateTime",
+          "source_column": "Data Planejada",
+          "summarize_by": "none",
+          "line": 11
+        },
+        {
+          "name": "Filial",
+          "data_type": "string",
+          "source_column": "Filial",
+          "summarize_by": null,
+          "line": 22
+        },
+        {
+          "name": "Rota Planejada",
+          "data_type": "string",
+          "source_column": "Rota Planejada",
+          "summarize_by": null,
+          "line": 27
+        },
+        {
+          "name": "Pedidos Planejados",
+          "data_type": "double",
+          "source_column": "Pedidos Planejados",
+          "summarize_by": null,
+          "line": 32
+        },
+        {
+          "name": "Volumes Planejados",
+          "data_type": "double",
+          "source_column": "Volumes Planejados",
+          "summarize_by": null,
+          "line": 37
+        },
+        {
+          "name": "KM Planejado Plan",
+          "data_type": "double",
+          "source_column": "KM Planejado Plan",
+          "summarize_by": null,
+          "line": 42
+        },
+        {
+          "name": "Tempo Planejado Plan (h)",
+          "data_type": "double",
+          "source_column": "Tempo Planejado Plan (h)",
+          "summarize_by": null,
+          "line": 47
+        },
+        {
+          "name": "Peso Planejado (kg)",
+          "data_type": "double",
+          "source_column": "Peso Planejado (kg)",
+          "summarize_by": null,
+          "line": 52
+        },
+        {
+          "name": "Executado",
+          "data_type": "int64",
+          "source_column": "Executado",
+          "summarize_by": null,
+          "line": 57
+        }
+      ],
+      "measures": [],
+      "partitions": [
+        {
+          "name": "fato_planejado",
+          "kind": "m",
+          "files": [
+            "C:\\Users\\lucas.batista\\Documents\\Projetos\\Dashboard\\output\\powerbi\\fato_planejado.csv"
+          ],
+          "locales": [],
+          "source_preview": "let",
+          "line": 62
+        }
+      ]
+    },
+    {
+      "name": "fato_rotas",
+      "columns": [
+        {
+          "name": "Filial",
+          "data_type": "string",
+          "source_column": "Filial",
+          "summarize_by": "none",
+          "line": 5
+        },
+        {
+          "name": "Rota",
+          "data_type": "string",
+          "source_column": "Rota",
+          "summarize_by": "none",
+          "line": 13
+        },
+        {
+          "name": "Tipo de Veiculo Padrao",
+          "data_type": "string",
+          "source_column": "Tipo de Veiculo Padrao",
+          "summarize_by": "none",
+          "line": 21
+        },
+        {
+          "name": "Tipo Frota",
+          "data_type": "string",
+          "source_column": "Tipo Frota",
+          "summarize_by": "none",
+          "line": 29
+        },
+        {
+          "name": "Motorista",
+          "data_type": "string",
+          "source_column": "Motorista",
+          "summarize_by": "none",
+          "line": 37
+        },
+        {
+          "name": "Transportador",
+          "data_type": "string",
+          "source_column": "Transportador",
+          "summarize_by": "none",
+          "line": 45
+        },
+        {
+          "name": "Placa",
+          "data_type": "string",
+          "source_column": "Placa",
+          "summarize_by": "none",
+          "line": 53
+        },
+        {
+          "name": "Data Referencia",
+          "data_type": "dateTime",
+          "source_column": "Data Referencia",
+          "summarize_by": "none",
+          "line": 61
+        },
+        {
+          "name": "Pedidos da Rota",
+          "data_type": "int64",
+          "source_column": "Pedidos da Rota",
+          "summarize_by": "sum",
+          "line": 72
+        },
+        {
+          "name": "Volumes da Rota",
+          "data_type": "int64",
+          "source_column": "Volumes da Rota",
+          "summarize_by": "sum",
+          "line": 80
+        },
+        {
+          "name": "Peso (kg)",
+          "data_type": "double",
+          "source_column": "Peso (kg)",
+          "summarize_by": "sum",
+          "line": 88
+        },
+        {
+          "name": "Paradas",
+          "data_type": "int64",
+          "source_column": "Paradas",
+          "summarize_by": "sum",
+          "line": 96
+        },
+        {
+          "name": "Clientes",
+          "data_type": "int64",
+          "source_column": "Clientes",
+          "summarize_by": "sum",
+          "line": 104
+        },
+        {
+          "name": "Entregues",
+          "data_type": "int64",
+          "source_column": "Entregues",
+          "summarize_by": "sum",
+          "line": 112
+        },
+        {
+          "name": "Insucessos",
+          "data_type": "int64",
+          "source_column": "Insucessos",
+          "summarize_by": "sum",
+          "line": 120
+        },
+        {
+          "name": "Baixas",
+          "data_type": "int64",
+          "source_column": "Baixas",
+          "summarize_by": "sum",
+          "line": 128
+        },
+        {
+          "name": "KM Planejado",
+          "data_type": "double",
+          "source_column": "KM Planejado",
+          "summarize_by": "sum",
+          "line": 136
+        },
+        {
+          "name": "KM Realizado",
+          "data_type": "double",
+          "source_column": "KM Realizado",
+          "summarize_by": "sum",
+          "line": 144
+        },
+        {
+          "name": "Tempo Planejado (h)",
+          "data_type": "double",
+          "source_column": "Tempo Planejado (h)",
+          "summarize_by": "sum",
+          "line": 152
+        },
+        {
+          "name": "Tempo Realizado (h)",
+          "data_type": "double",
+          "source_column": "Tempo Realizado (h)",
+          "summarize_by": "sum",
+          "line": 160
+        },
+        {
+          "name": "Valor Pagamento Carga",
+          "data_type": "double",
+          "source_column": "Valor Pagamento Carga",
+          "summarize_by": "sum",
+          "line": 168
+        },
+        {
+          "name": "Valor Pagamento Rota",
+          "data_type": "double",
+          "source_column": "Valor Pagamento Rota",
+          "summarize_by": "sum",
+          "line": 176
+        },
+        {
+          "name": "Valor Pagamento Remessas",
+          "data_type": "double",
+          "source_column": "Valor Pagamento Remessas",
+          "summarize_by": "sum",
+          "line": 184
+        },
+        {
+          "name": "Valor Pagamento Km",
+          "data_type": "double",
+          "source_column": "Valor Pagamento Km",
+          "summarize_by": "sum",
+          "line": 192
+        },
+        {
+          "name": "IdCarga",
+          "data_type": "string",
+          "source_column": "IdCarga",
+          "summarize_by": "none",
+          "line": 200
+        },
+        {
+          "name": "Status",
+          "data_type": "string",
+          "source_column": "Status",
+          "summarize_by": "none",
+          "line": 208
+        },
+        {
+          "name": "CPF",
+          "data_type": "string",
+          "source_column": "CPF",
+          "summarize_by": "none",
+          "line": 216
+        },
+        {
+          "name": "Pedidos Planejados",
+          "data_type": "int64",
+          "source_column": "Pedidos Planejados",
+          "summarize_by": "sum",
+          "line": 224
+        },
+        {
+          "name": "Volumes Planejados",
+          "data_type": "int64",
+          "source_column": "Volumes Planejados",
+          "summarize_by": "sum",
+          "line": 232
+        },
+        {
+          "name": "KM Planejado Plan",
+          "data_type": "double",
+          "source_column": "KM Planejado Plan",
+          "summarize_by": "sum",
+          "line": 240
+        },
+        {
+          "name": "Tempo Planejado Plan (h)",
+          "data_type": "double",
+          "source_column": "Tempo Planejado Plan (h)",
+          "summarize_by": "sum",
+          "line": 248
+        },
+        {
+          "name": "Peso Planejado (kg)",
+          "data_type": "double",
+          "source_column": "Peso Planejado (kg)",
+          "summarize_by": "sum",
+          "line": 256
+        },
+        {
+          "name": "Possui Planejado",
+          "data_type": "int64",
+          "source_column": "Possui Planejado",
+          "summarize_by": "sum",
+          "line": 264
+        },
+        {
+          "name": "Rota Concluida",
+          "data_type": "int64",
+          "source_column": "Rota Concluida",
+          "summarize_by": "sum",
+          "line": 272
+        },
+        {
+          "name": "Data Planejada",
+          "data_type": "dateTime",
+          "source_column": "Data Planejada",
+          "summarize_by": "none",
+          "line": 280
+        },
+        {
+          "name": "Rota Planejada",
+          "data_type": "string",
+          "source_column": "Rota Planejada",
+          "summarize_by": "none",
+          "line": 296
+        },
+        {
+          "name": "Ajudante",
+          "data_type": "int64",
+          "source_column": "Ajudante",
+          "summarize_by": "sum",
+          "line": 304
+        },
+        {
+          "name": "Performance (%)",
+          "data_type": "double",
+          "source_column": "Performance (%)",
+          "summarize_by": "sum",
+          "line": 312
+        },
+        {
+          "name": "Usuario Carregamento",
+          "data_type": "string",
+          "source_column": "Usuario Carregamento",
+          "summarize_by": "none",
+          "line": 320
+        },
+        {
+          "name": "Data de Abertura",
+          "data_type": "dateTime",
+          "source_column": "Data de Abertura",
+          "summarize_by": "none",
+          "line": 328
+        },
+        {
+          "name": "Data de Carregamento",
+          "data_type": "dateTime",
+          "source_column": "Data de Carregamento",
+          "summarize_by": "none",
+          "line": 336
+        },
+        {
+          "name": "Data Atribuicao Motorista",
+          "data_type": "dateTime",
+          "source_column": "Data Atribuicao Motorista",
+          "summarize_by": "none",
+          "line": 344
+        },
+        {
+          "name": "Data Inicio Rota",
+          "data_type": "dateTime",
+          "source_column": "Data Inicio Rota",
+          "summarize_by": "none",
+          "line": 352
+        },
+        {
+          "name": "Primeira Baixa",
+          "data_type": "dateTime",
+          "source_column": "Primeira Baixa",
+          "summarize_by": "none",
+          "line": 360
+        },
+        {
+          "name": "Ultima Baixa",
+          "data_type": "dateTime",
+          "source_column": "Ultima Baixa",
+          "summarize_by": "none",
+          "line": 368
+        },
+        {
+          "name": "Tempo Ciclo Entrega (h)",
+          "data_type": "double",
+          "source_column": "Tempo Ciclo Entrega (h)",
+          "summarize_by": "sum",
+          "line": 376
+        },
+        {
+          "name": "Gap Dias Plan vs Real",
+          "data_type": "int64",
+          "source_column": "Gap Dias Plan vs Real",
+          "summarize_by": "sum",
+          "line": 384
+        },
+        {
+          "name": "Match Temporal",
+          "data_type": "string",
+          "source_column": "Match Temporal",
+          "summarize_by": "none",
+          "line": 392
+        }
+      ],
+      "measures": [],
+      "partitions": [
+        {
+          "name": "fato_rotas",
+          "kind": "m",
+          "files": [
+            "C:\\Users\\lucas.batista\\Documents\\Projetos\\Dashboard\\output\\powerbi\\fato_rotas.csv"
+          ],
+          "locales": [],
+          "source_preview": "let",
+          "line": 400
+        }
+      ]
+    },
+    {
+      "name": "LocalDateTable_f94047f8-ee04-40ca-ab82-55389abadc0c",
+      "columns": [
+        {
+          "name": "Date",
+          "data_type": "dateTime",
+          "source_column": "[Date]",
+          "summarize_by": "none",
+          "line": 6
+        },
+        {
+          "name": "Ano = YEAR([Date])",
+          "data_type": "int64",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 18
+        },
+        {
+          "name": "MonthNo = MONTH([Date])",
+          "data_type": "int64",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 30
+        },
+        {
+          "name": "Mês = FORMAT([Date], \"MMMM\")",
+          "data_type": "string",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 42
+        },
+        {
+          "name": "QuarterNo = INT(([MonthNo] + 2) / 3)",
+          "data_type": "int64",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 54
+        },
+        {
+          "name": "Trimestre = \"Qtr \" & [QuarterNo]",
+          "data_type": "string",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 66
+        },
+        {
+          "name": "Dia = DAY([Date])",
+          "data_type": "int64",
+          "source_column": null,
+          "summarize_by": "none",
+          "line": 78
+        }
+      ],
+      "measures": [],
+      "partitions": [
+        {
+          "name": "LocalDateTable_f94047f8-ee04-40ca-ab82-55389abadc0c",
+          "kind": "calculated",
+          "files": [],
+          "locales": [],
+          "source_preview": "Calendar(Date(Year(MIN('fato_rotas'[Data Planejada])), 1, 1), Date(Year(MAX('fato_rotas'[Data Planejada])), 12, 31))",
+          "line": 111
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "name": "AutoDetected_a5cb3fa3-a25e-4aaf-81bd-c9e9d66c1311",
+      "from_column": "fato_rotas.Filial",
+      "to_column": "dim_filial.Filial",
+      "line": 1
+    },
+    {
+      "name": "fato_rotas_dim_calendario",
+      "from_column": "fato_rotas.'Data Referencia",
+      "to_column": "dim_calendario.Data",
+      "line": 5
+    },
+    {
+      "name": "fato_rotas_dim_tipo_veiculo",
+      "from_column": "fato_rotas.'Tipo de Veiculo Padrao",
+      "to_column": "dim_tipo_veiculo.TipoVeiculo",
+      "line": 9
+    },
+    {
+      "name": "fato_planejado_Data Planejada_dim_calendario_Data",
+      "from_column": "fato_planejado.'Data Planejada",
+      "to_column": "dim_calendario.Data",
+      "line": 13
+    },
+    {
+      "name": "fato_planejado_Filial_dim_filial_Filial",
+      "from_column": "fato_planejado.Filial",
+      "to_column": "dim_filial.Filial",
+      "line": 17
+    },
+    {
+      "name": "3ee41c61-f0b2-43ea-9325-8b588406a822",
+      "from_column": "fato_rotas.'Data Planejada",
+      "to_column": "LocalDateTable_f94047f8-ee04-40ca-ab82-55389abadc0c.Date",
+      "line": 21
+    }
+  ],
+  "model_table_refs": [
+    "dim_filial",
+    "dim_tipo_veiculo",
+    "fato_rotas",
+    "dim_calendario",
+    "fato_planejado",
+    "_Medidas",
+    "_Metas",
+    "DateTableTemplate_e2c61278-6fe2-4dfc-89bd-fcaeaa0e72a9",
+    "LocalDateTable_f94047f8-ee04-40ca-ab82-55389abadc0c"
+  ],
+  "report": {
+    "page_count": 11,
+    "active_page": "60c480f0bbae26605811",
+    "pages": [
+      {
+        "id": "9b8d47009241dc052b91",
+        "name": "Executivo",
+        "visual_count": 9
+      },
+      {
+        "id": "78d53a1ede414390cb10",
+        "name": "SPR",
+        "visual_count": 7
+      },
+      {
+        "id": "58dfa821622b194e5780",
+        "name": "SPR Detalhamento",
+        "visual_count": 2
+      },
+      {
+        "id": "31fa0ea5890a82873711",
+        "name": "Frota e Capacidade",
+        "visual_count": 3
+      },
+      {
+        "id": "6d187cb3c5e56001e302",
+        "name": "Base Geral",
+        "visual_count": 1
+      },
+      {
+        "id": "7b126714a15b28dcdca1",
+        "name": "Página 3",
+        "visual_count": 6
+      },
+      {
+        "id": "81b4d5306abad70e2a0a",
+        "name": "Página 4",
+        "visual_count": 3
+      },
+      {
+        "id": "dfa54507d66dc9e72840",
+        "name": "Página 5",
+        "visual_count": 2
+      },
+      {
+        "id": "917e82907e6a5ece1791",
+        "name": "Página 7",
+        "visual_count": 3
+      },
+      {
+        "id": "c311a3312acaa8686b10",
+        "name": "Página 1",
+        "visual_count": 1
+      },
+      {
+        "id": "60c480f0bbae26605811",
+        "name": "Página 2",
+        "visual_count": 3
+      }
+    ],
+    "total_visuals": 40
+  },
+  "measure_folder_counts": {
+    "01. Resumo Executivo": 13,
+    "02. SPR - Densidade": 15,
+    "03. ORH - Unidade e Cenarios": 14,
+    "04. Desvios Plan x Real": 13,
+    "05. Produtividade/h": 10,
+    "06. Eficiencia KM": 6,
+    "07. Frota e Capacidade": 26,
+    "08. Eficacia de Entrega": 3,
+    "09. Variacoes Temporais": 31,
+    "10. Reconciliacao": 8,
+    "11. Metas e Parametros": 10,
+    "12. KPI Cards": 41,
+    "13. Rankings e Alertas KPI": 18,
+    "14. HTML Content\\01. Cards KPI": 33,
+    "14. HTML Content\\02. Tabelas e Rankings": 8,
+    "14. HTML Content\\03. Graficos Semanais e Mensais": 2,
+    "14. HTML Content\\04. Filial e Drilldown": 2,
+    "15. Torre de Controle Operacional\\01. Fluxo e Volume": 19,
+    "15. Torre de Controle Operacional\\02. Alertas": 1,
+    "15. Torre de Controle Operacional\\03. Status e Tendencias": 8,
+    "19. Tabeloes Exportacao DAX\\01. Linha Operacional": 23,
+    "19. Tabeloes Exportacao DAX\\02. KPI Semanal": 25,
+    "19. Tabeloes Exportacao DAX\\03. KPI Mensal": 6,
+    "19. Tabeloes Exportacao DAX\\99. Legado TblDia": 25,
+    "_Nao Publicavel": 8
+  },
+  "csv_profiles": {
+    "fato_rotas.csv": {
+      "exists": true,
+      "rows": 20974,
+      "columns": 48
+    },
+    "fato_planejado.csv": {
+      "exists": true,
+      "rows": 19249,
+      "columns": 10
+    },
+    "dim_filial.xlsx": {
+      "exists": true,
+      "rows": 34,
+      "columns": 9
+    },
+    "dim_tipo_veiculo.csv": {
+      "exists": true,
+      "rows": 11,
+      "columns": 13
+    }
+  },
+  "counts": {
+    "tables_total": 9,
+    "columns_total": 147,
+    "measures_total": 368,
+    "relationships_total": 6,
+    "measure_folders_total": 25
+  },
+  "issues": [
+    {
+      "severity": "medium",
+      "title": "Caminho absoluto no source do fato_rotas",
+      "detail": "C:\\Users\\lucas.batista\\Documents\\Projetos\\Dashboard\\output\\powerbi\\fato_rotas.csv"
+    },
+    {
+      "severity": "medium",
+      "title": "fato_rotas sem Table.TransformColumnTypes no M",
+      "detail": "Partição importa CSV sem tipagem explícita."
+    },
+    {
+      "severity": "low",
+      "title": "Relationship com nome automático",
+      "detail": "AutoDetected_a5cb3fa3-a25e-4aaf-81bd-c9e9d66c1311"
+    }
+  ]
+}

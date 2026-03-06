@@ -1,0 +1,214 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "tbl_orh_filial",
+  "position": {
+    "x": 20,
+    "y": 450,
+    "z": 0,
+    "width": 1240,
+    "height": 245,
+    "tabOrder": 12
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_filial"
+                    }
+                  },
+                  "Property": "NomeResumido"
+                }
+              },
+              "queryRef": "dim_filial.NomeResumido",
+              "displayName": "Filial"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Tempo Medio Realizado (h)"
+                }
+              },
+              "queryRef": "_Medidas.Tempo Medio Realizado (h)",
+              "displayName": "Tempo Real (h)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Utilizacao Jornada 8h (%)"
+                }
+              },
+              "queryRef": "_Medidas.Utilizacao Jornada 8h (%)",
+              "displayName": "Utiliza??o %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Ociosidade Jornada 8h (%)"
+                }
+              },
+              "queryRef": "_Medidas.Ociosidade Jornada 8h (%)",
+              "displayName": "Ociosidade %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "% Rotas Overtime (>8h)"
+                }
+              },
+              "queryRef": "_Medidas.% Rotas Overtime (>8h)",
+              "displayName": "Overtime %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "% Rotas Curtas (<4h)"
+                }
+              },
+              "queryRef": "_Medidas.% Rotas Curtas (<4h)",
+              "displayName": "Rotas Curtas %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Potencial Consolidacao (rotas)"
+                }
+              },
+              "queryRef": "_Medidas.Potencial Consolidacao (rotas)",
+              "displayName": "Potencial Consolida??o"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Economia Potencial (h)"
+                }
+              },
+              "queryRef": "_Medidas.Economia Potencial (h)",
+              "displayName": "Economia Potencial"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Status ORH"
+                }
+              },
+              "queryRef": "_Medidas.Status ORH",
+              "displayName": "Status ORH"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "KPI ORH Acao"
+                }
+              },
+              "queryRef": "_Medidas.KPI ORH Acao",
+              "displayName": "Acao"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Jornada e ORH por Filial'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Left'"
+                }
+              }
+            },
+            "titleWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

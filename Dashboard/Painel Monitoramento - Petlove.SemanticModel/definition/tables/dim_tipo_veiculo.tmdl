@@ -1,0 +1,120 @@
+table dim_tipo_veiculo
+	lineageTag: 1ac2d462-7e4e-4000-bae4-257f1bf19134
+
+	column TipoVeiculo
+		dataType: string
+		lineageTag: 5e33562e-b14f-44bd-93bd-e60330ebea97
+		summarizeBy: none
+		sourceColumn: TipoVeiculo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria
+		dataType: string
+		lineageTag: c1311271-dda9-4419-8b24-b6e4bb4edd1c
+		summarizeBy: none
+		sourceColumn: Categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordem
+		dataType: string
+		lineageTag: 5fafa18f-e3f7-4ae2-a2cf-9c4fc3d86257
+		summarizeBy: none
+		sourceColumn: Ordem
+
+		annotation SummarizationSetBy = Automatic
+
+	column JanelaReferenciaDias
+		dataType: string
+		lineageTag: 86f39b4f-519b-4085-9526-18bd19819c80
+		summarizeBy: none
+		sourceColumn: JanelaReferenciaDias
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataInicioReferencia
+		dataType: string
+		lineageTag: c75f8447-0762-4958-b565-595b71ee9c9a
+		summarizeBy: none
+		sourceColumn: DataInicioReferencia
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataFimReferencia
+		dataType: string
+		lineageTag: 035bafb7-231d-4c92-885c-1d823e849ec1
+		summarizeBy: none
+		sourceColumn: DataFimReferencia
+
+		annotation SummarizationSetBy = Automatic
+
+	column RotasAmostra
+		dataType: string
+		lineageTag: 9e25adc3-96b4-4b81-90b0-9bd263fd5b05
+		summarizeBy: none
+		sourceColumn: RotasAmostra
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapP75PedidosRef
+		dataType: string
+		lineageTag: 1c9e9078-2be4-4362-92d9-0445ead1b792
+		summarizeBy: none
+		sourceColumn: CapP75PedidosRef
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapP75VolumesRef
+		dataType: string
+		lineageTag: dde0872b-3578-4660-b5da-73319f4b3fd9
+		summarizeBy: none
+		sourceColumn: CapP75VolumesRef
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapP75PesoKgRef
+		dataType: string
+		lineageTag: 3b884f5b-5565-4a77-a801-0296e6eba70c
+		summarizeBy: none
+		sourceColumn: CapP75PesoKgRef
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapMediaPedidosRef
+		dataType: string
+		lineageTag: c32755e4-0276-4202-927f-4c909295b93f
+		summarizeBy: none
+		sourceColumn: CapMediaPedidosRef
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapMediaVolumesRef
+		dataType: string
+		lineageTag: 9fb36cbf-a4fb-45d4-ba36-b3bc0bea5a76
+		summarizeBy: none
+		sourceColumn: CapMediaVolumesRef
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapMediaPesoKgRef
+		dataType: string
+		lineageTag: dc79ffb9-1b08-4354-aba3-09befdc9770e
+		summarizeBy: none
+		sourceColumn: CapMediaPesoKgRef
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_tipo_veiculo = m
+		mode: import
+		source =
+				let
+				    Fonte = Csv.Document(File.Contents("C:\Users\lucas.batista\Documents\Projetos\Dashboard\output\powerbi\dim_tipo_veiculo.csv"),[Delimiter=";", Columns=13, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true])
+				in
+				    #"Cabeçalhos Promovidos"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
