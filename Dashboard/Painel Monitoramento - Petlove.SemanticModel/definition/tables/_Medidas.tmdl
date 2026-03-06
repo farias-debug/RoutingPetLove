@@ -23,7 +23,7 @@ table _Medidas
 			)
 		formatString: #,##0
 		isHidden
-		displayFolder: 98. Suporte\01. Entrega
+		displayFolder: 08. Entregas\01. Entrega
 		lineageTag: e77aa64a-21ec-4a82-96bf-ff48dca05e3c
 
 	/// Soma de insucessos de entrega
@@ -35,21 +35,21 @@ table _Medidas
 			)
 		formatString: #,##0
 		isHidden
-		displayFolder: 98. Suporte\01. Entrega
+		displayFolder: 08. Entregas\01. Entrega
 		lineageTag: 1d6317f9-1a5a-4e43-9076-674da6369819
 
 	/// Percentual de entregas efetivadas com sucesso sobre o total de tentativas
 	measure '% Entregas Efetivas' = DIVIDE([Total Entregas], [Total Entregas] + [Total Insucessos], 0)
 		formatString: 0.0%
 		isHidden
-		displayFolder: 98. Suporte\01. Entrega
+		displayFolder: 08. Entregas\01. Entrega
 		lineageTag: 09d6a596-a224-4d4d-82d5-be1cc3bc4fda
 
 	/// Taxa de insucesso de entregas
 	measure '% Insucessos' = DIVIDE([Total Insucessos], [Total Entregas] + [Total Insucessos], 0)
 		formatString: 0.0%
 		isHidden
-		displayFolder: 98. Suporte\01. Entrega
+		displayFolder: 08. Entregas\01. Entrega
 		lineageTag: c88bbd28-3af3-4463-87b7-88e0cb4bef39
 
 	/// Quilometragem total percorrida em todas as rotas do periodo
@@ -574,7 +574,7 @@ table _Medidas
 			)
 		formatString: 0.0%
 		isHidden
-		displayFolder: 98. Suporte\01. Entrega
+		displayFolder: 08. Entregas\01. Entrega
 		lineageTag: fb822186-b8f0-4762-98d8-37b39a8e2f65
 
 	/// Media movel 7 dias do percentual de entregas efetivas (requer filtro de data)
@@ -585,7 +585,7 @@ table _Medidas
 			)
 		formatString: 0.0%
 		isHidden
-		displayFolder: 98. Suporte\01. Entrega
+		displayFolder: 08. Entregas\01. Entrega
 		lineageTag: 1f70b1e8-2c6e-4b17-bf04-aae5b8012c7c
 
 	/// Variacao dia a dia no total de rotas (absoluto). Usa flags IsUltimaData/IsAnterior.
@@ -1130,14 +1130,14 @@ table _Medidas
 	measure 'Meta Global % Entregas' = LOOKUPVALUE(_Metas[Meta], _Metas[KPI], "% Entregas Efetivas")
 		formatString: 0.0%
 		isHidden
-		displayFolder: 98. Suporte\03. Metas Entrega
+		displayFolder: 08. Entregas\03. Metas Entrega
 		lineageTag: 5aee56bc-f9e4-4a5a-ba46-c973b004e979
 
 	/// Meta de entrega por filial (da dim_filial, campo MetaEntrega)
 	measure 'Meta Filial Entrega' = 0.98
 		formatString: 0.0%
 		isHidden
-		displayFolder: 98. Suporte\03. Metas Entrega
+		displayFolder: 08. Entregas\03. Metas Entrega
 		lineageTag: 9b55d115-ad8b-4e21-8771-32e3d393b456
 
 	/// Variacao dia a dia no SPR Ped Realizado (pontos). Usa flags IsUltimaData/IsAnterior.
@@ -1533,7 +1533,7 @@ table _Medidas
 	measure 'KPI Entregas Valor' = [% Entregas Efetivas]
 		formatString: 0.0%
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: f928f04a-ea20-421f-a3dc-b905115d0955
 
 	measure 'KPI Entregas Meta' =
@@ -1542,19 +1542,19 @@ table _Medidas
 			RETURN IF(NOT ISBLANK(_metaFilial), _metaFilial, _metaGlobal)
 		formatString: 0.0%
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: c9d020dc-2e7d-4e4f-9488-348aaf8b62d9
 
 	measure 'KPI Entregas Delta (pp)' = [KPI Entregas Valor] - [KPI Entregas Meta]
 		formatString: +0.0%;-0.0%;0.0%
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: 013d6dab-07bf-4248-85d5-e31ecbf2ab57
 
 	measure 'KPI Entregas Delta%' = DIVIDE([KPI Entregas Valor] - [KPI Entregas Meta], [KPI Entregas Meta], 0)
 		formatString: +0.0%;-0.0%;0.0%
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: 3a02191d-a425-42ac-8551-9a8a79f6510b
 
 	measure 'KPI Entregas Status' =
@@ -1562,17 +1562,17 @@ table _Medidas
 			RETURN
 			    SWITCH(TRUE(), ISBLANK(_delta), "sem-dados", _delta >= 0, "ok", _delta >= -0.03, "atencao", "critico")
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: f9e8a950-c5ac-4ea4-8375-07883cdb1221
 
 	measure 'KPI Entregas Cor' = SWITCH([KPI Entregas Status], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: ea39baa5-961c-4c8a-9cdd-0f3e2683faa7
 
 	measure 'KPI Entregas Icone' = SWITCH([KPI Entregas Status], "ok", "^", "atencao", "~", "critico", "v", "-")
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: 37b39e1b-0508-4a8c-8696-9563b2bf9088
 
 	measure 'KPI Entregas Texto Card' =
@@ -1581,7 +1581,7 @@ table _Medidas
 			VAR _delta = FORMAT([KPI Entregas Delta (pp)], "+0.0%;-0.0%;0.0%")
 			RETURN _val & " " & _icon & " " & _delta & " vs meta"
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: cce0ee69-3f5f-41c6-b920-397269adfa65
 
 	/// Valor atual do KPI de ORH (tempo medio de rota) para exibicao em card
@@ -1730,7 +1730,7 @@ table _Medidas
 			RETURN
 			    MAXX(FILTER(_tab, [@Ent] = _min), dim_filial[Filial])
 		isHidden
-		displayFolder: 98. Suporte\04. Entrega Operacional
+		displayFolder: 08. Entregas\04. Entrega Operacional
 		lineageTag: 36f5314c-d7cf-456c-b064-5b67f09038c5
 
 	measure 'Valor Pior Filial Entregas Semana' =
@@ -1742,13 +1742,13 @@ table _Medidas
 			RETURN MINX(_tab, [@Ent])
 		formatString: 0.0%
 		isHidden
-		displayFolder: 98. Suporte\04. Entrega Operacional
+		displayFolder: 08. Entregas\04. Entrega Operacional
 		lineageTag: e69558ee-79e3-4fb2-ad14-d293f628664e
 
 	measure 'Gap% Pior Filial Entregas vs Meta' = DIVIDE([Valor Pior Filial Entregas Semana] - [Meta Global % Entregas], [Meta Global % Entregas], 0)
 		formatString: +0.0%;-0.0%;0.0%
 		isHidden
-		displayFolder: 98. Suporte\04. Entrega Operacional
+		displayFolder: 08. Entregas\04. Entrega Operacional
 		lineageTag: ac6db92d-0f57-4670-834a-daac77f4e9c5
 
 	measure 'Pior Filial ORH Semana' =
@@ -1803,7 +1803,7 @@ table _Medidas
 			    )
 		formatString: #,##0
 		isHidden
-		displayFolder: 98. Suporte\04. Entrega Operacional
+		displayFolder: 08. Entregas\04. Entrega Operacional
 		lineageTag: 6ece0d55-c7e4-429f-9470-96bb89f81273
 
 	measure 'Alerta Operacional' =
@@ -1893,7 +1893,7 @@ table _Medidas
 			        [@Ent], ASC
 			    )
 		isHidden
-		displayFolder: 98. Suporte\04. Entrega Operacional
+		displayFolder: 08. Entregas\04. Entrega Operacional
 		lineageTag: b015492e-36e7-4d94-8c19-8a40de7bbe11
 
 	/// Score SPR normalizado 0-100 baseado em SPR Real vs Meta
@@ -1914,7 +1914,7 @@ table _Medidas
 			RETURN
 			IF(ISBLANK(_val), BLANK(), MIN(INT(_raw), 100))
 		isHidden
-		displayFolder: 98. Suporte\04. Entrega Operacional
+		displayFolder: 08. Entregas\04. Entrega Operacional
 		lineageTag: 112964bc-c703-4c5e-ad41-e777f6d0592f
 
 	/// Score Operacional ponderado: SPR 45% + ORH 30% + Capacidade 25%
@@ -1949,7 +1949,7 @@ table _Medidas
 	measure 'Op Status Entregas' = [KPI Entregas Status Codigo]
 		formatString: 0
 		isHidden
-		displayFolder: 98. Suporte\04. Entrega Operacional
+		displayFolder: 08. Entregas\04. Entrega Operacional
 		lineageTag: 7eee1c96-4d50-4083-a9e1-499aefce3f80
 
 	/// Status numerico ORH: 1=dentro faixa ideal (85-115% meta), 0=moderado, -1=fora. Para formatacao condicional.
@@ -1990,7 +1990,7 @@ table _Medidas
 			)
 		formatString: 0
 		isHidden
-		displayFolder: 98. Suporte\04. Entrega Operacional
+		displayFolder: 08. Entregas\04. Entrega Operacional
 		lineageTag: a9ad5ad7-5448-4f06-932c-961b2b05c1db
 
 	/// Rank Score Operacional por filial no contexto atual (1=melhor). RANKX dense.
@@ -2088,7 +2088,7 @@ table _Medidas
 			)
 		formatString: 0
 		isHidden
-		displayFolder: 98. Suporte\04. Entrega Operacional
+		displayFolder: 08. Entregas\04. Entrega Operacional
 		lineageTag: 52ff68bf-12a3-4d6d-846d-84f8f373f17a
 
 	measure 'Ocupacao Pedidos Tipo (%)' =
@@ -2833,29 +2833,29 @@ table _Medidas
 	measure 'KPI Entregas Status Codigo' = SWITCH([KPI Entregas Status], "ok", 1, "atencao", 0, "critico", -1, BLANK())
 		formatString: 0
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: 020b7dd3-9532-430e-9419-7a9413c43214
 
 	measure 'KPI Entregas Status Texto' = SWITCH([KPI Entregas Status], "ok", "Entregas dentro da meta", "atencao", "Queda moderada de entregas", "critico", "Queda critica de entregas", "Sem dados")
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: 1045191c-b9d9-4e15-8a10-013fe8ead7ec
 
 	measure 'KPI Entregas Origem Meta' = IF(NOT ISBLANK([Meta Filial Entrega]), "meta-filial", "meta-global")
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: 1abbaad2-b420-4f86-bf64-e289275bd49b
 
 	measure 'KPI Entregas Trend D-1' = [Var D-1 % Entregas]
 		formatString: +0.0%;-0.0%;0.0%
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: 57ddd15c-1a79-4049-97ce-368e276e618b
 
 	measure 'KPI Entregas Trend WoW' = [Var WoW % Entregas]
 		formatString: +0.0%;-0.0%;0.0%
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: e58d3d9d-3d9e-453b-a6ae-b26757a34a84
 
 	measure 'KPI Entregas Acao' =
@@ -2867,7 +2867,7 @@ table _Medidas
 			    "Validar consistencia dos dados de entrega"
 			)
 		isHidden
-		displayFolder: 98. Suporte\02. KPI Entrega
+		displayFolder: 08. Entregas\02. KPI Entrega
 		lineageTag: 5453a834-6b38-4881-8413-df7f72065683
 
 	measure 'KPI ORH Status Codigo' = SWITCH([KPI ORH Status], "ok", 1, "atencao", 0, "critico", -1, BLANK())
