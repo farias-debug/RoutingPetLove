@@ -84,27 +84,31 @@ Cards simples (≤2100 chars), só valor + label.
 | HTML Grafico Tendencia Semanal | 2860 | CONCATX,SVG | Line Chart nativo |
 | HTML Torre Controle Operacional | 4254 | SVG,LAYOUT | Decomp. em módulos M1 |
 
-## Grupo E — SVG Cards Existentes (17 medidas)
+## Grupo E — SVG Cards Existentes (17 medidas) ✅ CONCLUÍDO
+
+> **Bug corrigido**: `ENCODEURL` não é função DAX válida no PBI Desktop.
+> Substituído por `SUBSTITUTE(_svg, "#", "%23")` em 17/17 medidas.
+> Commit: `8095d1c` — validação DAX: 17/17 renderizam corretamente.
 
 | Medida SVG | Chars | Status |
 |------------|-------|--------|
-| SVG Card Capacidade | 2068 | Validar |
-| SVG Card Capacidade Pedidos | 2185 | Validar |
-| SVG Card Capacidade Peso | 3036 | Validar |
-| SVG Card Capacidade Veiculos | 2193 | Validar |
-| SVG Card Capacidade Volumes | 2186 | Validar |
-| SVG Card Eficiencia KM | 2535 | Validar |
-| SVG Card Ocupacao Composta | 2107 | Validar |
-| SVG Card ORH | 2529 | Validar |
-| SVG Card Pedidos Hora | 2845 | Validar |
-| SVG Card Rotas Planejadas | 2373 | Validar |
-| SVG Card Rotas Realizadas | 2521 | Validar |
-| SVG Card Score Operacional | 2472 | Validar |
-| SVG Card SPR Ped | 2564 | Validar |
-| SVG Card SPR Vol | 2564 | Validar |
-| SVG Card Total Pedidos | 1862 | Validar |
-| SVG Card Total Rotas | 2284 | Validar |
-| SVG Strip Alerta Operacional | 2415 | Validar |
+| SVG Card Capacidade | 2068 | ✅ OK |
+| SVG Card Capacidade Pedidos | 2185 | ✅ OK |
+| SVG Card Capacidade Peso | 3036 | ✅ OK |
+| SVG Card Capacidade Veiculos | 2193 | ✅ OK |
+| SVG Card Capacidade Volumes | 2186 | ✅ OK |
+| SVG Card Eficiencia KM | 2535 | ✅ OK |
+| SVG Card Ocupacao Composta | 2107 | ✅ OK |
+| SVG Card ORH | 2529 | ✅ OK |
+| SVG Card Pedidos Hora | 2845 | ✅ OK |
+| SVG Card Rotas Planejadas | 2373 | ✅ OK |
+| SVG Card Rotas Realizadas | 2521 | ✅ OK |
+| SVG Card Score Operacional | 2472 | ✅ OK |
+| SVG Card SPR Ped | 2564 | ✅ OK |
+| SVG Card SPR Vol | 2564 | ✅ OK |
+| SVG Card Total Pedidos | 1862 | ✅ OK |
+| SVG Card Total Rotas | 2284 | ✅ OK |
+| SVG Strip Alerta Operacional | 2415 | ✅ OK |
 
 ---
 

@@ -51,6 +51,7 @@ Três frentes paralelas com interdependências controladas:
 | Merge M2a→M2 (rename) + plano M2b consolidação Desktop | UX | ✅ Concluído |
 | Classificar Scoreboard → **COMPARATIVO** (ranking cross-filial) | UX | ✅ Concluído |
 | Triar 60 HTML/SVG measures → 5 grupos (A/B/C/D/E) | Migração | ✅ Concluído |
+| Fix ENCODEURL→SUBSTITUTE em 17 SVG Cards (Grupo E) | Migração | ✅ Concluído (`8095d1c`) |
 | Otimizar M1 Torre de Controle | UX | ⏳ Fase 2 Sprint 2 |
 | Migrar sub-grupo A (6 nativos) e B (7 SVG existentes) | Migração | ⏳ Próximo |
 
