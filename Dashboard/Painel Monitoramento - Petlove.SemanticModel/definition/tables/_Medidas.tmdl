@@ -1461,10 +1461,10 @@ table _Medidas
 	measure 'KPI SPR Ped Cor' =
 			SWITCH(
 			    [KPI SPR Ped Status],
-			    "ok",       "#27AE60",
-			    "atencao",  "#F39C12",
+			    "ok",       "#4CAF50",
+			    "atencao",  "#F5A623",
 			    "critico",  "#E74C3C",
-			    "#95A5A6"
+			    "#6A7282"
 			)
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: 095883f2-c7bc-46e3-9299-e39c6048840c
@@ -1519,7 +1519,7 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: 98c816de-e631-48b3-9093-9713bc7f7e21
 
-	measure 'KPI SPR Vol Cor' = SWITCH([KPI SPR Vol Status], "ok", "#27AE60", "atencao", "#F39C12", "critico", "#E74C3C", "#95A5A6")
+	measure 'KPI SPR Vol Cor' = SWITCH([KPI SPR Vol Status], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		displayFolder: 02. SPR e Performance\05. KPI SPR Volumes
 		lineageTag: ecf16905-9937-4290-b996-1d9b0cc92585
 
@@ -1572,7 +1572,7 @@ table _Medidas
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: f9e8a950-c5ac-4ea4-8375-07883cdb1221
 
-	measure 'KPI Entregas Cor' = SWITCH([KPI Entregas Status], "ok", "#27AE60", "atencao", "#F39C12", "critico", "#E74C3C", "#95A5A6")
+	measure 'KPI Entregas Cor' = SWITCH([KPI Entregas Status], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		isHidden
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: ea39baa5-961c-4c8a-9cdd-0f3e2683faa7
@@ -1626,7 +1626,7 @@ table _Medidas
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 48147f2b-ab19-46c6-8896-d17235a62761
 
-	measure 'KPI ORH Cor' = SWITCH([KPI ORH Status], "ok", "#27AE60", "atencao", "#F39C12", "critico", "#E74C3C", "#95A5A6")
+	measure 'KPI ORH Cor' = SWITCH([KPI ORH Status], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 56690be9-23a5-45ce-879a-8f54074e7c5c
 
@@ -1681,7 +1681,7 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 00c14e7e-6280-46d5-b25b-12bb83425b31
 
-	measure 'KPI Desvio SPR Cor' = SWITCH([KPI Desvio SPR Status], "ok", "#27AE60", "atencao", "#F39C12", "critico", "#E74C3C", "#95A5A6")
+	measure 'KPI Desvio SPR Cor' = SWITCH([KPI Desvio SPR Status], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 318a2556-9a8b-4982-9ba9-4e974ecaef56
 
@@ -1858,7 +1858,7 @@ table _Medidas
 		displayFolder: 01. Operacao\02. Alertas e Prioridades
 		lineageTag: a7a2685a-6893-45b2-b7dd-8c3bde228bd8
 
-	measure 'Alerta Cor' = SWITCH([Alerta Nivel], "ok", "#27AE60", "atencao", "#F39C12", "critico", "#E74C3C", "#95A5A6")
+	measure 'Alerta Cor' = SWITCH([Alerta Nivel], "ok", "#4CAF50", "atencao", "#F5A623", "critico", "#E74C3C", "#6A7282")
 		displayFolder: 01. Operacao\02. Alertas e Prioridades
 		lineageTag: 85157943-f2af-4998-8102-3851a0386651
 
@@ -1905,7 +1905,7 @@ table _Medidas
 
 	/// Card HTML padronizado SPR Pedidos Real
 	measure 'HTML Card SPR Ped' =
-
+			
 			VAR _valor = [KPI SPR Ped Valor]
 			VAR _meta = [KPI SPR Ped Meta]
 			VAR _delta = [KPI SPR Ped Delta]
@@ -1935,7 +1935,7 @@ table _Medidas
 
 	/// Card HTML padronizado SPR Vol
 	measure 'HTML Card SPR Vol' =
-
+			
 			VAR _valor = [KPI SPR Vol Valor]
 			VAR _meta = [KPI SPR Vol Meta]
 			VAR _delta = [KPI SPR Vol Delta]
@@ -1965,7 +1965,7 @@ table _Medidas
 
 	/// Card HTML padronizado Entregas
 	measure 'HTML Card Entregas' =
-
+			
 			VAR _valor = [KPI Entregas Valor]
 			VAR _meta = [KPI Entregas Meta]
 			VAR _delta = [KPI Entregas Delta (pp)]
@@ -1994,7 +1994,7 @@ table _Medidas
 
 	/// Card HTML padronizado ORH
 	measure 'HTML Card ORH' =
-
+			
 			VAR _valor = [KPI ORH Valor]
 			VAR _meta = [KPI ORH Meta]
 			VAR _delta = [KPI ORH Delta]
@@ -2024,7 +2024,7 @@ table _Medidas
 
 	/// Card HTML padronizado Alerta
 	measure 'HTML Card Alerta' =
-
+			
 			VAR _texto = [Alerta Operacional]
 			VAR _nivel = [Alerta Nivel]
 			VAR _critSPR = [Qtd Filiais Criticas SPR]
@@ -2155,7 +2155,7 @@ table _Medidas
 
 	/// ORH Cenários Stacked Bar — Baloo 2, SVG bar-chart, hover, animações
 	measure 'HTML Card ORH Cenarios' =
-
+			
 			VAR _total = COUNTROWS(FILTER(fato_rotas, fato_rotas[Tempo Realizado (h)] > 0))
 			VAR _curtas = COUNTROWS(FILTER(fato_rotas, fato_rotas[Tempo Realizado (h)] > 0 && fato_rotas[Tempo Realizado (h)] < 4))
 			VAR _normais = COUNTROWS(FILTER(fato_rotas, fato_rotas[Tempo Realizado (h)] >= 4 && fato_rotas[Tempo Realizado (h)] <= 8))
@@ -2193,7 +2193,7 @@ table _Medidas
 
 	/// Mini KPI Total Rotas — Baloo 2, SVG map-pin, hover
 	measure 'HTML Card Total Rotas' =
-
+			
 			VAR _total = [Total Rotas]
 			VAR _varD1 = [Var D-1 Rotas]
 			VAR _varWoW = [Var WoW Rotas]
@@ -2213,7 +2213,7 @@ table _Medidas
 
 	/// Mini KPI Total Pedidos — Baloo 2, SVG shopping-bag, hover
 	measure 'HTML Card Total Pedidos' =
-
+			
 			VAR _total = [Total Pedidos]
 			VAR _varD1 = [Var D-1 Pedidos]
 			VAR _varWoW = [Var WoW Pedidos]
@@ -2233,7 +2233,7 @@ table _Medidas
 
 	/// Mini KPI Total Volumes — Baloo 2, SVG archive, hover
 	measure 'HTML Card Total Volumes' =
-
+			
 			VAR _total = [Total Volumes]
 			VAR _mediaPorRota = [Media Volumes por Rota]
 			VAR _iconPacote = "<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#5B2D8C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='16.5' y1='9.4' x2='7.5' y2='4.21'/><path d='M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z'/></svg>"
@@ -2252,7 +2252,7 @@ table _Medidas
 
 	/// Mini KPI KM Total — Baloo 2, SVG navigation, hover
 	measure 'HTML Card KM Total' =
-
+			
 			VAR _total = [Total KM Realizado]
 			VAR _eficiencia = [Eficiencia KM (%)]
 			VAR _mediaKM = [Media KM por Rota]
@@ -2272,7 +2272,7 @@ table _Medidas
 
 	/// Mini KPI Ve\u00edculos Ativos — Baloo 2, SVG truck, hover
 	measure 'HTML Card Veiculos' =
-
+			
 			VAR _ativos = [Veiculos Ativos]
 			VAR _rotasPorVeiculo = [Rotas por Veiculo Dia]
 			VAR _iconCaminhao = "<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#5B2D8C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='1' y='3' width='15' height='13'/><polygon points='16 8 20 8 23 11 23 16 16 16 16 8'/><circle cx='5.5' cy='18.5' r='2.5'/><circle cx='18.5' cy='18.5' r='2.5'/></svg>"
@@ -2291,7 +2291,7 @@ table _Medidas
 
 	/// Mini KPI Peso Total — Baloo 2, SVG box, hover
 	measure 'HTML Card Peso Total' =
-
+			
 			VAR _pesoKg = [Total Peso (kg)]
 			VAR _sprPeso = [SPR Peso Realizado (kg/rota)]
 			VAR _iconPeso = "<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#5B2D8C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2L2 7v10l10 5 10-5V7z'/><polyline points='12 17 12 22'/><polyline points='7 14.5 7 17'/><polyline points='17 14.5 17 17'/></svg>"
@@ -2310,7 +2310,7 @@ table _Medidas
 
 	/// Ticker Variação Diária — Baloo 2, SVG arrows por métrica, hover
 	measure 'HTML Card Variacao Diaria' =
-
+			
 			VAR _varSPR = [Var D-1 SPR Pedidos]
 			VAR _varEnt = [Var D-1 % Entregas]
 			VAR _varORH = [Var D-1 ORH Tempo]
@@ -2351,7 +2351,7 @@ table _Medidas
 
 	/// Produtividade por Hora — Baloo 2, SVG zap, hover
 	measure 'HTML Card Produtividade' =
-
+			
 			VAR _phr = [Pedidos/h Realizado]
 			VAR _php = [Pedidos/h Planejado]
 			VAR _vhr = [Volumes/h Realizado]
@@ -2388,7 +2388,7 @@ table _Medidas
 
 	/// Eficiência KM Gauge — Baloo 2, SVG compass, gradient bar, hover
 	measure 'HTML Card Eficiencia KM' =
-
+			
 			VAR _efic = [Eficiencia KM (%)]
 			VAR _pkm = [Pedidos/KM Realizado]
 			VAR _vkm = [Volumes/KM Realizado]
@@ -2416,7 +2416,7 @@ table _Medidas
 
 	/// Capacidade e Ocupação — Baloo 2, SVG server, gradient bars, hover
 	measure 'HTML Card Capacidade' =
-
+			
 			VAR _opcPed = [Ocupacao Pedidos (%)]
 			VAR _opcVol = [Ocupacao Volumes (%)]
 			VAR _capPed = [Cap P75 Pedidos]
@@ -2449,7 +2449,7 @@ table _Medidas
 
 	/// Reconciliação Plan x Real — Baloo 2, SVG git-merge, hover
 	measure 'HTML Card Reconciliacao' =
-
+			
 			VAR _mesmoDia = [% Match Mesmo Dia]
 			VAR _dpm1 = [% Match D+/-1]
 			VAR _semPlan = [% Sem Planejado]
@@ -2532,7 +2532,7 @@ table _Medidas
 
 	/// Resumo Semanal — Baloo 2, SVG calendar, hover, fadeIn
 	measure 'HTML Card Semana Resumo' =
-
+			
 			VAR _rotasAtu = [Rotas Semana Atual]
 			VAR _rotasAnt = [Rotas Semana Anterior]
 			VAR _sprAtu = [SPR Ped Semana Atual]
@@ -2569,7 +2569,7 @@ table _Medidas
 
 	/// Comparativo WoW — Baloo 2, SVG activity, SVG arrows, hover
 	measure 'HTML Card Comparativo Semanal' =
-
+			
 			VAR _wRotas = [Var WoW Rotas]
 			VAR _wPed = [Var WoW Pedidos]
 			VAR _wSPR = [Var WoW SPR Pedidos (%)]
@@ -2606,7 +2606,7 @@ table _Medidas
 
 	/// Aderência 5 Eixos — Baloo 2, SVG crosshair, gradient bars, hover
 	measure 'HTML Card Aderencia Radar' =
-
+			
 			VAR _aPed = [Aderencia Pedidos (%)]
 			VAR _aVol = [Aderencia Volumes (%)]
 			VAR _aPeso = [Aderencia Peso (%)]
@@ -2641,7 +2641,7 @@ table _Medidas
 
 	/// Filial Spotlight — Baloo 2, SVG map-pin, hover, gradient header
 	measure 'HTML Card Filial Spotlight' =
-
+			
 			VAR _filial = SELECTEDVALUE(dim_filial[Filial], "Todas")
 			VAR _nome = SELECTEDVALUE(dim_filial[NomeResumido], _filial)
 			VAR _tipo = SELECTEDVALUE(dim_filial[Tipo], "–")
@@ -2683,7 +2683,7 @@ table _Medidas
 
 	/// Status Frota — Baloo 2, SVG truck, hover, fadeIn
 	measure 'HTML Card Status Frota' =
-
+			
 			VAR _veiculos = [Veiculos Ativos]
 			VAR _rpvd = [Rotas por Veiculo Dia]
 			VAR _acima = [Rotas Acima Cap Pedidos]
@@ -2717,7 +2717,7 @@ table _Medidas
 
 	/// SPR Plan vs Real — Baloo 2, SVG git-compare, SVG arrows, hover
 	measure 'HTML Card SPR Plan vs Real' =
-
+			
 			VAR _sprR = [SPR Ped Realizado]
 			VAR _sprP = [SPR Ped Planejado]
 			VAR _sprVR = [SPR Vol Realizado]
@@ -2751,7 +2751,7 @@ table _Medidas
 
 	/// YTD Resumo — Baloo 2, SVG trending-up, hover, fadeIn
 	measure 'HTML Card YTD Resumo' =
-
+			
 			VAR _rYTD = [Rotas YTD]
 			VAR _pYTD = [Pedidos YTD]
 			VAR _vYTD = [Volumes YTD]
@@ -2785,7 +2785,7 @@ table _Medidas
 
 	/// MoM Resumo — Baloo 2, SVG bar-chart-2, SVG arrows, hover
 	measure 'HTML Card MoM Resumo' =
-
+			
 			VAR _mRotas = [Var MoM Rotas (%)]
 			VAR _mPed = [Var MoM Pedidos (%)]
 			VAR _mSPR = [Var MoM SPR Pedidos (%)]
@@ -2822,7 +2822,7 @@ table _Medidas
 
 	/// Performance Geral Score — Baloo 2, SVG trophy, SVG check/x, hover
 	measure 'HTML Card Performance Geral' =
-
+			
 			VAR _spr = [SPR Ped Realizado]
 			VAR _metaSPR = [Meta Global SPR Ped]
 			VAR _ent = [% Entregas Efetivas]
@@ -2859,7 +2859,7 @@ table _Medidas
 
 	/// Alerta Filiais — Baloo 2, SVG alert-triangle, hover
 	measure 'HTML Card Alerta Filiais' =
-
+			
 			VAR _top3SPR = [Top 3 Piores Filiais SPR]
 			VAR _top3Ent = [Top 3 Piores Filiais Entregas]
 			VAR _qtdSPR = [Qtd Filiais Abaixo Meta SPR]
@@ -2886,7 +2886,7 @@ table _Medidas
 
 	/// Progresso vs Metas — Baloo 2, SVG target, gradient bars, hover
 	measure 'HTML Card Progresso Metas' =
-
+			
 			VAR _sprVal = [SPR Ped Realizado]
 			VAR _sprMeta = [Meta Global SPR Ped]
 			VAR _sprPct = MIN(DIVIDE(_sprVal, _sprMeta, 0), 1.3)
@@ -2915,7 +2915,7 @@ table _Medidas
 
 	/// Card SPR Peso kg/rota com comparativo plan vs real
 	measure 'HTML Card SPR Peso' =
-
+			
 			VAR _val = [SPR Peso Realizado (kg/rota)]
 			VAR _plan = [SPR Peso Planejado (kg/rota)]
 			VAR _delta = _val - _plan
@@ -2928,7 +2928,7 @@ table _Medidas
 
 	/// Card SPR KM km/rota com comparativo plan vs real
 	measure 'HTML Card SPR KM' =
-
+			
 			VAR _val = [SPR KM Realizado (km/rota)]
 			VAR _plan = [SPR KM Planejado (km/rota)]
 			VAR _delta = _val - _plan
@@ -2965,7 +2965,7 @@ table _Medidas
 
 	/// Hero KPI Desvio SPR — Baloo 2, SVG activity zigzag, animações
 	measure 'HTML Card Desvio SPR' =
-
+			
 			VAR _val = [KPI Desvio SPR Valor]
 			VAR _meta = [KPI Desvio SPR Meta]
 			VAR _status = [KPI Desvio SPR Status]
@@ -2997,7 +2997,7 @@ table _Medidas
 
 	/// Consolidação — Baloo 2, SVG refresh, hover, fadeIn
 	measure 'HTML Card Consolidacao' =
-
+			
 			VAR _potencial = [Potencial Consolidacao (rotas)]
 			VAR _economia = [Economia Potencial (h)]
 			VAR _curtas = [% Rotas Curtas (<4h)]
@@ -4118,7 +4118,7 @@ table _Medidas
 			    2, "#10B981",
 			    3, "#F59E0B",
 			    4, "#EF4444",
-			    "#95A5A6"
+			    "#6A7282"
 			)
 		displayFolder: 04. Frota e Capacidade\02. Ocupacao Geral
 		lineageTag: 6d84fcfe-746e-4263-bfa3-6c5aeeadd36d
@@ -4381,6 +4381,7 @@ table _Medidas
 		formatString: #,##0.0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 99843bd6-4eeb-4de5-8e17-b45fa9670b35
+
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
 	/// Media diaria de volumes no periodo filtrado
@@ -4542,7 +4543,7 @@ table _Medidas
 			    2, "#10B981",
 			    3, "#F59E0B",
 			    4, "#EF4444",
-			    "#95A5A6"
+			    "#6A7282"
 			)
 		displayFolder: 04. Frota e Capacidade\04. Filial e Semana
 		lineageTag: 9286c3ab-e114-44a6-b97f-777fba7a4610
@@ -4639,14 +4640,14 @@ table _Medidas
 			VAR _texto = COALESCE([KPI SPR Ped Status Texto], "Sem dados")
 			VAR _textoCurto = IF(LEN(_texto) > 34, LEFT(_texto, 34) & "...", _texto)
 			VAR _textoSafe = SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_textoCurto, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
-			VAR _cor = COALESCE([KPI SPR Ped Cor], "#6B7280")
+			VAR _cor = COALESCE([KPI SPR Ped Cor], "#6A7282")
 			VAR _ratio = MIN(MAX(DIVIDE([KPI SPR Ped Valor], [KPI SPR Ped Meta], 0), 0), 1)
 			VAR _svg =
 			    "<svg xmlns='http://www.w3.org/2000/svg' width='360' height='136' viewBox='0 0 360 136'>"
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#FFFDF8' stroke='#E7DDD0'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>SPR PEDIDOS</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>SPR PEDIDOS</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -4673,14 +4674,14 @@ table _Medidas
 			VAR _texto = COALESCE([KPI SPR Vol Status Texto], "Sem dados")
 			VAR _textoCurto = IF(LEN(_texto) > 34, LEFT(_texto, 34) & "...", _texto)
 			VAR _textoSafe = SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_textoCurto, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
-			VAR _cor = COALESCE([KPI SPR Vol Cor], "#6B7280")
+			VAR _cor = COALESCE([KPI SPR Vol Cor], "#6A7282")
 			VAR _ratio = MIN(MAX(DIVIDE([KPI SPR Vol Valor], [KPI SPR Vol Meta], 0), 0), 1)
 			VAR _svg =
 			    "<svg xmlns='http://www.w3.org/2000/svg' width='360' height='136' viewBox='0 0 360 136'>"
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#F8FDFB' stroke='#DDE9E5'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>SPR VOLUMES</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>SPR VOLUMES</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -4707,14 +4708,14 @@ table _Medidas
 			VAR _texto = COALESCE([KPI ORH Status Texto], "Sem dados")
 			VAR _textoCurto = IF(LEN(_texto) > 34, LEFT(_texto, 34) & "...", _texto)
 			VAR _textoSafe = SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_textoCurto, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
-			VAR _cor = COALESCE([KPI ORH Cor], "#6B7280")
+			VAR _cor = COALESCE([KPI ORH Cor], "#6A7282")
 			VAR _ratio = MIN(MAX(DIVIDE([KPI ORH Valor], [KPI ORH Meta], 0), 0), 1)
 			VAR _svg =
 			    "<svg xmlns='http://www.w3.org/2000/svg' width='360' height='136' viewBox='0 0 360 136'>"
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#F7FAFD' stroke='#DCE5ED'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>ORH / JORNADA</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>ORH / JORNADA</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "h</text>"
@@ -4738,14 +4739,14 @@ table _Medidas
 			VAR _acao = COALESCE([Acao Capacidade], "Validar cadastro de capacidade e filtros")
 			VAR _acaoCurta = IF(LEN(_acao) > 40, LEFT(_acao, 40) & "...", _acao)
 			VAR _acaoSafe = SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_acaoCurta, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
-			VAR _cor = COALESCE([Status Capacidade Cor], "#6B7280")
+			VAR _cor = COALESCE([Status Capacidade Cor], "#6A7282")
 			VAR _ratio = MIN(MAX([Ocupacao Composta (%)], 0), 1)
 			VAR _svg =
 			    "<svg xmlns='http://www.w3.org/2000/svg' width='360' height='136' viewBox='0 0 360 136'>"
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#FFFDF8' stroke='#E7DDD0'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>CAPACIDADE</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>CAPACIDADE</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -4775,10 +4776,10 @@ table _Medidas
 			VAR _cor =
 			    SWITCH(
 			        TRUE(),
-			        ISBLANK(_valorNum), "#6B7280",
-			        _valorNum >= 90, "#1B8A5A",
-			        _valorNum >= 70, "#C98923",
-			        "#C44E3B"
+			        ISBLANK(_valorNum), "#6A7282",
+			        _valorNum >= 90, "#4CAF50",
+			        _valorNum >= 70, "#F5A623",
+			        "#E74C3C"
 			    )
 			VAR _sub = "SPR " & FORMAT([Score SPR (0-100)], "0") & " | ORH " & FORMAT([KPI ORH Valor], "0.0")
 			VAR _acao = COALESCE([Op Alerta Prioritario], "Sem alertas operacionais ativos")
@@ -4790,7 +4791,7 @@ table _Medidas
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#F8FAFC' stroke='#DCE5ED'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>SCORE OPERACIONAL</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>SCORE OPERACIONAL</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -4821,10 +4822,10 @@ table _Medidas
 			VAR _cor =
 			    SWITCH(
 			        _status,
-			        "DENTRO", "#1B8A5A",
-			        "MONITORAR", "#C98923",
-			        "AGIR", "#C44E3B",
-			        "#6B7280"
+			        "DENTRO", "#4CAF50",
+			        "MONITORAR", "#F5A623",
+			        "AGIR", "#E74C3C",
+			        "#6A7282"
 			    )
 			VAR _ratio = MIN(MAX(DIVIDE(_real, _plan, 0), 0), 1)
 			VAR _valor = IF(ISBLANK(_real), "--", FORMAT(_real, "0.0"))
@@ -4843,7 +4844,7 @@ table _Medidas
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#F7FBFD' stroke='#D7E4EC'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>PEDIDOS POR HORA</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>PEDIDOS POR HORA</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -4874,10 +4875,10 @@ table _Medidas
 			VAR _cor =
 			    SWITCH(
 			        _status,
-			        "DENTRO", "#1B8A5A",
-			        "MONITORAR", "#C98923",
-			        "AGIR", "#C44E3B",
-			        "#6B7280"
+			        "DENTRO", "#4CAF50",
+			        "MONITORAR", "#F5A623",
+			        "AGIR", "#E74C3C",
+			        "#6A7282"
 			    )
 			VAR _ratio = MIN(MAX(_valorNum, 0), 1)
 			VAR _valor = IF(ISBLANK(_valorNum), "--", FORMAT(_valorNum, "0.0%"))
@@ -4888,7 +4889,7 @@ table _Medidas
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#FCFAF5' stroke='#E7DDD0'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>EFICIENCIA KM</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>EFICIENCIA KM</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -4923,17 +4924,17 @@ table _Medidas
 			VAR _cor =
 			    SWITCH(
 			        _status,
-			        "ESTAVEL", "#143C5A",
-			        "MONITORAR", "#C98923",
-			        "AGIR", "#C44E3B",
-			        "#6B7280"
+			        "ESTAVEL", "#4CAF50",
+			        "MONITORAR", "#F5A623",
+			        "AGIR", "#E74C3C",
+			        "#6A7282"
 			    )
 			VAR _svg =
 			    "<svg xmlns='http://www.w3.org/2000/svg' width='360' height='136' viewBox='0 0 360 136'>"
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#FFFDF8' stroke='#E7DDD0'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>ROTAS NA JANELA</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>ROTAS NA JANELA</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -4968,9 +4969,9 @@ table _Medidas
 			VAR _cor =
 			    SWITCH(
 			        _status,
-			        "ALINHADO", "#1B7F79",
-			        "MONITORAR", "#C98923",
-			        "ABAIXO", "#C44E3B",
+			        "ALINHADO", "#4CAF50",
+			        "MONITORAR", "#F5A623",
+			        "ABAIXO", "#E74C3C",
 			        "#5C6673"
 			    )
 			VAR _svg =
@@ -4978,7 +4979,7 @@ table _Medidas
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#F8FDFB' stroke='#DDE9E5'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>ROTAS PLANEJADAS</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>ROTAS PLANEJADAS</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -5011,10 +5012,10 @@ table _Medidas
 			VAR _cor =
 			    SWITCH(
 			        _status,
-			        "ESTAVEL", "#143C5A",
-			        "MONITORAR", "#C98923",
-			        "AGIR", "#C44E3B",
-			        "#6B7280"
+			        "ESTAVEL", "#4CAF50",
+			        "MONITORAR", "#F5A623",
+			        "AGIR", "#E74C3C",
+			        "#6A7282"
 			    )
 			VAR _alerta = COALESCE([Op Alerta Prioritario], "Sem alertas operacionais ativos")
 			VAR _alertaCurto = IF(LEN(_alerta) > 38, LEFT(_alerta, 38) & "...", _alerta)
@@ -5024,7 +5025,7 @@ table _Medidas
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#F7FAFD' stroke='#DCE5ED'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>ROTAS REALIZADAS</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>ROTAS REALIZADAS</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -5049,16 +5050,16 @@ table _Medidas
 			VAR _svg =
 			    "<svg xmlns='http://www.w3.org/2000/svg' width='360' height='136' viewBox='0 0 360 136'>"
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#FCFAF5' stroke='#E7DDD0'/>"
-			        & "<circle cx='314' cy='20' r='54' fill='#A36A1F' opacity='0.08'/>"
-			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='#A36A1F'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>PEDIDOS NA JANELA</text>"
-			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='#A36A1F' opacity='0.15'/>"
-			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='#A36A1F'>RITMO</text>"
+			        & "<circle cx='314' cy='20' r='54' fill='#441A80' opacity='0.08'/>"
+			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='#441A80'/>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>PEDIDOS NA JANELA</text>"
+			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='#441A80' opacity='0.15'/>"
+			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='#441A80'>RITMO</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
 			        & "<text x='18' y='99' font-family='Segoe UI' font-size='12' fill='#5C6673'>D-1 " & _deltaDia & " | WoW " & _deltaWow & "</text>"
 			        & "<text x='18' y='117' font-family='Segoe UI' font-size='11' fill='#324152'>Produtividade " & _prod & " pedidos/h</text>"
 			        & "<rect x='18' y='123' width='324' height='8' rx='4' fill='#E7DDD0'/>"
-			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='#A36A1F'/>"
+			        & "<rect x='18' y='123' width='" & FORMAT(324 * _ratio, "0") & "' height='8' rx='4' fill='#441A80'/>"
 			        & "</svg>"
 			RETURN
 			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
@@ -5069,7 +5070,7 @@ table _Medidas
 
 	measure 'SVG Strip Alerta Operacional' =
 			VAR _nivel = UPPER(COALESCE([Alerta Nivel], "ok"))
-			VAR _cor = COALESCE([Alerta Cor], "#6B7280")
+			VAR _cor = COALESCE([Alerta Cor], "#6A7282")
 			VAR _msg = COALESCE([Op Alerta Prioritario], "Operacao estavel")
 			VAR _msgCurta = IF(LEN(_msg) > 92, LEFT(_msg, 92) & "...", _msg)
 			VAR _msg1 = LEFT(_msgCurta, 46)
@@ -5104,7 +5105,7 @@ table _Medidas
 			VAR _valorNum = [Ocupacao Filial Composta (%)]
 			VAR _valor = FORMAT(_valorNum, "0.0%")
 			VAR _status = UPPER(COALESCE([Status Capacidade Filial Texto], "SEM DADOS"))
-			VAR _cor = COALESCE([Status Capacidade Filial Cor], "#6B7280")
+			VAR _cor = COALESCE([Status Capacidade Filial Cor], "#6A7282")
 			VAR _acao = COALESCE([Acao Capacidade Filial], "Validar capacidade da filial")
 			VAR _acaoCurta = IF(LEN(_acao) > 36, LEFT(_acao, 36) & "...", _acao)
 			VAR _acaoSafe = SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_acaoCurta, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
@@ -5114,7 +5115,7 @@ table _Medidas
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#FFFDF8' stroke='#E7DDD0'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>OCUPACAO COMPOSTA</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>OCUPACAO COMPOSTA</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -5133,7 +5134,7 @@ table _Medidas
 	measure 'SVG Card Capacidade Veiculos' =
 			VAR _valorNum = [Ocupacao Filial Veiculos (%)]
 			VAR _status = SWITCH(TRUE(), ISBLANK(_valorNum), "SEM DADOS", _valorNum < 0.75, "SUBOCUPADA", _valorNum <= 0.95, "BALANCEADA", _valorNum <= 1.10, "SATURADA", "CRITICA")
-			VAR _cor = SWITCH(TRUE(), ISBLANK(_valorNum), "#6B7280", _valorNum < 0.75, "#1B7F79", _valorNum <= 0.95, "#1B8A5A", _valorNum <= 1.10, "#C98923", "#C44E3B")
+			VAR _cor = SWITCH(TRUE(), ISBLANK(_valorNum), "#6A7282", _valorNum < 0.75, "#F5A623", _valorNum <= 0.95, "#4CAF50", _valorNum <= 1.10, "#F5A623", "#E74C3C")
 			VAR _valor = FORMAT(_valorNum, "0.0%")
 			VAR _media = FORMAT([Op Media Diaria Rotas], "0.0")
 			VAR _cap = FORMAT([Capacidade Veiculos Dia Total], "0.0")
@@ -5143,7 +5144,7 @@ table _Medidas
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#F7FAFD' stroke='#DCE5ED'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>VEICULOS / DIA</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>VEICULOS / DIA</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -5162,7 +5163,7 @@ table _Medidas
 	measure 'SVG Card Capacidade Pedidos' =
 			VAR _valorNum = [Ocupacao Filial Pedidos (%)]
 			VAR _status = SWITCH(TRUE(), ISBLANK(_valorNum), "SEM DADOS", _valorNum < 0.75, "SUBOCUPADA", _valorNum <= 0.95, "BALANCEADA", _valorNum <= 1.10, "SATURADA", "CRITICA")
-			VAR _cor = SWITCH(TRUE(), ISBLANK(_valorNum), "#6B7280", _valorNum < 0.75, "#1B7F79", _valorNum <= 0.95, "#1B8A5A", _valorNum <= 1.10, "#C98923", "#C44E3B")
+			VAR _cor = SWITCH(TRUE(), ISBLANK(_valorNum), "#6A7282", _valorNum < 0.75, "#F5A623", _valorNum <= 0.95, "#4CAF50", _valorNum <= 1.10, "#F5A623", "#E74C3C")
 			VAR _valor = FORMAT(_valorNum, "0.0%")
 			VAR _media = FORMAT([Op Media Diaria Pedidos], "0.0")
 			VAR _cap = FORMAT([Capacidade Pedidos Dia Total], "0.0")
@@ -5172,7 +5173,7 @@ table _Medidas
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#FCFAF5' stroke='#E7DDD0'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>PEDIDOS / DIA</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>PEDIDOS / DIA</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -5191,7 +5192,7 @@ table _Medidas
 	measure 'SVG Card Capacidade Volumes' =
 			VAR _valorNum = [Ocupacao Filial Volumes (%)]
 			VAR _status = SWITCH(TRUE(), ISBLANK(_valorNum), "SEM DADOS", _valorNum < 0.75, "SUBOCUPADA", _valorNum <= 0.95, "BALANCEADA", _valorNum <= 1.10, "SATURADA", "CRITICA")
-			VAR _cor = SWITCH(TRUE(), ISBLANK(_valorNum), "#6B7280", _valorNum < 0.75, "#1B7F79", _valorNum <= 0.95, "#1B8A5A", _valorNum <= 1.10, "#C98923", "#C44E3B")
+			VAR _cor = SWITCH(TRUE(), ISBLANK(_valorNum), "#6A7282", _valorNum < 0.75, "#F5A623", _valorNum <= 0.95, "#4CAF50", _valorNum <= 1.10, "#F5A623", "#E74C3C")
 			VAR _valor = FORMAT(_valorNum, "0.0%")
 			VAR _media = FORMAT([Op Media Diaria Volumes], "0.0")
 			VAR _cap = FORMAT([Capacidade Volumes Dia Total], "0.0")
@@ -5201,7 +5202,7 @@ table _Medidas
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#F8FDFB' stroke='#DDE9E5'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A6F7D' letter-spacing='1'>VOLUMES / DIA</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold' font-size='11' fill='#6A7282' letter-spacing='1'>VOLUMES / DIA</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -5218,10 +5219,10 @@ table _Medidas
 		dataCategory: ImageUrl
 
 	measure 'SVG Card Capacidade Peso' =
-
+			
 			VAR _valorNum = [Ocupacao Filial Peso (%)]
 			VAR _temDados = NOT ISBLANK(_valorNum)
-
+			
 			VAR _status =
 			    SWITCH(
 			        TRUE(),
@@ -5231,44 +5232,44 @@ table _Medidas
 			        _valorNum <= 1.10, "SATURADA",
 			        "CRITICA"
 			    )
-
+			
 			VAR _cor =
 			    SWITCH(
 			        TRUE(),
-			        NOT _temDados, "#6B7280",
-			        _valorNum < 0.75, "#1B7F79",
-			        _valorNum <= 0.95, "#1B8A5A",
-			        _valorNum <= 1.10, "#C98923",
-			        "#C44E3B"
+			        NOT _temDados, "#6A7282",
+			        _valorNum < 0.75, "#F5A623",
+			        _valorNum <= 0.95, "#4CAF50",
+			        _valorNum <= 1.10, "#F5A623",
+			        "#E74C3C"
 			    )
-
+			
 			VAR _valor =
 			    IF(_temDados, FORMAT(_valorNum, "0.0%"), "—")
-
+			
 			VAR _media =
 			    IF(
 			        ISBLANK([Op Media Diaria Peso (kg)]),
 			        "—",
 			        FORMAT([Op Media Diaria Peso (kg)], "#,##0.0")
 			    )
-
+			
 			VAR _cap =
 			    IF(
 			        ISBLANK([Capacidade Peso Dia Total (kg)]),
 			        "—",
 			        FORMAT([Capacidade Peso Dia Total (kg)], "#,##0.0")
 			    )
-
+			
 			-- barra: limita 0..1 e garante inteiro >= 0
 			VAR _ratio = MIN(MAX(COALESCE(_valorNum, 0), 0), 1)
 			VAR _w = MAX(0, ROUND(324 * _ratio, 0))
-
+			
 			VAR _svg =
 			    "<svg xmlns='http://www.w3.org/2000/svg' width='360' height='136' viewBox='0 0 360 136'>"
 			        & "<rect x='1' y='1' width='358' height='134' rx='22' fill='#FFFDF8' stroke='#E7DDD0'/>"
 			        & "<circle cx='314' cy='20' r='54' fill='" & _cor & "' opacity='0.08'/>"
 			        & "<rect x='18' y='18' width='42' height='8' rx='4' fill='" & _cor & "'/>"
-			        & "<text x='18' y='42' font-family='Segoe UI Semibold, Segoe UI, Arial' font-size='11' fill='#6A6F7D' letter-spacing='1'>PESO / DIA</text>"
+			        & "<text x='18' y='42' font-family='Segoe UI Semibold, Segoe UI, Arial' font-size='11' fill='#6A7282' letter-spacing='1'>PESO / DIA</text>"
 			        & "<rect x='250' y='18' width='90' height='24' rx='12' fill='" & _cor & "' opacity='0.15'/>"
 			        & "<text x='295' y='34' text-anchor='middle' font-family='Segoe UI Semibold, Segoe UI, Arial' font-size='10' fill='" & _cor & "'>" & _status & "</text>"
 			        & "<text x='18' y='80' font-family='Segoe UI Semibold, Segoe UI, Arial' font-size='34' fill='#102536'>" & _valor & "</text>"
@@ -5277,7 +5278,7 @@ table _Medidas
 			        & "<rect x='18' y='123' width='324' height='8' rx='4' fill='#E7DDD0'/>"
 			        & "<rect x='18' y='123' width='" & _w & "' height='8' rx='4' fill='" & _cor & "'/>"
 			        & "</svg>"
-
+			
 			RETURN
 			    "data:image/svg+xml;utf8," & ENCODEURL(_svg)
 		isHidden

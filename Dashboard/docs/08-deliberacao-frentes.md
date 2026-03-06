@@ -44,15 +44,15 @@ Três frentes paralelas com interdependências controladas:
 
 ### Fase 2 — Sprint 1 (consolidação)
 
-| Ação | Frente | Dep |
-|------|--------|-----|
-| Triar 17 SVG Cards (corrigir/descartar/congelar) | Semântica | — |
-| Normalizar 100% displayFolders | Semântica | — |
-| Merge páginas 06+07 → M2 Execução e Volume | UX | — |
-| Classificar Scoreboard (resumo vs comparativo) | UX | — |
-| Otimizar M1 Torre de Controle | UX | — |
-| Triar 34 Cards HTML → sub-grupos A/B/C | Migração | — |
-| Migrar sub-grupo A (nativos) e B (SVG template) | Migração | Template SVG |
+| Ação | Frente | Status |
+|------|--------|--------|
+| Triar 17 SVG Cards (corrigir/descartar/congelar) | Semântica | ✅ Concluído |
+| Normalizar 100% displayFolders | Semântica | ✅ Concluído |
+| Merge M2a→M2 (rename) + plano M2b consolidação Desktop | UX | ✅ Concluído |
+| Classificar Scoreboard → **COMPARATIVO** (ranking cross-filial) | UX | ✅ Concluído |
+| Triar 60 HTML/SVG measures → 5 grupos (A/B/C/D/E) | Migração | ✅ Concluído |
+| Otimizar M1 Torre de Controle | UX | ⏳ Fase 2 Sprint 2 |
+| Migrar sub-grupo A (6 nativos) e B (7 SVG existentes) | Migração | ⏳ Próximo |
 
 ### Fase 3 — Sprint 2 (criação + governança)
 
@@ -95,9 +95,10 @@ Três frentes paralelas com interdependências controladas:
 | Medidas total | 389 → **381** | ≤375 | ≤340 |
 | Medidas com description | ~0% → **~53%** (204/381) | ≥80% | 100% |
 | LocalDateTables | 7 → **0** | 0 | 0 |
-| Medidas HTML legadas | 44 | ≤10 | 0 |
-| SVG Cards com erro | 17 | ≤5 | 0 |
+| Medidas HTML legadas | 44 → **43 triadas (A:6 B:7 C:20 D:10)** | ≤10 | 0 |
+| SVG Cards validar | 17 → **17 triadas (grupo E)** | ≤5 erros | 0 erros |
 | KPI Packs completos | 4 | 7 | 7 |
+| Scoreboard classificado | — → **COMPARATIVO** | — | — |
 | Páginas com hierarquia 3 níveis | ~0 | ≥4 | 8 |
 | Tooltip pages | 0 | 0 | 2 |
 | Drill-through pages | 0 | 0 | 1 |

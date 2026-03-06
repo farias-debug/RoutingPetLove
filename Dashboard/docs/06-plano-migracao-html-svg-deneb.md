@@ -1,31 +1,114 @@
 # 06 — Plano de Migração HTML → SVG / Nativo / Deneb
 
-> Plano de migração das 44 medidas HTML legadas (`90. Legado\01. HTML\*`) para alternativas sustentáveis.
+> Plano de migração de **60 medidas HTML/SVG** para alternativas sustentáveis.
+> Triage executada em 2026-03-06 (Fase 2 Sprint 1).
 
 ---
 
-## Inventário do Legado HTML
+## Triage Consolidada — 60 Medidas (5 Grupos)
 
-### 90. Legado\01. HTML\01. Cards (34 medidas)
+| Grupo | Qtd | Origem | Destino | Sprint |
+|-------|-----|--------|---------|--------|
+| **A — Nativo** | 6 | 90.Legado\01.HTML\01.Cards | New Card nativo | S1 |
+| **B — SVG existe** | 7 | 90.Legado\01.HTML\01.Cards | Substituir por SVG Card existente | S1 |
+| **C — SVG a criar** | 20 | 90.Legado\01.HTML\01.Cards | Criar SVG DAX template | S2-S3 |
+| **D — Complexo** | 10 | 90.Legado\01.HTML\02-05 | Matrix nativa / Line Chart / Deneb / Descarte | S2-S3 |
+| **E — SVG validar** | 17 | 06.Shared\03.SVG Cards | Validar renderização, manter | S1 |
 
-Medidas que geram HTML inline para exibição como KPI Cards via visual HTML Content Viewer.
+---
 
-| # | Medida | Função | Classificação |
-|---|--------|--------|---------------|
-| 1 | HTML KPI Entregas | Card entregas efetivas | 🔴 Substituir rápido |
-| 2 | HTML KPI Insucessos | Card taxa de insucesso | 🔴 Substituir rápido |
-| 3 | HTML KPI Jornada | Card jornada média | 🔴 Substituir rápido |
-| 4 | HTML KPI ORH | Card ORH | 🔴 Substituir rápido |
-| 5 | HTML KPI Pedidos | Card pedidos/rota | 🔴 Substituir rápido |
-| 6 | HTML KPI Produtividade | Card produtividade | 🔴 Substituir rápido |
-| 7 | HTML KPI Rotas | Card total rotas | 🔴 Substituir rápido |
-| 8 | HTML KPI SPR Ped | Card SPR pedidos | 🔴 Substituir rápido |
-| 9 | HTML KPI SPR Vol | Card SPR volumes | 🔴 Substituir rápido |
-| 10 | HTML KPI Tempo | Card tempo médio | 🔴 Substituir rápido |
-| 11 | HTML KPI Volumes | Card volumes/rota | 🔴 Substituir rápido |
-| 12-22 | HTML KPI [Variantes] (×11) | Cards variantes com alertas | 🔴 Substituir rápido |
-| 23-30 | HTML KPI [Status] (×8) | Cards com badge de status | 🟡 Refatorar depois |
-| 31-34 | HTML KPI [Auxiliar] (×4) | Cards auxiliares diversos | 🔵 Avaliar descarte |
+## Grupo A — Substituir por Nativo (6 medidas)
+
+Cards simples (≤2100 chars), só valor + label.
+
+| Medida | Chars | Ação |
+|--------|-------|------|
+| HTML Card KM Total | 1859 | → New Card nativo |
+| HTML Card Peso Total | 1873 | → New Card nativo |
+| HTML Card Total Volumes | 1892 | → New Card nativo |
+| HTML Card Veiculos | 1901 | → New Card nativo |
+| HTML Card Total Rotas | 1958 | → New Card nativo |
+| HTML Card Total Pedidos | 2051 | → New Card nativo |
+
+## Grupo B — SVG Card Já Existe (7 medidas)
+
+| Medida HTML | SVG Equivalente |
+|-------------|-----------------|
+| HTML Card Capacidade | SVG Card Capacidade |
+| HTML Card Eficiencia KM | SVG Card Eficiencia KM |
+| HTML Card ORH | SVG Card ORH |
+| HTML Card SPR Ped | SVG Card SPR Ped |
+| HTML Card SPR Vol | SVG Card SPR Vol |
+| HTML Card Total Pedidos | SVG Card Total Pedidos |
+| HTML Card Total Rotas | SVG Card Total Rotas |
+
+## Grupo C — Criar SVG Template (20 medidas)
+
+| Medida | Chars | Complexidade |
+|--------|-------|-------------|
+| HTML Card Alerta | 3753 | Média |
+| HTML Card Alerta Filiais | 3673 | Média |
+| HTML Card Consolidacao | 3759 | Média |
+| HTML Card Desvio SPR | 4209 | Média |
+| HTML Card Entregas | 3592 | Baixa |
+| HTML Card Filial Spotlight | 3839 | Média |
+| HTML Card Ocupacao Frota | 4000 | Média |
+| HTML Card Performance Geral | 4118 | Média |
+| HTML Card Produtividade | 4750 | Média |
+| HTML Card SPR KM | 3370 | Baixa |
+| HTML Card SPR Peso | 3589 | Baixa |
+| HTML Card Status Frota | 3936 | Média |
+| HTML Card Variacao Diaria | 3268 | Baixa |
+| HTML Card YTD Resumo | 3835 | Baixa |
+| HTML Card Comparativo Semanal | 5302 | Alta |
+| HTML Card MoM Resumo | 5336 | Alta |
+| HTML Card Progresso Metas | 5171 | Alta |
+| HTML Card Reconciliacao | 5209 | Alta |
+| HTML Card Semana Resumo | 4813 | Alta |
+| HTML Card SPR Plan vs Real | 4873 | Alta |
+
+## Grupo D — Complexo / Refatorar (10 medidas)
+
+| Medida | Chars | Flags | Destino |
+|--------|-------|-------|---------|
+| HTML Card Aderencia Radar | 6575 | SVG,LAYOUT | Deneb ou Descarte |
+| HTML Card ORH Cenarios | 6333 | SVG,LAYOUT | Decomp. em 3 SVG |
+| HTML Ranking Entregas Semana | 3512 | CONCATX,TABLE | Matrix nativa |
+| HTML Ranking ORH Semana | 3314 | CONCATX,TABLE | Matrix nativa |
+| HTML Ranking Rotas Criticas Semana | 3252 | CONCATX,TABLE | Matrix nativa |
+| HTML Ranking SPR Semana | 3531 | CONCATX,TABLE | Matrix nativa |
+| HTML Tabela Filiais Consolidado Semana | 3132 | CONCATX,TABLE | Matrix nativa |
+| HTML Tabela Ocupacao Tipo Veiculo Semana | 3314 | CONCATX,TABLE | Matrix nativa |
+| HTML Grafico Barras Filial Semana | 2955 | CONCATX,SVG | Clustered Bar nativo |
+| HTML Grafico Tendencia Mensal | 2833 | CONCATX,SVG | Line Chart nativo |
+| HTML Grafico Tendencia Semanal | 2860 | CONCATX,SVG | Line Chart nativo |
+| HTML Torre Controle Operacional | 4254 | SVG,LAYOUT | Decomp. em módulos M1 |
+
+## Grupo E — SVG Cards Existentes (17 medidas)
+
+| Medida SVG | Chars | Status |
+|------------|-------|--------|
+| SVG Card Capacidade | 2068 | Validar |
+| SVG Card Capacidade Pedidos | 2185 | Validar |
+| SVG Card Capacidade Peso | 3036 | Validar |
+| SVG Card Capacidade Veiculos | 2193 | Validar |
+| SVG Card Capacidade Volumes | 2186 | Validar |
+| SVG Card Eficiencia KM | 2535 | Validar |
+| SVG Card Ocupacao Composta | 2107 | Validar |
+| SVG Card ORH | 2529 | Validar |
+| SVG Card Pedidos Hora | 2845 | Validar |
+| SVG Card Rotas Planejadas | 2373 | Validar |
+| SVG Card Rotas Realizadas | 2521 | Validar |
+| SVG Card Score Operacional | 2472 | Validar |
+| SVG Card SPR Ped | 2564 | Validar |
+| SVG Card SPR Vol | 2564 | Validar |
+| SVG Card Total Pedidos | 1862 | Validar |
+| SVG Card Total Rotas | 2284 | Validar |
+| SVG Strip Alerta Operacional | 2415 | Validar |
+
+---
+
+## Inventário Original (referência)
 
 ### 90. Legado\01. HTML\02. Rankings (4 medidas)
 
