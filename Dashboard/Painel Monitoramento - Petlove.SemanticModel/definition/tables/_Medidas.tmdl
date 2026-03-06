@@ -3,14 +3,13 @@ table _Medidas
 	isHidden
 	lineageTag: f6ce0521-97ad-48cf-822a-80851d603e8d
 
-	/// Quantidade total de rotas
+	/// Contagem total de rotas realizadas no periodo filtrado
 	measure 'Total Rotas' =
 			CALCULATE(
 			    COUNTROWS(fato_rotas),
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
-		description: Contagem total de rotas realizadas no periodo filtrado
 		formatString: #,##0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 02522c45-940a-4150-a1e8-088617e80755
@@ -39,9 +38,8 @@ table _Medidas
 		displayFolder: 98. Suporte\01. Entrega
 		lineageTag: 1d6317f9-1a5a-4e43-9076-674da6369819
 
-	/// Taxa de sucesso: entregas / (entregas + insucessos)
+	/// Percentual de entregas efetivadas com sucesso sobre o total de tentativas
 	measure '% Entregas Efetivas' = DIVIDE([Total Entregas], [Total Entregas] + [Total Insucessos], 0)
-		description: Percentual de entregas efetivadas com sucesso sobre o total de tentativas
 		formatString: 0.0%
 		isHidden
 		displayFolder: 98. Suporte\01. Entrega
@@ -54,14 +52,13 @@ table _Medidas
 		displayFolder: 98. Suporte\01. Entrega
 		lineageTag: c88bbd28-3af3-4463-87b7-88e0cb4bef39
 
-	/// Total de KM percorridos
+	/// Quilometragem total percorrida em todas as rotas do periodo
 	measure 'Total KM Realizado' =
 			CALCULATE(
 			    SUM(fato_rotas[KM Realizado]),
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
-		description: Quilometragem total percorrida em todas as rotas do periodo
 		formatString: #,##0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 4c943fbf-f6ed-4323-8d03-2bdc5947c220
@@ -72,52 +69,47 @@ table _Medidas
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 3538d927-fb28-4858-b6f1-5fe0a590864f
 
-	/// Total de pedidos nas rotas
+	/// Contagem total de pedidos transportados no periodo filtrado
 	measure 'Total Pedidos' =
 			CALCULATE(
 			    SUM(fato_rotas[Pedidos da Rota]),
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
-		description: Contagem total de pedidos transportados no periodo filtrado
 		formatString: #,##0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 716a9bba-fc37-48dc-afc4-739e6ae001b0
 
-	/// Total de volumes nas rotas
+	/// Contagem total de volumes (caixas) transportados no periodo
 	measure 'Total Volumes' =
 			CALCULATE(
 			    SUM(fato_rotas[Volumes da Rota]),
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
-		description: Contagem total de volumes (caixas) transportados no periodo
 		formatString: #,##0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 7232fd25-0dac-4a14-a4d6-ef3e82d31c3a
 
-	/// Media de pedidos por rota
+	/// Media simples de pedidos por rota no periodo
 	measure 'Media Pedidos por Rota' = DIVIDE([Total Pedidos], [Total Rotas], 0)
-		description: Media simples de pedidos por rota no periodo
 		formatString: 0.0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 9303a8b6-03bf-447c-b51c-7c626e543399
 
-	/// Quantidade de placas distintas ativas
+	/// Quantidade de veiculos distintos que realizaram rotas no periodo
 	measure 'Veiculos Ativos' =
 			CALCULATE(
 			    DISTINCTCOUNT(fato_rotas[Placa]),
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
-		description: Quantidade de veiculos distintos que realizaram rotas no periodo
 		formatString: #,##0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 1254da7e-2025-40d5-94b3-0bac0b65d8c7
 
-	/// Percentual de rotas concluidas (flag Rota Concluida = 1)
+	/// Percentual de rotas com status finalizado sobre o total de rotas
 	measure '% Rotas Concluidas' = DIVIDE(COUNTROWS(FILTER(fato_rotas, fato_rotas[Rota Concluida] = 1)), [Total Rotas], 0)
-		description: Percentual de rotas com status finalizado sobre o total de rotas
 		formatString: 0.0%
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 9bf2a89c-13e1-48a0-b2cc-eb3ba6486af0
@@ -138,7 +130,7 @@ table _Medidas
 		displayFolder: 03. Jornada e ORH\01. ORH e Jornada
 		lineageTag: 4e36b7e8-e1d7-43ff-bbd2-12d36a0248d0
 
-	/// Tempo medio realizado por rota em horas
+	/// Tempo medio de rota realizado em horas
 	measure 'Tempo Medio Realizado (h)' =
 			DIVIDE(
 			    CALCULATE(
@@ -150,14 +142,12 @@ table _Medidas
 			    [Total Rotas ORH Base],
 			    0
 			)
-		description: Tempo medio de rota realizado em horas
 		formatString: 0.0
 		displayFolder: 03. Jornada e ORH\01. ORH e Jornada
 		lineageTag: 2bb2412f-bccc-4a41-a07a-c9bbbc789115
 
-	/// Percentual de utilizacao da jornada de 8h
+	/// Percentual medio de utilizacao da jornada de 8h por rota
 	measure 'Utilizacao Jornada 8h (%)' = DIVIDE([Tempo Medio Realizado (h)], 8, 0)
-		description: Percentual medio de utilizacao da jornada de 8h por rota
 		formatString: 0.0%
 		displayFolder: 03. Jornada e ORH\01. ORH e Jornada
 		lineageTag: 9eebd7db-4836-457e-b8b9-dbde4e1af25e
@@ -228,9 +218,8 @@ table _Medidas
 		displayFolder: 05. Plano vs Real\02. Aderencia Percentual
 		lineageTag: bb624276-b0df-4238-86f0-87763fcf5a25
 
-	/// Cobertura: rotas executadas / listas planejadas
+	/// Percentual de rotas realizadas que possuem correspondencia no planejamento
 	measure 'Cobertura Rotas (%)' = DIVIDE([Total Rotas], COUNTROWS(fato_planejado), 0)
-		description: Percentual de rotas realizadas que possuem correspondencia no planejamento
 		formatString: 0.0%
 		displayFolder: 05. Plano vs Real\03. Cobertura e Match
 		lineageTag: 420f410f-8f02-472d-a67a-266abebb2476
@@ -871,16 +860,14 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\01. SPR Base
 		lineageTag: 2026370d-16bf-430d-8c72-55ee45d0a80b
 
-	/// Stops por Rota - pedidos/rotas (apenas filiais Unidade)
+	/// Stops Per Route de pedidos realizado - media de pedidos por rota
 	measure 'SPR Ped Realizado' = DIVIDE([Total Pedidos Unidade], [Total Rotas Unidade], 0)
-		description: Stops Per Route de pedidos realizado - media de pedidos por rota
 		formatString: 0.0
 		displayFolder: 02. SPR e Performance\01. SPR Base
 		lineageTag: 36276021-7cc3-4010-8ee5-8cbb8f60c426
 
-	/// Stops por Rota - volumes/rotas (apenas filiais Unidade)
+	/// Stops Per Route de volumes realizado - media de volumes por rota
 	measure 'SPR Vol Realizado' = DIVIDE([Total Volumes Unidade], [Total Rotas Unidade], 0)
-		description: Stops Per Route de volumes realizado - media de volumes por rota
 		formatString: 0.0
 		displayFolder: 02. SPR e Performance\01. SPR Base
 		lineageTag: 0053088d-0ae2-44b6-93c8-b7511ac6e7c8
@@ -1429,9 +1416,8 @@ table _Medidas
 		displayFolder: 06. Shared\01. Temporal
 		lineageTag: 99fd562a-48e6-43b8-a19e-413c23426daf
 
-	/// Valor atual do SPR Ped Realizado
+	/// Valor atual do KPI de SPR Pedidos para exibicao em card
 	measure 'KPI SPR Ped Valor' = [SPR Ped Realizado]
-		description: Valor atual do KPI de SPR Pedidos para exibicao em card
 		formatString: 0.0
 		displayFolder: 02. SPR e Performance\04. KPI SPR Pedidos
 		lineageTag: faba9b89-d6b7-48a9-bcf8-5840df526f3a
@@ -1605,8 +1591,8 @@ table _Medidas
 		displayFolder: 98. Suporte\02. KPI Entrega
 		lineageTag: cce0ee69-3f5f-41c6-b920-397269adfa65
 
+	/// Valor atual do KPI de ORH (tempo medio de rota) para exibicao em card
 	measure 'KPI ORH Valor' = [Tempo Medio Realizado (h)]
-		description: Valor atual do KPI de ORH (tempo medio de rota) para exibicao em card
 		formatString: 0.0
 		displayFolder: 03. Jornada e ORH\02. KPI ORH
 		lineageTag: 0160cf23-fe1f-4474-a693-994ef87dd513
@@ -3274,6 +3260,7 @@ table _Medidas
 		displayFolder: 04. Frota e Capacidade\03. Mix por Tipo
 		lineageTag: 5411c1c5-1627-4fab-bcb9-69195c07b136
 
+	/// Ocupacao media composta (pedidos + volumes) vs capacidade P75
 	measure 'Ocupacao Composta (%)' =
 			VAR _ped = [Ocupacao Pedidos (%)]
 			VAR _vol = [Ocupacao Volumes (%)]
@@ -3284,7 +3271,6 @@ table _Medidas
 			        BLANK(),
 			        DIVIDE(COALESCE(_ped, 0) + COALESCE(_vol, 0), _qtd, 0)
 			    )
-		description: Ocupacao media composta (pedidos + volumes) vs capacidade P75
 		formatString: 0.0%
 		displayFolder: 04. Frota e Capacidade\02. Ocupacao Geral
 		lineageTag: 85651700-2dea-42f3-a0f9-87b9e632d4fc
@@ -3736,20 +3722,20 @@ table _Medidas
 		displayFolder: 01. Operacao\06. Status de Rota
 		lineageTag: 854772cb-bfd3-4751-bd0a-f5786d9e2ce3
 
+	/// Progresso das rotas realizadas vs planejadas no dia (%)
 	measure 'Op Progresso Rotas (%)' = DIVIDE([Op Rotas Realizadas], [Op Rotas Planejadas], 0)
-		description: Progresso das rotas realizadas vs planejadas no dia (%)
 		formatString: 0.0%
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: a2664c1c-f92d-4191-95d3-c70611eecb49
 
+	/// Progresso dos pedidos realizados vs planejados no dia (%)
 	measure 'Op Progresso Pedidos (%)' = DIVIDE([Op Pedidos Realizados], [Op Pedidos Planejados], 0)
-		description: Progresso dos pedidos realizados vs planejados no dia (%)
 		formatString: 0.0%
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: 3336e710-a918-42ac-ad86-c4b1208f06d4
 
+	/// Progresso dos volumes realizados vs planejados no dia (%)
 	measure 'Op Progresso Volumes (%)' = DIVIDE([Op Volumes Realizados], [Op Volumes Planejados], 0)
-		description: Progresso dos volumes realizados vs planejados no dia (%)
 		formatString: 0.0%
 		displayFolder: 01. Operacao\05. Planejado vs Realizado
 		lineageTag: bf6649e3-7a00-4713-831f-d6046bdf1ea5
@@ -4385,17 +4371,16 @@ table _Medidas
 		displayFolder: 02. SPR e Performance\06. KPI Desvio SPR
 		lineageTag: 93f6db30-87a8-43b3-ac28-6d641bfc9cf0
 
+	/// Peso total transportado em quilogramas no periodo
 	measure 'Total Peso (kg)' =
 			CALCULATE(
 			    SUM(fato_rotas[Peso (kg)]),
 			    KEEPFILTERS(dim_filial[Tipo] <> "Provet"),
 			    KEEPFILTERS(NOT ISBLANK(dim_filial[Filial]))
 			)
-		description: Peso total transportado em quilogramas no periodo
 		formatString: #,##0.0
 		displayFolder: 01. Operacao\01. Volume e Execucao
 		lineageTag: 99843bd6-4eeb-4de5-8e17-b45fa9670b35
-
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
 	/// Media diaria de volumes no periodo filtrado
