@@ -47,9 +47,10 @@
 │  STAGING (2)                                                        │
 │    stg_monitoramento (41c) ─→ stg_planejamento (12c)               │
 │                                                                     │
-│  DIMENSÕES (7)                                                      │
+│  DIMENSÕES (7) + PIVOT (1)                                          │
 │    dim_calendario, dim_filial, dim_veiculo, dim_transportador,      │
 │    dim_status_operacional, dim_planejamento, dim_metas              │
+│    metas_pivot (pivoteia dim_metas → 8 colunas, CROSS JOIN)        │
 │                                                                     │
 │  FATO (1)                                                           │
 │    fct_execucao (84 cols, ~28k rows, 1 linha por rota)             │
@@ -559,6 +560,33 @@ Substituir CROSS JOIN metas por CROSS JOIN metas_pivot em todos os marts.
 | v5 | 13/13 OK |
 | Regression test | 0 deviações |
 | Validation | 16/16 PASS |
+
+### Sessão 2026-03-21 — Execução das Recomendações R1-R11
+
+| R# | Status | Arquivo(s) | Descrição |
+|----|--------|-----------|-----------|
+| ✅ R1 | EXECUTADO | api/server.js | Score unificado: 4 endpoints divergentes reescritos com `fn_score_operacional` (6 KPIs). Endpoints: `/tendencia-semanal`, `/filiais/performance`, `/drill-rotas`, `/executivo/serie-diaria` |
+| ✅ R2 | EXECUTADO | api/server.js | Thresholds hardcoded (0.98/0.882/0.95/0.855) em `/filiais/performance` substituídos por `CROSS JOIN metas_pivot` |
+| ⏩ R3 | DESCARTADO | pipeline_v6_api.sql | `api_alertas_contagem` mantida como contagem global — server.js aplica filtros via `buildAlertasWhere()` (views BQ não aceitam parâmetros). Decisão by-design |
+| ⏩ R4 | PARCIAL | api/server.js | Endpoints agora consomem `metas_pivot` e usam UDFs do pipeline. Migração total (server.js → só SELECT de views v6) é objetivo futuro de médio prazo |
+| ✅ R5 | EXECUTADO | pipeline_v4.sql | Criada view `metas_pivot` (pivoteia dim_metas → 8 colunas). Substituída em 4 marts v4, 2 views v6, 4+ endpoints server.js |
+| ✅ R5b | EXECUTADO | pipeline_v4.sql | Bug corrigido: `mart_kpi_motorista_dia` passava `capacity_status(ocup)` para parâmetro `s_ader` → corrigido para `status_higher(ader_vol, meta_ader_vol)`. Adicionada coluna `ader_vol` e `status_ader_vol` |
+| ✅ R5c | EXECUTADO | pipeline_v6_api.sql | `api_filial_performance` reescrita: de 2 KPIs (entregas + spr_ped) para 6 KPIs via `fn_score_operacional` com thresholds de `metas_pivot` |
+| ⏩ R6-R9 | BACKLOG | — | Parametrizar kpi_card, template marts, materializar fct_execucao, consolidar UNPIVOT — escopo de médio prazo |
+| ✅ R10 | EXECUTADO | bigquery/validate_data_contract.py | Data contract: 9 checks validam schema e ranges de todas as views v6 + metas_pivot |
+| ✅ R11 | EXECUTADO | bigquery/score_parity_test.py | Score parity test: 7 checks comparam score vs recálculo em 4 marts, validam range 0-100 e integridade de metas_pivot |
+| ⏩ R12 | BACKLOG | — | Clustering em fct_execucao — requer materialização (R8) primeiro |
+
+### Deploy Status pós-execução R1-R11
+
+| Camada | Resultado |
+|--------|-----------|
+| v4 | 29/29 OK (+1: metas_pivot) |
+| v6 | 6/6 OK |
+| Regression test | 0 deviações |
+| Validation | 16/16 PASS |
+| Score parity | 7/7 PASS |
+| Data contract | 9/9 PASS |
 
 ---
 
