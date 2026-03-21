@@ -1,0 +1,84 @@
+name: "🏥 Health Check"
+
+on:
+  schedule:
+    - cron: "0 11 * * 1-5" # Seg-Sex 8h BRT (11 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verificar estrutura do projeto
+        run: |
+          echo "=== Verificando estrutura canônica ==="
+          MISSING=()
+          for dir in Dashboard/bigquery Dashboard/extraction Dashboard/config Dashboard/google_apps Dashboard/api Dashboard/frontend Dashboard/docs scripts .github/agents .github/instructions .github/prompts; do
+            if [ ! -d "$dir" ]; then
+              MISSING+=("$dir")
+            fi
+          done
+
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "❌ Diretórios ausentes: ${MISSING[*]}"
+            echo "HEALTH_DIRS=FAIL" >> $GITHUB_ENV
+          else
+            echo "✅ Estrutura de diretórios OK"
+            echo "HEALTH_DIRS=OK" >> $GITHUB_ENV
+          fi
+
+      - name: Verificar arquivos críticos
+        run: |
+          echo "=== Verificando arquivos críticos ==="
+          MISSING=()
+          for f in Dashboard/bigquery/pipeline_v4.sql Dashboard/bigquery/pipeline_v5_publicacao.sql Dashboard/bigquery/load_raw_to_bq.py Dashboard/bigquery/sync_bq_to_sheets.py Dashboard/extraction/consolidar_monitoramento.py scripts/daily_pipeline.ps1 AGENTS.md; do
+            if [ ! -f "$f" ]; then
+              MISSING+=("$f")
+            fi
+          done
+
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "⚠️ Arquivos ausentes: ${MISSING[*]}"
+            echo "HEALTH_FILES=WARN" >> $GITHUB_ENV
+            echo "MISSING_FILES=${MISSING[*]}" >> $GITHUB_ENV
+          else
+            echo "✅ Arquivos críticos OK"
+            echo "HEALTH_FILES=OK" >> $GITHUB_ENV
+          fi
+
+      - name: Contar objetos SQL
+        run: |
+          echo "=== Contagem de objetos SQL ==="
+          V4_COUNT=$(grep -c "^CREATE OR REPLACE" Dashboard/bigquery/pipeline_v4.sql 2>/dev/null || echo 0)
+          V5_COUNT=$(grep -c "^CREATE OR REPLACE" Dashboard/bigquery/pipeline_v5_publicacao.sql 2>/dev/null || echo 0)
+          echo "Pipeline v4: $V4_COUNT statements"
+          echo "Pipeline v5: $V5_COUNT statements"
+          echo "SQL_V4=$V4_COUNT" >> $GITHUB_ENV
+          echo "SQL_V5=$V5_COUNT" >> $GITHUB_ENV
+
+      - name: Criar issue se houver problemas
+        if: env.HEALTH_DIRS == 'FAIL' || env.HEALTH_FILES == 'WARN'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🏥 Health Check — ${new Date().toISOString().split('T')[0]}`;
+            const body = `## Health Check Automático\n\n` +
+              `| Check | Status |\n|-------|--------|\n` +
+              `| Diretórios | ${process.env.HEALTH_DIRS} |\n` +
+              `| Arquivos críticos | ${process.env.HEALTH_FILES} |\n` +
+              `| SQL v4 statements | ${process.env.SQL_V4} |\n` +
+              `| SQL v5 statements | ${process.env.SQL_V5} |\n\n` +
+              (process.env.MISSING_FILES ? `**Arquivos ausentes:** ${process.env.MISSING_FILES}\n` : '');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['type: bug', 'priority: high', 'domain: infra']
+            });

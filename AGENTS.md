@@ -7,7 +7,7 @@ Dashboard operacional de transporte last-mile com pipeline de dados BigQuery e d
 
 ## Arquitetura
 
-```
+```text
 TMS Web (Playwright) → CSVs incrementais → CSV consolidado
     → BigQuery (v4 analítico + v5 publicação — 58 objetos)
         → Google Sheets (13 abas) → Apps Script (painéis visuais)
@@ -16,13 +16,15 @@ TMS Web (Playwright) → CSVs incrementais → CSV consolidado
 
 ## Estrutura
 
-```
+```text
 Projetos/
 ├── .github/                        # Agentes e instruções Copilot
-│   ├── agents/                     #   pipeline-engineer, frontend-developer,
-│   │                               #   apps-script-engineer, repo-executor
+│   ├── agents/                     #   project-manager, pipeline-engineer,
+│   │                               #   frontend-developer, apps-script-engineer,
+│   │                               #   repo-executor
 │   ├── instructions/               #   bigquery-pipeline, react-dashboard,
-│   │                               #   google-apps, project-structure
+│   │                               #   google-apps, project-structure,
+│   │                               #   project-management
 │   └── _old/                       #   Legado Power BI (arquivado)
 ├── Dashboard/                      # Backend: pipeline de dados
 │   ├── bigquery/                   #   SQL (v4+v5), deploy, load, sync
@@ -46,7 +48,7 @@ Projetos/
 ## Pipeline de Dados (7 Estágios)
 
 | # | Estágio | Script | Entrada → Saída |
-|---|---------|--------|-----------------|
+| --- | --- | --- | --- |
 | 1 | Extrair TMS | `extraction/extrair_relatorio_tms.mjs` | TMS Web → CSVs incrementais |
 | 2 | Consolidar | `extraction/consolidar_monitoramento.py` | Incrementais → CSV único |
 | 3 | Carregar BQ | `bigquery/load_raw_to_bq.py` | CSV → `raw_monitoramento` |
@@ -82,7 +84,7 @@ cd Dashboard\google_apps; npx @google/clasp push
 ## Infraestrutura
 
 | Componente | Detalhe |
-|------------|---------|
+| --- | --- |
 | BigQuery | `data-aileron-482822-d0` / `monitoramento_carga` |
 | Google Sheets | ID `1Z-Jhaf9g4dbnti_ry7IO2J6BuZhCsqhoUREKtWMd3k4` |
 | Python | 3.14+ (`Dashboard/.venv/`) |
@@ -97,3 +99,11 @@ cd Dashboard\google_apps; npx @google/clasp push
 - Itens obsoletos vão para `_archive/` (gitignored)
 - Credenciais nunca versionadas — usar ADC ou `.env`
 - Docs em `Dashboard/docs/`, automação em `scripts/`
+
+## Gestão do Projeto
+
+- GitHub CLI (`gh`) é o ponto central de gestão operacional do repositório
+- O agente principal de coordenação é o `Project Manager`
+- Issues devem usar labels de `type:*`, `domain:*`, `priority:*` e milestone
+- Templates, workflows e prompts em `.github/` sustentam o fluxo de backlog, sprint e review
+- Script operacional de acompanhamento: `scripts/gh_project_status.ps1`
