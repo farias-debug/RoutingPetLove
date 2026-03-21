@@ -1,0 +1,899 @@
+import { useEffect, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  Gauge,
+  Route,
+  ShieldAlert,
+  Truck,
+  Users,
+} from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import KPICard from "@/components/dashboard/KPICard";
+import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
+import SectionCard from "@/components/dashboard/SectionCard";
+import StatusChip from "@/components/dashboard/StatusChip";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  useAlertas,
+  useAlertasContagem,
+  useCockpitSerieDiaria,
+  useDrillRotas,
+  useFilialPerformance,
+  useKpiDiario,
+  useMotoristas,
+  useMotoristasKpis,
+  useOcupacaoTipoVeiculo,
+  useResumoCards,
+  useTransportadores,
+} from "@/hooks/useApiData";
+import { useGlobalFilters } from "@/hooks/useGlobalFilters";
+import { mapStatusBQtoUI, type DrillRota, type KPIData } from "@/types/api";
+
+const sections = [
+  { id: "visao-geral", label: "Visão geral" },
+  { id: "tendencias", label: "Tendências" },
+  { id: "filiais", label: "Filiais" },
+  { id: "transportadores", label: "Transportadores" },
+  { id: "capacidade", label: "Capacidade" },
+  { id: "sla-produtividade", label: "SLA e produtividade" },
+  { id: "alertas", label: "Alertas" },
+  { id: "motoristas", label: "Motoristas" },
+  { id: "drill", label: "Drill operacional" },
+] as const;
+
+type SectionId = (typeof sections)[number]["id"];
+
+const trendWindows = [
+  { value: "7d", label: "7d" },
+  { value: "14d", label: "14d" },
+  { value: "30d", label: "30d" },
+  { value: "mtd", label: "MTD" },
+] as const;
+
+function formatInteger(value: number | null | undefined) {
+  if (value == null) return "—";
+  return Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
+}
+
+function formatDecimal(value: number | null | undefined, digits = 1) {
+  if (value == null) return "—";
+  return Number(value).toLocaleString("pt-BR", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
+
+function formatPercent(value: number | null | undefined, digits = 1) {
+  if (value == null) return "—";
+  return `${formatDecimal(value * 100, digits)}%`;
+}
+
+function formatMoney(value: number | null | undefined) {
+  if (value == null) return "—";
+  return Number(value).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function formatShortDate(value: string | null | undefined) {
+  if (!value) return "-";
+  const [year, month, day] = value.slice(0, 10).split("-");
+  return `${day}/${month}`;
+}
+
+function getVariation(current: number, previous: number) {
+  const delta = current - previous;
+  return {
+    delta,
+    direction: delta > 0 ? "up" : delta < 0 ? "down" : "neutral",
+  };
+}
+
+export default function CockpitOperacional() {
+  const { filters } = useGlobalFilters();
+  const [activeSection, setActiveSection] = useState<SectionId>(sections[0].id);
+  const [trendWindow, setTrendWindow] = useState<(typeof trendWindows)[number]["value"]>("30d");
+  const [selectedRota, setSelectedRota] = useState<DrillRota | null>(null);
+
+  const seriesFilters = {
+    filial: filters.filial,
+    transportador: filters.transportador,
+    tipoVeiculo: filters.tipoVeiculo,
+    status: filters.status,
+  };
+
+  const { data: cards, isLoading: loadingCards } = useResumoCards(filters);
+  const { data: kpiDiario, isLoading: loadingKpiDiario } = useKpiDiario(filters);
+  const { data: serieDiaria, isLoading: loadingSerieDiaria } = useCockpitSerieDiaria(trendWindow, seriesFilters);
+  const { data: filiais, isLoading: loadingFiliais } = useFilialPerformance(filters);
+  const { data: transportadores, isLoading: loadingTransportadores } = useTransportadores(filters);
+  const { data: ocupacaoTipoVeiculo, isLoading: loadingOcupacao } = useOcupacaoTipoVeiculo(filters);
+  const { data: alertasContagem, isLoading: loadingAlertasContagem } = useAlertasContagem(filters);
+  const { data: alertas, isLoading: loadingAlertas } = useAlertas({
+    limit: 8,
+    filial: filters.filial,
+    periodo: filters.periodo,
+    transportador: filters.transportador,
+    status: filters.status,
+    prioridade: filters.prioridade,
+    tipoVeiculo: filters.tipoVeiculo,
+  });
+  const { data: motoristas, isLoading: loadingMotoristas } = useMotoristas({
+    limit: 8,
+    filial: filters.filial,
+    periodo: filters.periodo,
+    transportador: filters.transportador,
+  });
+  const { data: motoristasKpis, isLoading: loadingMotoristasKpis } = useMotoristasKpis(filters);
+  const { data: drillRotas, isLoading: loadingDrillRotas } = useDrillRotas({
+    limit: 12,
+    filial: filters.filial,
+    periodo: filters.periodo,
+    transportador: filters.transportador,
+    status: filters.status,
+    prioridade: filters.prioridade,
+    tipoVeiculo: filters.tipoVeiculo,
+    sort: "scoreOperacional",
+    order: "asc",
+  });
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+        if (visible?.target?.id) {
+          setActiveSection(visible.target.id as SectionId);
+        }
+      },
+      {
+        threshold: [0.2, 0.45, 0.7],
+        rootMargin: "-15% 0px -55% 0px",
+      },
+    );
+
+    sections.forEach(({ id }) => {
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const kpis: KPIData[] = (cards ?? []).map((card) => ({
+    label: card.kpi,
+    value: card.valorTexto || card.valor,
+    meta: card.meta,
+    metaLabel: card.metaTexto ? "Meta" : undefined,
+    trend: (card.trendD1 ?? 0) > 0 ? "up" : (card.trendD1 ?? 0) < 0 ? "down" : "neutral",
+    trendValue: card.trendD1Texto || undefined,
+    status: mapStatusBQtoUI(card.status),
+  }));
+
+  const trendData = (serieDiaria ?? []).map((item) => ({
+    ...item,
+    label: formatShortDate(item.data),
+    entregasPct: Number((item.entregasEfetivas * 100).toFixed(1)),
+    ocupacaoPct: Number((item.ocupacaoComposta * 100).toFixed(1)),
+    aderenciaPct: Number(((item.aderenciaVolumes ?? 0) * 100).toFixed(1)),
+  }));
+
+  const latestSeriesPoint = serieDiaria?.[serieDiaria.length - 1];
+  const previousSeriesPoint = serieDiaria && serieDiaria.length > 1 ? serieDiaria[serieDiaria.length - 2] : undefined;
+
+  const variationCards = latestSeriesPoint && previousSeriesPoint ? [
+    {
+      label: "Rotas vs D-1",
+      value: formatInteger(latestSeriesPoint.rotas),
+      detail: `${getVariation(latestSeriesPoint.rotas, previousSeriesPoint.rotas).delta >= 0 ? "+" : ""}${formatInteger(getVariation(latestSeriesPoint.rotas, previousSeriesPoint.rotas).delta)} rotas`,
+      direction: getVariation(latestSeriesPoint.rotas, previousSeriesPoint.rotas).direction,
+    },
+    {
+      label: "Score operacional",
+      value: formatDecimal(latestSeriesPoint.scoreOperacional),
+      detail: `${getVariation(latestSeriesPoint.scoreOperacional, previousSeriesPoint.scoreOperacional).delta >= 0 ? "+" : ""}${formatDecimal(getVariation(latestSeriesPoint.scoreOperacional, previousSeriesPoint.scoreOperacional).delta)} pts`,
+      direction: getVariation(latestSeriesPoint.scoreOperacional, previousSeriesPoint.scoreOperacional).direction,
+    },
+    {
+      label: "Aderência volumes",
+      value: formatPercent(latestSeriesPoint.aderenciaVolumes),
+      detail: `${getVariation(latestSeriesPoint.aderenciaVolumes ?? 0, previousSeriesPoint.aderenciaVolumes ?? 0).delta >= 0 ? "+" : ""}${formatPercent(getVariation(latestSeriesPoint.aderenciaVolumes ?? 0, previousSeriesPoint.aderenciaVolumes ?? 0).delta)}`,
+      direction: getVariation(latestSeriesPoint.aderenciaVolumes ?? 0, previousSeriesPoint.aderenciaVolumes ?? 0).direction,
+    },
+    {
+      label: "Filiais críticas SPR",
+      value: formatInteger(latestSeriesPoint.qtdFiliaisCriticasSpr),
+      detail: `${getVariation(latestSeriesPoint.qtdFiliaisCriticasSpr, previousSeriesPoint.qtdFiliaisCriticasSpr).delta >= 0 ? "+" : ""}${formatInteger(getVariation(latestSeriesPoint.qtdFiliaisCriticasSpr, previousSeriesPoint.qtdFiliaisCriticasSpr).delta)} filiais`,
+      direction: getVariation(latestSeriesPoint.qtdFiliaisCriticasSpr, previousSeriesPoint.qtdFiliaisCriticasSpr).direction,
+    },
+  ] : [];
+
+  const topFiliais = [...(filiais ?? [])]
+    .sort((left, right) => right.scoreOperacional - left.scoreOperacional)
+    .slice(0, 6);
+  const criticalFiliais = [...(filiais ?? [])]
+    .sort((left, right) => left.sprVsMeta - right.sprVsMeta)
+    .slice(0, 6);
+  const transportadoresRanking = [...(transportadores ?? [])]
+    .sort((left, right) => right.share - left.share)
+    .slice(0, 8);
+  const frotaRanking = [...(ocupacaoTipoVeiculo ?? [])]
+    .sort((left, right) => right.rotas - left.rotas)
+    .slice(0, 6)
+    .map((item) => ({
+      ...item,
+      ocupacaoPercent: item.ocupacaoPeso == null ? null : Number((item.ocupacaoPeso * 100).toFixed(1)),
+    }));
+  const alertasLista = alertas?.data ?? [];
+  const motoristasLista = [...(motoristas?.data ?? [])]
+    .sort((left, right) => right.horasJornada - left.horasJornada)
+    .slice(0, 8);
+  const rotasCriticas = [...(drillRotas?.data ?? [])]
+    .sort((left, right) => left.scoreOperacional - right.scoreOperacional)
+    .slice(0, 12);
+
+  const heroHighlights = kpiDiario ? [
+    {
+      icon: Gauge,
+      label: "Score operacional",
+      value: formatDecimal(kpiDiario.scoreOperacional),
+      detail: `${formatPercent(kpiDiario.pctEntregasEfetivas)} de entrega efetiva`,
+    },
+    {
+      icon: Truck,
+      label: "Capacidade de peso",
+      value: formatPercent(kpiDiario.pctOcupacaoPeso),
+      detail: `${formatInteger(kpiDiario.rotas)} rotas no recorte atual`,
+    },
+    {
+      icon: Users,
+      label: "Produtividade DPPH",
+      value: formatDecimal(kpiDiario.dpph, 2),
+      detail: `${formatInteger(kpiDiario.motoristasAtivos)} motoristas ativos`,
+    },
+    {
+      icon: ShieldAlert,
+      label: "Custo médio por carga",
+      value: formatMoney(kpiDiario.custoMedioCarga),
+      detail: `${formatMoney(kpiDiario.valorPagamentoTotal)} pagos no recorte`,
+    },
+  ] : [];
+
+  const alertSummary = alertasContagem ? [
+    { label: "Não planejadas", value: alertasContagem.naoPlanejada, tone: "bg-warning/10 text-warning" },
+    { label: "Sem tempo", value: alertasContagem.semTempo, tone: "bg-muted text-muted-foreground" },
+    { label: "Overtime", value: alertasContagem.overtime, tone: "bg-destructive/10 text-destructive" },
+    { label: "Entrega crítica", value: alertasContagem.entregaCritica, tone: "bg-destructive/10 text-destructive" },
+    { label: "Match crítico", value: alertasContagem.matchCritico, tone: "bg-warning/10 text-warning" },
+  ] : [];
+
+  const baseAtualizadaEm = cards?.[0]?.databaseDt || kpiDiario?.data || "";
+
+  const scrollToSection = (id: SectionId) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <>
+      <div className="space-y-6 pb-10">
+        <section id="visao-geral" className="scroll-mt-24 space-y-6">
+          <div className="overflow-hidden rounded-[28px] border border-border/60 bg-[linear-gradient(135deg,rgba(9,34,52,0.98),rgba(13,83,88,0.92)_48%,rgba(247,144,9,0.16))] p-6 text-white shadow-[0_24px_80px_rgba(9,34,52,0.32)]">
+            <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+              <div className="space-y-5">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/60">
+                  <span>Cockpit executivo-operacional</span>
+                  {baseAtualizadaEm ? <span>Base em {baseAtualizadaEm}</span> : null}
+                </div>
+                <div>
+                  <h2 className="max-w-4xl text-3xl font-black tracking-tight text-white sm:text-4xl">
+                    A operação agora começa por uma leitura única de tendência, risco, capacidade e execução.
+                  </h2>
+                  <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-white/78">
+                    A home consolida pressão operacional, estabilidade de serviço, concentração por parceiro e rotas críticas sem forçar troca de página para cada pergunta.
+                  </p>
+                </div>
+                {loadingKpiDiario ? (
+                  <LoadingSkeleton rows={2} />
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    {heroHighlights.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div key={item.label} className="rounded-2xl border border-white/12 bg-white/8 p-4 backdrop-blur-sm">
+                          <div className="flex items-center gap-2 text-white/72">
+                            <Icon className="h-4 w-4" />
+                            <span className="text-[11px] font-bold uppercase tracking-[0.14em]">{item.label}</span>
+                          </div>
+                          <p className="mt-4 text-2xl font-black tracking-tight text-white">{item.value}</p>
+                          <p className="mt-2 text-xs font-semibold text-white/65">{item.detail}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-3xl border border-white/12 bg-black/15 p-5 backdrop-blur-sm">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-white/65">
+                  <AlertTriangle className="h-4 w-4" />
+                  Radar de pressão
+                </div>
+                {loadingAlertasContagem ? (
+                  <div className="mt-4"><LoadingSkeleton rows={4} /></div>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    {alertSummary.map((item) => (
+                      <div key={item.label} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/6 px-4 py-3">
+                        <span className="text-sm font-semibold text-white/84">{item.label}</span>
+                        <span className={`rounded-full px-2.5 py-1 text-sm font-bold ${item.tone}`}>{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="sticky top-0 z-20 -mx-1 overflow-x-auto rounded-2xl border border-border/70 bg-background/92 px-2 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/72">
+            <div className="flex min-w-max items-center gap-2">
+              {sections.map((section) => (
+                <Button
+                  key={section.id}
+                  type="button"
+                  size="sm"
+                  variant={activeSection === section.id ? "default" : "outline"}
+                  onClick={() => scrollToSection(section.id)}
+                  className={activeSection === section.id ? "shadow-sm" : "bg-transparent"}
+                >
+                  {section.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            {loadingCards ? <LoadingSkeleton rows={2} /> : kpis.map((kpi, index) => (
+              <KPICard key={kpi.label} data={kpi} delay={index * 40} />
+            ))}
+          </div>
+        </section>
+
+        <section id="tendencias" className="scroll-mt-24 space-y-6">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Tendências e variações</p>
+              <h2 className="text-2xl font-black tracking-tight text-foreground">Ritmo diário da operação</h2>
+            </div>
+            <div className="flex items-center gap-2 rounded-2xl border border-border/70 bg-card/70 p-1">
+              {trendWindows.map((windowOption) => (
+                <Button
+                  key={windowOption.value}
+                  type="button"
+                  size="sm"
+                  variant={trendWindow === windowOption.value ? "default" : "ghost"}
+                  onClick={() => setTrendWindow(windowOption.value)}
+                >
+                  {windowOption.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {variationCards.length === 0 || loadingSerieDiaria ? <LoadingSkeleton rows={2} /> : variationCards.map((item) => {
+              const Icon = item.direction === "up" ? ArrowUpRight : item.direction === "down" ? ArrowDownRight : Route;
+              const tone = item.direction === "up"
+                ? "text-success"
+                : item.direction === "down"
+                  ? "text-destructive"
+                  : "text-muted-foreground";
+              return (
+                <div key={item.label} className="rounded-2xl border border-border/70 bg-card p-4 card-shadow-soft">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{item.label}</p>
+                    <Icon className={`h-4 w-4 ${tone}`} />
+                  </div>
+                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{item.value}</p>
+                  <p className={`mt-2 text-xs font-semibold ${tone}`}>{item.detail}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
+            <SectionCard title="Fluxo diário" subtitle="Rotas, pedidos e volume no período selecionado" delay={80}>
+              <div className="h-80">
+                {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trendData}>
+                      <defs>
+                        <linearGradient id="rotasFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0D7C86" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#0D7C86" stopOpacity={0.03} />
+                        </linearGradient>
+                        <linearGradient id="pedidosFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#F79009" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#F79009" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
+                      <Tooltip contentStyle={{ borderRadius: 14, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 16px 40px rgba(2,6,23,0.12)" }} />
+                      <Legend />
+                      <Area type="monotone" dataKey="rotas" stroke="#0D7C86" fill="url(#rotasFill)" strokeWidth={2.5} name="Rotas" />
+                      <Area type="monotone" dataKey="pedidos" stroke="#F79009" fill="url(#pedidosFill)" strokeWidth={2.5} name="Pedidos" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Qualidade de execução" subtitle="Entrega efetiva, score e aderência de volumes" delay={120}>
+              <div className="h-80">
+                {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} domain={[0, 100]} />
+                      <Tooltip contentStyle={{ borderRadius: 14, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 16px 40px rgba(2,6,23,0.12)" }} />
+                      <Legend />
+                      <Line type="monotone" dataKey="scoreOperacional" stroke="#092234" strokeWidth={2.5} dot={false} name="Score" />
+                      <Line type="monotone" dataKey="entregasPct" stroke="#0D7C86" strokeWidth={2.5} dot={false} name="Entrega efetiva %" />
+                      <Line type="monotone" dataKey="aderenciaPct" stroke="#F04438" strokeWidth={2.5} dot={false} name="Aderência volumes %" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </SectionCard>
+          </div>
+        </section>
+
+        <section id="filiais" className="scroll-mt-24">
+          <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+            <SectionCard title="Filiais com melhor tração" subtitle="Score operacional e entrega efetiva no recorte" delay={140}>
+              <div className="h-80">
+                {loadingFiliais ? <LoadingSkeleton rows={5} /> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={topFiliais.map((item) => ({ nome: item.nomeFilial || item.filial, score: item.scoreOperacional, entrega: Number((item.entregasEfetivas * 100).toFixed(1)) }))} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} domain={[0, 100]} />
+                      <YAxis dataKey="nome" type="category" width={120} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
+                      <Tooltip contentStyle={{ borderRadius: 14, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 16px 40px rgba(2,6,23,0.12)" }} />
+                      <Legend />
+                      <Bar dataKey="score" fill="#092234" radius={[0, 6, 6, 0]} name="Score" />
+                      <Bar dataKey="entrega" fill="#0D7C86" radius={[0, 6, 6, 0]} name="Entrega %" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Filiais que puxam a queda" subtitle="Gap de SPR vs meta e desvio de tempo" delay={180}>
+              {loadingFiliais ? <LoadingSkeleton rows={6} /> : (
+                <div className="space-y-3">
+                  {criticalFiliais.map((item) => (
+                    <div key={item.filial} className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{item.nomeFilial || item.filial}</p>
+                          <p className="mt-1 text-xs font-semibold text-muted-foreground">
+                            {formatInteger(item.rotas)} rotas • score {formatDecimal(item.scoreOperacional)}
+                          </p>
+                        </div>
+                        <StatusChip
+                          label={`${item.sprVsMeta >= 0 ? "+" : ""}${formatDecimal(item.sprVsMeta)}`}
+                          colorClass={item.sprVsMeta >= 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}
+                        />
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-3 text-xs font-semibold text-muted-foreground">
+                        <span>Entrega efetiva {formatPercent(item.entregasEfetivas)}</span>
+                        <span>Desvio tempo {formatDecimal(item.desvioTempoH)}h</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+          </div>
+        </section>
+
+        <section id="transportadores" className="scroll-mt-24">
+          <SectionCard title="Concentração e performance por transportador" subtitle="Share, custo médio e estabilidade de execução" delay={200}>
+            {loadingTransportadores ? <LoadingSkeleton rows={6} /> : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/70 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                      <th className="px-3 py-3">Transportador</th>
+                      <th className="px-3 py-3">Share</th>
+                      <th className="px-3 py-3">Rotas</th>
+                      <th className="px-3 py-3">Entrega efetiva</th>
+                      <th className="px-3 py-3">SPR volumes</th>
+                      <th className="px-3 py-3">Custo/carga</th>
+                      <th className="px-3 py-3">Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transportadoresRanking.map((item) => (
+                      <tr key={item.transportador} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                        <td className="px-3 py-3 font-bold text-foreground">{item.transportador}</td>
+                        <td className="px-3 py-3 font-semibold text-muted-foreground">{formatPercent(item.share)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatInteger(item.rotas)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.entregasEfetivas)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatDecimal(item.sprVolumes, 2)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatMoney(item.custoMedioCarga)}</td>
+                        <td className="px-3 py-3"><StatusChip label={formatDecimal(item.scoreOperacional)} colorClass={item.status === "OK" ? "bg-success/10 text-success" : item.status === "Atenção" ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </SectionCard>
+        </section>
+
+        <section id="capacidade" className="scroll-mt-24">
+          <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+            <SectionCard title="Mix de veículo e ocupação" subtitle="Onde a malha consome capacidade de peso" delay={220}>
+              <div className="h-80">
+                {loadingOcupacao ? <LoadingSkeleton rows={5} /> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={frotaRanking}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+                      <XAxis dataKey="tipoVeiculo" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} interval={0} angle={-14} textAnchor="end" height={60} />
+                      <YAxis tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
+                      <Tooltip contentStyle={{ borderRadius: 14, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 16px 40px rgba(2,6,23,0.12)" }} />
+                      <Legend />
+                      <Bar dataKey="rotas" fill="#092234" radius={[6, 6, 0, 0]} name="Rotas" />
+                      <Bar dataKey="ocupacaoPercent" fill="#F79009" radius={[6, 6, 0, 0]} name="Ocupação peso %" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Eficiência da frota" subtitle="Peso médio, SPR e custo por volume por tipo" delay={240}>
+              {loadingOcupacao ? <LoadingSkeleton rows={6} /> : (
+                <div className="space-y-3">
+                  {frotaRanking.map((item) => (
+                    <div key={item.tipoVeiculo} className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{item.tipoVeiculo}</p>
+                          <p className="mt-1 text-xs font-semibold text-muted-foreground">
+                            {formatInteger(item.rotas)} rotas • {formatInteger(item.placasDistintas)} placas
+                          </p>
+                        </div>
+                        <StatusChip
+                          label={formatPercent(item.ocupacaoPeso)}
+                          colorClass={item.ocupacaoPeso >= 0.85 ? "bg-success/10 text-success" : item.ocupacaoPeso >= 0.7 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}
+                        />
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-3 text-xs font-semibold text-muted-foreground">
+                        <span>Peso médio/rota {formatInteger(item.mediaPesoRota)} kg</span>
+                        <span>SPR/veículo {formatDecimal(item.sprPorVeiculo, 2)}</span>
+                        <span>ORH {formatDecimal(item.orh, 2)}h</span>
+                        <span>Custo/volume {formatMoney(item.custoMedioVolume)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+          </div>
+        </section>
+
+        <section id="sla-produtividade" className="scroll-mt-24">
+          <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+            <SectionCard title="SLA e produtividade" subtitle="Entrega, jornada e aderência no fechamento do recorte" delay={260}>
+              {loadingKpiDiario || loadingMotoristasKpis ? <LoadingSkeleton rows={5} /> : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Entrega efetiva</p>
+                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(kpiDiario?.pctEntregasEfetivas)}</p>
+                    <p className="mt-2 text-xs font-semibold text-muted-foreground">Meta {formatPercent(kpiDiario?.metaEntregas ?? 0.98)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">ORH médio</p>
+                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(kpiDiario?.tempoMedRealizado, 2)}h</p>
+                    <p className="mt-2 text-xs font-semibold text-muted-foreground">Gap {formatDecimal(kpiDiario?.gapOrhVsMeta, 2)}h</p>
+                  </div>
+                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Aderência volumes</p>
+                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(kpiDiario?.pctAderVolumes)}</p>
+                    <p className="mt-2 text-xs font-semibold text-muted-foreground">Meta {formatPercent(kpiDiario?.metaAderenciaVolumes ?? 0.9)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">DPPH</p>
+                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(motoristasKpis?.dpph, 2)}</p>
+                    <p className="mt-2 text-xs font-semibold text-muted-foreground">{formatInteger(motoristasKpis?.qtdOvertime)} motoristas em overtime</p>
+                  </div>
+                </div>
+              )}
+            </SectionCard>
+
+            <SectionCard title="Ritmo de jornada e disciplina operacional" subtitle="Tempo médio, aderência de volumes e pressão de rotas sem tempo" delay={280}>
+              <div className="h-80">
+                {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
+                      <Tooltip contentStyle={{ borderRadius: 14, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 16px 40px rgba(2,6,23,0.12)" }} />
+                      <Legend />
+                      <Line type="monotone" dataKey="tempoMedRealizado" stroke="#092234" strokeWidth={2.5} dot={false} name="Tempo médio (h)" />
+                      <Line type="monotone" dataKey="aderenciaPct" stroke="#F79009" strokeWidth={2.5} dot={false} name="Aderência volumes %" />
+                      <Line type="monotone" dataKey="qtdRotasSemTempo" stroke="#F04438" strokeWidth={2.5} dot={false} name="Rotas sem tempo" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </SectionCard>
+          </div>
+        </section>
+
+        <section id="alertas" className="scroll-mt-24">
+          <div className="grid gap-6 xl:grid-cols-[0.75fr_1.25fr]">
+            <SectionCard title="Mapa de alertas" subtitle="O que está pressionando a malha agora" delay={300}>
+              {loadingAlertasContagem ? <LoadingSkeleton rows={5} /> : (
+                <div className="space-y-3">
+                  {alertSummary.map((item) => (
+                    <div key={item.label} className="flex items-center justify-between rounded-2xl border border-border/70 px-4 py-3">
+                      <span className="text-sm font-semibold text-foreground">{item.label}</span>
+                      <span className={`rounded-full px-2.5 py-1 text-sm font-bold ${item.tone}`}>{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+
+            <SectionCard title="Rotas com alerta operacional" subtitle="Últimas ocorrências relevantes já prontas para investigação" delay={320}>
+              {loadingAlertas ? <LoadingSkeleton rows={6} /> : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/70 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                        <th className="px-3 py-3">Rota</th>
+                        <th className="px-3 py-3">Filial</th>
+                        <th className="px-3 py-3">Transportador</th>
+                        <th className="px-3 py-3">Status</th>
+                        <th className="px-3 py-3">Peso</th>
+                        <th className="px-3 py-3">Prioridade</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {alertasLista.map((item, index) => (
+                        <tr key={`${item.rota}-${index}`} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                          <td className="px-3 py-3 font-bold text-foreground">{item.rota}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{item.nomeFilial || item.filial}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{item.transportador}</td>
+                          <td className="px-3 py-3">
+                            <StatusChip
+                              label={item.statusRota}
+                              colorClass={item.flagOvertime || item.flagEntregaCritica ? "bg-destructive/10 text-destructive" : item.flagNaoPlanejada || item.flagMatchCritico ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground"}
+                            />
+                          </td>
+                          <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.ocupacaoPeso)}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{item.prioridade}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </SectionCard>
+          </div>
+        </section>
+
+        <section id="motoristas" className="scroll-mt-24">
+          <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+            <SectionCard title="Jornada dos motoristas" subtitle="Atividade e overtime no recorte" delay={340}>
+              {loadingMotoristasKpis ? <LoadingSkeleton rows={4} /> : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Motoristas ativos</p>
+                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatInteger(motoristasKpis?.motoristasAtivos)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Jornada média</p>
+                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(motoristasKpis?.jornadaMedia, 2)}h</p>
+                  </div>
+                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Rotas por dia</p>
+                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(motoristasKpis?.mediaRotasDia, 2)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Motoristas em overtime</p>
+                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatInteger(motoristasKpis?.qtdOvertime)}</p>
+                  </div>
+                </div>
+              )}
+            </SectionCard>
+
+            <SectionCard title="Motoristas que exigem atenção" subtitle="Quem está puxando a jornada para cima" delay={360}>
+              {loadingMotoristas ? <LoadingSkeleton rows={6} /> : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/70 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                        <th className="px-3 py-3">Motorista</th>
+                        <th className="px-3 py-3">Transportador</th>
+                        <th className="px-3 py-3">Horas</th>
+                        <th className="px-3 py-3">Rotas</th>
+                        <th className="px-3 py-3">Volumes</th>
+                        <th className="px-3 py-3">Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {motoristasLista.map((item) => (
+                        <tr key={`${item.motorista}-${item.placa}-${item.data}`} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                          <td className="px-3 py-3 font-bold text-foreground">{item.motorista}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{item.transportador}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{formatDecimal(item.horasJornada, 2)}h</td>
+                          <td className="px-3 py-3 text-muted-foreground">{formatInteger(item.qtdRotas)}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{formatInteger(item.volumes)}</td>
+                          <td className="px-3 py-3">
+                            <StatusChip
+                              label={formatDecimal(item.scoreOperacional)}
+                              colorClass={item.flagOvertime ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </SectionCard>
+          </div>
+        </section>
+
+        <section id="drill" className="scroll-mt-24">
+          <SectionCard title="Drill operacional" subtitle="Rotas mais frágeis do recorte, prontas para abertura de detalhe" delay={380}>
+            {loadingDrillRotas ? <LoadingSkeleton rows={7} /> : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/70 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                      <th className="px-3 py-3">Rota</th>
+                      <th className="px-3 py-3">Filial</th>
+                      <th className="px-3 py-3">Transportador</th>
+                      <th className="px-3 py-3">Score</th>
+                      <th className="px-3 py-3">Entrega</th>
+                      <th className="px-3 py-3">Capacidade</th>
+                      <th className="px-3 py-3">Alerta</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rotasCriticas.map((item) => (
+                      <tr
+                        key={`${item.rota}-${item.data}`}
+                        className="cursor-pointer border-b border-border/40 transition-colors hover:bg-muted/30"
+                        onClick={() => setSelectedRota(item)}
+                      >
+                        <td className="px-3 py-3 font-bold text-foreground">{item.rota}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{item.nomeFilial || item.filial}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{item.transportador}</td>
+                        <td className="px-3 py-3">
+                          <StatusChip
+                            label={formatDecimal(item.scoreOperacional)}
+                            colorClass={item.scoreOperacional >= 85 ? "bg-success/10 text-success" : item.scoreOperacional >= 70 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}
+                          />
+                        </td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.entregaEfetiva)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.ocupacaoPeso ?? item.ocupacaoComposta)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{item.alertaOperacional}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </SectionCard>
+        </section>
+      </div>
+
+      <Sheet open={Boolean(selectedRota)} onOpenChange={(open) => !open && setSelectedRota(null)}>
+        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-[520px]">
+          {selectedRota ? (
+            <div className="space-y-6">
+              <SheetHeader>
+                <SheetTitle>Rota {selectedRota.rota}</SheetTitle>
+                <SheetDescription>
+                  {selectedRota.nomeFilial || selectedRota.filial} • {selectedRota.transportador}
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Score operacional</p>
+                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(selectedRota.scoreOperacional)}</p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Entrega efetiva</p>
+                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(selectedRota.entregaEfetiva)}</p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Capacidade</p>
+                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(selectedRota.ocupacaoPeso ?? selectedRota.ocupacaoComposta)}</p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Aderência volumes</p>
+                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(selectedRota.aderenciaVolumes)}</p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border/70 bg-card p-5">
+                <h3 className="text-sm font-bold text-foreground">Contexto operacional</h3>
+                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Motorista</p>
+                    <p className="mt-1 font-semibold text-foreground">{selectedRota.motorista || "Não informado"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Placa</p>
+                    <p className="mt-1 font-semibold text-foreground">{selectedRota.placa || "Não informada"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Tipo de veículo</p>
+                    <p className="mt-1 font-semibold text-foreground">{selectedRota.tipoVeiculo || "Não informado"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Status</p>
+                    <p className="mt-1 font-semibold text-foreground">{selectedRota.status}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Pedidos e volumes</p>
+                    <p className="mt-1 font-semibold text-foreground">{formatInteger(selectedRota.pedidos)} pedidos • {formatInteger(selectedRota.volumes)} volumes</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Tempo</p>
+                    <p className="mt-1 font-semibold text-foreground">{formatDecimal(selectedRota.tempoRealizado, 2)}h realizado • {formatDecimal(selectedRota.tempoPlanejado, 2)}h planejado</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border/70 bg-card p-5">
+                <h3 className="text-sm font-bold text-foreground">Sinais de risco</h3>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {selectedRota.flagOvertime ? <StatusChip label="Overtime" colorClass="bg-destructive/10 text-destructive" /> : null}
+                  {selectedRota.flagEntregaCritica ? <StatusChip label="Entrega crítica" colorClass="bg-destructive/10 text-destructive" /> : null}
+                  <StatusChip label={selectedRota.alertaOperacional} colorClass="bg-warning/10 text-warning" />
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}

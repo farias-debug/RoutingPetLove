@@ -1,0 +1,16 @@
+**/**
+!*.gs
+!*.html
+!appsscript.json
+
+.git/**
+.vscode/**
+node_modules/**
+README.md
+AUDITORIA_SCRIPT_MONITORAMENTO.md
+package.json
+package-lock.json
+.claspignore
+.clasp.json
+.clasp.json.example
+clasp-link.ps1

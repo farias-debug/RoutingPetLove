@@ -1,0 +1,32 @@
+CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.vehicle_type_canonical`(raw_type STRING) AS (
+  CASE UPPER(TRIM(IFNULL(raw_type, '')))
+    WHEN 'VAN-COM-8H-DED' THEN 'Van'
+    WHEN 'UTI-COM-8H-DED' THEN 'Veiculo Utilitario'
+    WHEN 'VEICULO DE PASSEIO' THEN 'Veiculo Passeio'
+    WHEN 'VAN-ELE-8H-DED' THEN 'Van'
+    WHEN 'UTI-ELE-8H-DED' THEN 'Veiculo Utilitario'
+    WHEN 'UTI-COM-8H-AGR' THEN 'Veiculo Utilitario'
+    WHEN 'PAS-COM-8H-AGR' THEN 'Veiculo Passeio'
+    WHEN 'UTILITARIOS' THEN 'Veiculo Utilitario'
+    WHEN 'VAN' THEN 'Van'
+    WHEN 'VAN-COM-8H-AGR' THEN 'Van'
+    WHEN 'VAN-COM-12H-AGR' THEN 'Van'
+    WHEN 'MOTOCICLETA' THEN 'Motocicleta'
+    WHEN 'VUC-COM-8H-AGR' THEN 'Vuc'
+    WHEN 'CARRO' THEN 'Veiculo Passeio'
+    WHEN 'E-UTILITARIO LAST MILE' THEN 'Veiculo Utilitario'
+    WHEN 'VAN-ELE-12H-DED' THEN 'Van'
+    WHEN '3/4/MEDIO' THEN '3/4/Medio'
+    WHEN 'TRUCK' THEN 'Truck'
+    WHEN 'EVAN PROPRIA' THEN 'Van'
+    WHEN 'EPASSEIO PROPRIO' THEN 'Veiculo Passeio'
+    WHEN 'CARRETA*' THEN 'Carreta'
+    WHEN 'CARRETA' THEN 'Carreta'
+    WHEN 'FIORINO' THEN 'Fiorino'
+    WHEN 'HR' THEN 'HR'
+    WHEN 'TOCO' THEN 'Toco'
+    WHEN 'VUC' THEN 'Vuc'
+    WHEN 'TIPO NAO SELECIONADO' THEN 'Tipo nao selecionado'
+    ELSE IFNULL(raw_type, 'Tipo nao selecionado')
+  END
+);

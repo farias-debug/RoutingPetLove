@@ -1,95 +1,99 @@
-# Dashboard Transporte Last Mile
+# Monitoramento Logístico Last Mile — Petlove
 
-Dashboard operacional de transporte last mile, Power BI Desktop.
+Dashboard operacional de transporte last-mile com pipeline de dados BigQuery e dois frontends.
 
-- **Stack**: Python 3.14 · pandas · openpyxl · numpy · pyarrow · Power BI Desktop (MCP) · Node.js (Playwright)
+- **Stack**: Python 3.14 · BigQuery · Google Sheets · Apps Script · React 18 · Node.js 22 (Playwright)
 - **Operador**: Lucas Batista
+
+## Arquitetura
+
+```
+TMS Web (Playwright) → CSVs incrementais → CSV consolidado
+    → BigQuery (v4 analítico + v5 publicação — 58 objetos)
+        → Google Sheets (13 abas) → Apps Script (painéis visuais)
+        → React SPA route-eye-ops (9 páginas) [em desenvolvimento]
+```
 
 ## Estrutura
 
 ```
-Dashboard/
-  config/                # Constantes e mapeamentos Python
-    constantes.py        # Renomeacao colunas, tipos veiculo, config CSV
-    de_para_tipo.py      # De-para tipo veiculo (23 mappings)
-    tema_petlove.json    # Tema visual Power BI
-  scripts/               # Pipeline e utilitarios
-    transform.py         # Pipeline principal (normaliza, mescla, exporta)
-    extrair_relatorio_tms.mjs        # Scraper Playwright (TMS)
-    extrair_monitoramento_rotas.ps1  # Wrapper PowerShell extrator
-  data/                  # Fontes brutas — LOCAL, gitignored
-    Relatorio_Monitoramento_Carga_Completo.csv   (~21k linhas, TMS)
-    Relorio_Planejamento_Carga_Completo.xlsx     (~46k linhas)
-    tab_auxiliar/
-      dim_filial.xlsx             # 37 filiais + metas + regiao
-      dim_placas_veiculos.xlsx    # Placas → tipo/frota
-  output/powerbi/        # CSVs para Power BI — regeneravel, gitignored
-    fato_rotas.csv       # ~21k linhas, 48 colunas
-    fato_planejado.csv   # ~46k linhas, 10 colunas
-    dim_tipo_veiculo.csv # 11+ tipos, 13 colunas
-  docs/                  # Documentacao tecnica
-  Painel Monitoramento - Petlove.pbip            # Projeto Power BI
-  Painel Monitoramento - Petlove.Report/         # Report (PBIR)
-  Painel Monitoramento - Petlove.SemanticModel/  # Modelo (TMDL)
-scripts/                 # Automacao PowerShell
-  daily_pipeline.ps1     # Transform + Git sync
-  git_daily_sync.ps1     # Commit + push categorizado
-  health_check.ps1       # Diagnostico do ambiente
-.vscode/                 # Settings compartilhados
+Projetos/
+├── .github/                        # Agentes e instruções Copilot
+│   ├── agents/                     #   pipeline-engineer, frontend-developer,
+│   │                               #   apps-script-engineer, repo-executor
+│   ├── instructions/               #   bigquery-pipeline, react-dashboard,
+│   │                               #   google-apps, project-structure
+│   └── _old/                       #   Legado Power BI (arquivado)
+├── Dashboard/                      # Backend: pipeline de dados
+│   ├── bigquery/                   #   SQL (v4+v5), deploy, load, sync
+│   │   └── _deploy/               #     Módulos SQL individuais
+│   ├── extraction/                 #   Extração TMS + consolidação CSV
+│   ├── config/                     #   Config Sheets + credentials
+│   ├── google_apps/                #   Apps Script (clasp managed)
+│   ├── data/                       #   Fontes (CSV/XLSX) — NÃO editar
+│   ├── docs/                       #   Documentação técnica
+│   └── _archive/                   #   Código legado
+├── route-eye-ops/                  # Frontend: React SPA dashboard
+│   └── src/                        #   9 páginas, shadcn/ui, Recharts
+├── scripts/                        # Automação raiz
+│   ├── daily_pipeline.ps1          #   Pipeline diário (BQ path)
+│   ├── git_daily_sync.ps1          #   Commit + push categorizado
+│   ├── health_check.ps1            #   Diagnóstico do ambiente
+│   └── setup_monitoramento.ps1     #   Setup inicial
+└── AGENTS.md
 ```
 
-## Pipeline
+## Pipeline de Dados (7 Estágios)
 
-```
-data/CSV + data/XLSX + tab_auxiliar/*.xlsx
-              ↓
-        transform.py
-              ↓
-      output/powerbi/ (3 CSVs)
-              ↓
-      Power BI Desktop (Refresh)
-```
+| # | Estágio | Script | Entrada → Saída |
+|---|---------|--------|-----------------|
+| 1 | Extrair TMS | `extraction/extrair_relatorio_tms.mjs` | TMS Web → CSVs incrementais |
+| 2 | Consolidar | `extraction/consolidar_monitoramento.py` | Incrementais → CSV único |
+| 3 | Carregar BQ | `bigquery/load_raw_to_bq.py` | CSV → `raw_monitoramento` |
+| 4 | Views v4 | Auto-refresh | 14 UDFs + staging/dims/fatos/marts |
+| 5 | Views v5 | Auto-refresh | 13 views publicação (PT-BR) |
+| 6 | Sync Sheets | `bigquery/sync_bq_to_sheets.py` | 13 views → 13 abas Sheets |
+| 7 | Dashboard | `google_apps/main.gs` | Abas dados → Painéis visuais |
+
+## Comandos Principais
 
 ```powershell
-# Executar pipeline
-& Dashboard\.venv\Scripts\python.exe Dashboard\scripts\transform.py
-
-# Pipeline completo (transform + git sync)
+# Pipeline diário (data path: CSV → BQ → Sheets)
 .\scripts\daily_pipeline.ps1
+
+# Comandos individuais
+& Dashboard\.venv\Scripts\python.exe Dashboard\bigquery\load_raw_to_bq.py
+& Dashboard\.venv\Scripts\python.exe Dashboard\bigquery\sync_bq_to_sheets.py "1Z-Jhaf9g4dbnti_ry7IO2J6BuZhCsqhoUREKtWMd3k4"
+
+# Deploy BQ (quando SQL alterado)
+& Dashboard\.venv\Scripts\python.exe Dashboard\bigquery\deploy_v4.py
+& Dashboard\.venv\Scripts\python.exe Dashboard\bigquery\deploy_v5_publicacao.py
+
+# Extração TMS
+node Dashboard\extraction\extrair_relatorio_tms.mjs
+
+# React dashboard (route-eye-ops)
+cd route-eye-ops; bun install; bun run dev  # porta 8080
+
+# Apps Script
+cd Dashboard\google_apps; npx @google/clasp push
 ```
 
-## Modelo Semantico Power BI
+## Infraestrutura
 
-### Tabelas
-
-| Tabela           | Tipo     | Fonte                |
-|------------------|----------|----------------------|
-| dim_calendario   | Dimensao | DAX calculada        |
-| dim_filial       | Dimensao | dim_filial.xlsx (M)  |
-| dim_tipo_veiculo | Dimensao | dim_tipo_veiculo.csv |
-| fato_rotas       | Fato     | fato_rotas.csv       |
-| fato_planejado   | Fato     | fato_planejado.csv   |
-| _Medidas         | Measures | 371 measures DAX     |
-| _Metas           | Params   | DAX inline (11 rows) |
-
-### Relacionamentos (N:1)
-
-- fato_rotas[Filial] → dim_filial[Filial]
-- fato_rotas[Data Referencia] → dim_calendario[Data]
-- fato_rotas[Tipo de Veiculo Padrao] → dim_tipo_veiculo[TipoVeiculo]
-- fato_planejado[Data Planejada] → dim_calendario[Data]
-- fato_planejado[Filial] → dim_filial[Filial]
-
-### CSV Format
-
-- Separador: `;` · Encoding: `UTF-8 BOM` · Datas: `YYYY-MM-DD`
-- Path M queries: `C:\Users\lucas.batista\Documents\Projetos\Dashboard\output\powerbi\`
+| Componente | Detalhe |
+|------------|---------|
+| BigQuery | `data-aileron-482822-d0` / `monitoramento_carga` |
+| Google Sheets | ID `1Z-Jhaf9g4dbnti_ry7IO2J6BuZhCsqhoUREKtWMd3k4` |
+| Python | 3.14+ (`Dashboard/.venv/`) |
+| Node.js | 22+ (Playwright, googleapis) |
+| React | 18.3 + Vite 5.4 + TypeScript 5.8 + shadcn/ui |
+| Auth | ADC (`gcloud auth application-default login`), env `TMS_USER`/`TMS_PASS` |
 
 ## Regras
 
-- Codigo Python → `Dashboard/scripts/`, config → `Dashboard/config/`
-- Nunca editar `data/` ou `output/` diretamente
-- Dados sao imutaveis — pipeline recalcula tudo das fontes
-- Power BI gerenciado via Power BI Desktop + MCP
-- Measures DAX ficam na tabela `_Medidas`
-- Itens obsoletos vao para `_archive/` (gitignored)
+- Pipeline BigQuery é a fonte de verdade — Sheets e React consomem suas views
+- Nunca editar `data/`, `output/` diretamente — pipeline recalcula tudo
+- Itens obsoletos vão para `_archive/` (gitignored)
+- Credenciais nunca versionadas — usar ADC ou `.env`
+- Docs em `Dashboard/docs/`, automação em `scripts/`

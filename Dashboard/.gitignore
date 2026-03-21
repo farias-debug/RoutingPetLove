@@ -1,19 +1,26 @@
-# Dados brutos (local)
+# Arquivo morto e dados locais
+_archive/
 data/
-
-# Saida pipeline (regeneravel)
 output/
 
-# Power BI binario
-*.pbix
+# Credenciais e sensíveis
+config/credentials/
 
-# Ambiente
+# Build e cache
+__pycache__/
+*.py[cod]
 .venv/
 node_modules/
-__pycache__/
-*.pyc
+frontend/dist/
+frontend/.env
+frontend/.env.local
 
-# Temporarios
-downloads/
-manifests/
-theme/
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# Temporários
+*.tmp.*
+*.bak_*
