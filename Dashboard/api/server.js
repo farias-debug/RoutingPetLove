@@ -851,15 +851,24 @@ app.get("/api/drill-rotas", async (req, res) => {
     const countRows = await runQuery(`SELECT COUNT(*) AS total FROM \`${projectId}.${dataset}.drill_rotas\` drill_rotas ${where}`, params);
     const total = Number(countRows[0]?.total || 0);
     const rows = await runQuery(`
+      WITH mp AS (SELECT * FROM \`${projectId}.${dataset}.metas_pivot\`)
       SELECT
-        *,
+        drill_rotas.*,
         \`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(\`Tipo de Veiculo Padrao\`) AS capacidade_peso_unit_kg,
-        ROUND((
-          (CASE WHEN ` + "`Entrega Efetiva Rota`" + ` >= 0.98 THEN 100 WHEN ` + "`Entrega Efetiva Rota`" + ` >= 0.95 THEN 70 ELSE 30 END) +
-          (CASE WHEN ` + "`Flag Overtime`" + ` THEN 30 ELSE 100 END) +
-          (CASE WHEN ` + "`Flag Entrega Critica`" + ` THEN 30 ELSE 100 END)
-        ) / 3, 1) AS score_operacional
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.fn_score_operacional\`(
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(` + "`Volumes da Rota`" + `, mp.meta_spr_vol),
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(` + "`Entrega Efetiva Rota`" + `, mp.meta_entregas),
+          CASE WHEN ` + "`Rota Concluida`" + ` = 'Sim' THEN 'OK' ELSE 'Critico' END,
+          \`data-aileron-482822-d0.monitoramento_carga.status_target_band\`(
+            COALESCE(` + "`Tempo Realizado h`" + `, ` + "`Tempo Planejado h`" + `), mp.meta_orh, 1.0, 2.1),
+          IF(` + "`Possui Planejado`" + ` = 'Sim',
+             \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(
+               SAFE_DIVIDE(` + "`Volumes da Rota`" + `, NULLIF(` + "`Volumes Planejados`" + `, 0)), mp.meta_ader_vol),
+             'Informativo'),
+          \`data-aileron-482822-d0.monitoramento_carga.capacity_status\`(` + "`Ocupacao Composta Rota`" + `)
+        ), 1) AS score_operacional
       FROM \`${projectId}.${dataset}.drill_rotas\` drill_rotas
+      CROSS JOIN mp
       ${where}
       ORDER BY ${sortField} ${orderDirection}, Rota ASC
       LIMIT @limit OFFSET @offset
@@ -1302,16 +1311,16 @@ app.get("/api/kpi-diario", async (req, res) => {
       FROM metrics
       CROSS JOIN (
         SELECT
-          MAX(CASE WHEN kpi_id = 'spr_pedidos' THEN meta END) AS m_spr_ped,
-          MAX(CASE WHEN kpi_id = 'spr_volumes' THEN meta END) AS m_spr_vol,
-          MAX(CASE WHEN kpi_id = 'orh' THEN meta END) AS m_orh,
-          MAX(CASE WHEN kpi_id = 'entregas_efetivas' THEN meta END) AS m_entregas,
-          MAX(CASE WHEN kpi_id = 'rotas_concluidas' THEN meta END) AS m_rotas,
-          MAX(CASE WHEN kpi_id = 'ocupacao_composta' THEN meta END) AS m_ocup,
-          MAX(CASE WHEN kpi_id = 'ocupacao_composta' THEN meta END) AS m_ocup_peso,
-          MAX(CASE WHEN kpi_id = 'aderencia_volumes' THEN meta END) AS m_ader_vol,
-          MAX(CASE WHEN kpi_id = 'dpph' THEN meta END) AS m_dpph
-        FROM \`${projectId}.${dataset}.dim_metas\`
+          meta_spr_ped AS m_spr_ped,
+          meta_spr_vol AS m_spr_vol,
+          meta_orh AS m_orh,
+          meta_entregas AS m_entregas,
+          meta_rotas AS m_rotas,
+          meta_ocup AS m_ocup,
+          meta_ocup AS m_ocup_peso,
+          meta_ader_vol AS m_ader_vol,
+          meta_dpph AS m_dpph
+        FROM \`${projectId}.${dataset}.metas_pivot\`
       ) m
     `, params);
     const row = rows[0] || {};
@@ -1352,6 +1361,7 @@ app.get("/api/executivo/serie-diaria", async (req, res) => {
           MAX(\`Tempo Realizado h\`) AS tempo_realizado_h,
           MAX(\`Ocupacao Composta Rota\`) AS ocupacao_composta,
           MAX(CASE WHEN \`Possui Planejado\` = 'Sim' THEN 1 ELSE 0 END) AS possui_planejado,
+          MAX(CASE WHEN \`Rota Concluida\` = 'Sim' THEN 1 ELSE 0 END) AS rota_concluida,
           MAX(CASE WHEN \`Flag Nao Planejada\` THEN 1 ELSE 0 END) AS flag_nao_planejada,
           MAX(CASE WHEN \`Flag Sem Tempo\` THEN 1 ELSE 0 END) AS flag_sem_tempo
         FROM \`${projectId}.${dataset}.alertas_rotas\`
@@ -1373,7 +1383,9 @@ app.get("/api/executivo/serie-diaria", async (req, res) => {
           SUM(CASE WHEN possui_planejado = 1 THEN volumes_plan ELSE 0 END) AS volumesPlanejados,
           SUM(peso_kg) AS pesoRealizado,
           SUM(CASE WHEN possui_planejado = 1 THEN peso_plan_kg ELSE 0 END) AS pesoPlanejado,
-          AVG(ocupacao_composta) AS ocupacaoComposta
+          AVG(ocupacao_composta) AS ocupacaoComposta,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(
+            CAST(SUM(rota_concluida) AS FLOAT64), CAST(COUNT(*) AS FLOAT64)) AS pctRotasConcl
         FROM route_level
         GROUP BY 1
       ),
@@ -1396,37 +1408,37 @@ app.get("/api/executivo/serie-diaria", async (req, res) => {
         ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.entregues, d.entregues + d.insucessos), 4) AS entregasEfetivas,
         ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.pedidos, CAST(d.rotas AS FLOAT64)), 2) AS sprPedidos,
         ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.volumes, CAST(d.rotas AS FLOAT64)), 2) AS sprVolumes,
-        ROUND((
-          \`data-aileron-482822-d0.monitoramento_carga.status_score\`(\`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.pedidos, CAST(d.rotas AS FLOAT64)), m.m_spr_ped))
-          + \`data-aileron-482822-d0.monitoramento_carga.status_score\`(\`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.volumes, CAST(d.rotas AS FLOAT64)), m.m_spr_vol))
-          + \`data-aileron-482822-d0.monitoramento_carga.status_score\`(\`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.entregues, d.entregues + d.insucessos), m.m_entregas))
-          + \`data-aileron-482822-d0.monitoramento_carga.status_score\`(\`data-aileron-482822-d0.monitoramento_carga.status_target_band\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.tempoOperacionalTotal, CAST(d.rotas AS FLOAT64)), m.m_orh, 1.0, 2.1))
-          + IF(
-            d.volumesPlanejados > 0,
-            \`data-aileron-482822-d0.monitoramento_carga.status_score\`(\`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.volumes, NULLIF(d.volumesPlanejados, 0)), m.m_ader_vol)),
-            0
-          )
-        ) / (4.0 + IF(d.volumesPlanejados > 0, 1.0, 0.0)) * 100.0, 1) AS scoreOperacional,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.fn_score_operacional\`(
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.volumes, CAST(d.rotas AS FLOAT64)), m.meta_spr_vol),
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.entregues, d.entregues + d.insucessos), m.meta_entregas),
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(d.pctRotasConcl, m.meta_rotas),
+          \`data-aileron-482822-d0.monitoramento_carga.status_target_band\`(
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.tempoOperacionalTotal, CAST(d.rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
+          IF(d.volumesPlanejados > 0,
+             \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(
+               \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.volumes, NULLIF(d.volumesPlanejados, 0)), m.meta_ader_vol),
+             'Informativo'),
+          \`data-aileron-482822-d0.monitoramento_carga.capacity_status\`(
+            \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
+              \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.pedidos, NULLIF(d.pedidosPlanejados, 0)),
+              \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.volumes, NULLIF(d.volumesPlanejados, 0)),
+              \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.pesoRealizado, NULLIF(d.pesoPlanejado, 0))
+            ))
+        ), 1) AS scoreOperacional,
         ROUND(d.ocupacaoComposta, 4) AS ocupacaoComposta,
         ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.volumes, NULLIF(d.volumesPlanejados, 0)), 4) AS aderenciaVolumes,
         ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.tempoOperacionalTotal, CAST(d.rotas AS FLOAT64)), 2) AS tempoMedRealizado,
         d.qtdRotasNaoPlanejadas,
         d.qtdRotasSemTempo,
         (
-          SELECT COUNTIF(fd.sprVolumes < m.m_spr_vol)
+          SELECT COUNTIF(fd.sprVolumes < m.meta_spr_vol)
           FROM filial_daily fd
           WHERE fd.data = d.data
         ) AS qtdFiliaisCriticasSpr
       FROM daily d
-      CROSS JOIN (
-        SELECT
-          MAX(CASE WHEN kpi_id = 'spr_pedidos' THEN meta END) AS m_spr_ped,
-          MAX(CASE WHEN kpi_id = 'spr_volumes' THEN meta END) AS m_spr_vol,
-          MAX(CASE WHEN kpi_id = 'orh' THEN meta END) AS m_orh,
-          MAX(CASE WHEN kpi_id = 'entregas_efetivas' THEN meta END) AS m_entregas,
-          MAX(CASE WHEN kpi_id = 'aderencia_volumes' THEN meta END) AS m_ader_vol
-        FROM \`${projectId}.${dataset}.dim_metas\`
-      ) m
+      CROSS JOIN \`${projectId}.${dataset}.metas_pivot\` m
       ORDER BY d.data ASC
     `, params);
 
