@@ -5,8 +5,6 @@ on:
     paths:
       - "Dashboard/bigquery/**/*.sql"
   pull_request:
-    paths:
-      - "Dashboard/bigquery/**/*.sql"
 
 permissions:
   contents: read
