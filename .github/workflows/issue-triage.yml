@@ -1,0 +1,85 @@
+name: "📋 Issue Triage"
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto-label por conteúdo
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            const content = title + ' ' + body;
+            const labelsToAdd = [];
+
+            // Detectar domínio
+            if (content.includes('bigquery') || content.includes('pipeline') || content.includes('sql') || content.includes('view')) {
+              labelsToAdd.push('domain: bigquery');
+            }
+            if (content.includes('react') || content.includes('frontend') || content.includes('dashboard') || content.includes('vite')) {
+              labelsToAdd.push('domain: frontend');
+            }
+            if (content.includes('apps script') || content.includes('sheets') || content.includes('clasp') || content.includes('google apps')) {
+              labelsToAdd.push('domain: apps-script');
+            }
+            if (content.includes('api') || content.includes('cloud run') || content.includes('endpoint')) {
+              labelsToAdd.push('domain: api');
+            }
+            if (content.includes('tms') || content.includes('extração') || content.includes('csv') || content.includes('playwright')) {
+              labelsToAdd.push('domain: extraction');
+            }
+            if (content.includes('ci/cd') || content.includes('workflow') || content.includes('deploy') || content.includes('automação')) {
+              labelsToAdd.push('domain: infra');
+            }
+
+            // Detectar prioridade por palavras-chave
+            if (content.includes('urgente') || content.includes('bloqueante') || content.includes('produção caiu')) {
+              labelsToAdd.push('priority: critical');
+            } else if (content.includes('importante') || content.includes('impacto alto')) {
+              labelsToAdd.push('priority: high');
+            }
+
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labelsToAdd
+              });
+              console.log(`Labels adicionadas: ${labelsToAdd.join(', ')}`);
+            }
+
+      - name: Atribuir milestone se Sprint 1
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const milestones = await github.rest.issues.listMilestones({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              sort: 'due_on',
+              direction: 'asc'
+            });
+
+            // Atribuir ao milestone mais próximo com due_date no futuro
+            const now = new Date();
+            const activeMilestone = milestones.data.find(m => new Date(m.due_on) > now);
+            if (activeMilestone) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                milestone: activeMilestone.number
+              });
+              console.log(`Milestone atribuído: ${activeMilestone.title}`);
+            }

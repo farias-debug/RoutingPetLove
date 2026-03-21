@@ -1,0 +1,81 @@
+name: "📊 Weekly Report"
+
+on:
+  schedule:
+    - cron: "0 14 * * 5" # Sexta 11h BRT (14 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  weekly-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gerar relatório semanal
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const since = oneWeekAgo.toISOString();
+
+            // Issues criadas na semana
+            const newIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              since,
+              per_page: 100
+            });
+
+            const created = newIssues.data.filter(i => !i.pull_request && new Date(i.created_at) > oneWeekAgo);
+            const closed = newIssues.data.filter(i => !i.pull_request && i.state === 'closed' && i.closed_at && new Date(i.closed_at) > oneWeekAgo);
+            const openBugs = newIssues.data.filter(i => !i.pull_request && i.state === 'open' && i.labels.some(l => l.name === 'type: bug'));
+
+            // Commits na semana
+            const commits = await github.rest.repos.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              since,
+              per_page: 100
+            });
+
+            // Milestones
+            const milestones = await github.rest.issues.listMilestones({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            const milestoneReport = milestones.data.map(m => {
+              const total = m.open_issues + m.closed_issues;
+              const pct = total > 0 ? Math.round((m.closed_issues / total) * 100) : 0;
+              const due = m.due_on ? new Date(m.due_on).toISOString().split('T')[0] : 'sem data';
+              return `| ${m.title} | ${m.closed_issues}/${total} | ${pct}% | ${due} |`;
+            }).join('\n');
+
+            const today = new Date().toISOString().split('T')[0];
+            const body = `# 📊 Relatório Semanal — ${today}\n\n` +
+              `## Resumo\n` +
+              `| Métrica | Valor |\n|---------|-------|\n` +
+              `| Issues criadas | ${created.length} |\n` +
+              `| Issues fechadas | ${closed.length} |\n` +
+              `| Bugs abertos | ${openBugs.length} |\n` +
+              `| Commits | ${commits.data.length} |\n\n` +
+              `## Milestones\n` +
+              `| Sprint | Progresso | % | Deadline |\n|--------|-----------|---|----------|\n` +
+              milestoneReport + '\n\n' +
+              `## Issues Fechadas\n` +
+              (closed.length > 0 ? closed.map(i => `- ✅ #${i.number} ${i.title}`).join('\n') : '_Nenhuma issue fechada esta semana_') + '\n\n' +
+              `## Bugs Abertos\n` +
+              (openBugs.length > 0 ? openBugs.map(i => `- 🐛 #${i.number} ${i.title}`).join('\n') : '_Nenhum bug aberto_ 🎉');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `📊 Relatório Semanal — ${today}`,
+              body,
+              labels: ['type: docs']
+            });
