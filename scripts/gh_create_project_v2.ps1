@@ -6,14 +6,19 @@ param(
 $ErrorActionPreference = "Stop"
 
 function Get-OwnerId {
-    $result = gh api graphql -f query='query($login: String!) { organization(login: $login) { id } user(login: $login) { id } }' -F login=$Owner | ConvertFrom-Json
-    if ($result.data.organization.id) {
-        return $result.data.organization.id
-    }
-    if ($result.data.user.id) {
-        return $result.data.user.id
-    }
-    throw "Nao foi possivel localizar owner id para $Owner"
+  $userQuery = 'query($login: String!) { user(login: $login) { id } }'
+  $userResult = gh api graphql -f query=$userQuery -F login=$Owner | ConvertFrom-Json
+  if ($userResult.data.user.id) {
+    return $userResult.data.user.id
+  }
+
+  $orgQuery = 'query($login: String!) { organization(login: $login) { id } }'
+  $orgResult = gh api graphql -f query=$orgQuery -F login=$Owner | ConvertFrom-Json
+  if ($orgResult.data.organization.id) {
+    return $orgResult.data.organization.id
+  }
+
+  throw "Nao foi possivel localizar owner id para $Owner"
 }
 
 $ownerId = Get-OwnerId
