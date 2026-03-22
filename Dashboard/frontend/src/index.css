@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 270 8% 97%;
+    --foreground: 220 20% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 14%;
+
+    --primary: 267 60% 34%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 270 12% 96%;
+    --secondary-foreground: 220 20% 14%;
+
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 20 87% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 152 60% 40%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 267 60% 34%;
+
+    --radius: 0.625rem;
+
+    --sidebar-bg-start: 271 57% 27%;
+    --sidebar-bg-end: 271 57% 20%;
+
+    --ribbon-start: 267 52% 36%;
+    --ribbon-end: 267 48% 47%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  .sidebar-gradient {
+    background: linear-gradient(180deg, hsl(271 57% 27%) 0%, hsl(271 57% 20%) 100%);
+  }
+
+  .ribbon-gradient {
+    background: linear-gradient(90deg, hsl(267 52% 36%) 0%, hsl(267 48% 47%) 100%);
+  }
+
+  .glow-soft {
+    background: linear-gradient(135deg, hsl(267 48% 47% / 0.10) 0%, hsl(267 52% 36% / 0.04) 60%, hsl(20 87% 50% / 0.02) 100%);
+  }
+
+  .card-shadow {
+    box-shadow: 0 12px 32px hsl(220 20% 14% / 0.07);
+  }
+
+  .card-shadow-soft {
+    box-shadow: 0 8px 24px hsl(220 20% 14% / 0.05);
+  }
+
+  .card-shadow-tiny {
+    box-shadow: 0 2px 8px hsl(220 20% 14% / 0.06);
+  }
+}

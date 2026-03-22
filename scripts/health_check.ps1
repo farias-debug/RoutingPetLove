@@ -160,6 +160,54 @@ else { Check-WARN "$dirty arquivo(s) nao commitado(s) - considere rodar git_dail
 $lastCommit = git log -1 --format="%h %s (%cr)" 2>&1
 Check-OK "Ultimo commit: $lastCommit"
 
+# == BigQuery Data Freshness ====================================
+Write-Host "`n-- BigQuery Data Freshness --" -ForegroundColor Cyan
+$venvPython = Join-Path $dashboardRoot ".venv\Scripts\python.exe"
+if (Test-Path $venvPython) {
+    $bqCheckScript = @"
+import sys
+try:
+    from google.cloud import bigquery
+    client = bigquery.Client(project='data-aileron-482822-d0')
+    q = '''
+        SELECT
+            MAX(data_planejada) AS max_data,
+            COUNT(*) AS total_rows,
+            DATE_DIFF(CURRENT_DATE(), MAX(data_planejada), DAY) AS dias_atraso
+        FROM \`data-aileron-482822-d0.monitoramento_carga.fct_execucao\`
+    '''
+    rows = list(client.query(q).result())
+    r = rows[0]
+    print(f'max_data={r.max_data}|total_rows={r.total_rows}|dias_atraso={r.dias_atraso}')
+except Exception as e:
+    print(f'ERROR|{e}', file=sys.stderr)
+    sys.exit(1)
+"@
+    $bqResult = & $venvPython -c $bqCheckScript 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        $parts = ($bqResult -split '\|')
+        $maxData = ($parts[0] -split '=')[1]
+        $totalRows = ($parts[1] -split '=')[1]
+        $diasAtraso = [int]($parts[2] -split '=')[1]
+        Check-OK "fct_execucao: $totalRows linhas, ultima data=$maxData"
+        if ($diasAtraso -le 2) {
+            Check-OK "Dados frescos (atraso: ${diasAtraso}d)"
+        }
+        elseif ($diasAtraso -le 5) {
+            Check-WARN "Dados com ${diasAtraso} dias de atraso"
+        }
+        else {
+            Check-FAIL "Dados desatualizados: ${diasAtraso} dias de atraso"
+        }
+    }
+    else {
+        Check-WARN "Nao foi possivel consultar BigQuery: $bqResult"
+    }
+}
+else {
+    Check-WARN "Python venv nao encontrado - pulando check de BigQuery"
+}
+
 # -- Resumo ------------------------------------------------
 Write-Host "`n==================================================" -ForegroundColor Cyan
 $color = if ($fail -gt 0) { "Red" } elseif ($warn -gt 0) { "Yellow" } else { "Green" }

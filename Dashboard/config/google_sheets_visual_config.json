@@ -1,0 +1,119 @@
+{
+  "sheetUrl": "https://docs.google.com/spreadsheets/d/1Z-Jhaf9g4dbnti_ry7IO2J6BuZhCsqhoUREKtWMd3k4/edit?gid=1296451268#gid=1296451268",
+  "spreadsheetLocale": "pt_BR",
+  "timeZone": "America/Sao_Paulo",
+  "chunkSize": 2500,
+  "serviceAccountKeyPath": "./credentials/dashboard-sheets-publisher.json",
+  "profileDir": "../output/playwright/chrome-automation-google-sheets-profile",
+  "profileSeedDir": "%LOCALAPPDATA%/Google/Chrome/User Data",
+  "profileDirectory": "Default",
+  "outputDir": "../output/fontes_consolidadas",
+  "channel": "chrome",
+  "loginTimeoutSec": 300,
+  "datasets": [
+    {
+      "csv": "VW_Base_Execucao.csv",
+      "tab": "VW_Base_Execucao",
+      "required": true,
+      "layer": "core",
+      "description": "Base detalhada de execucao",
+      "createIfMissing": true
+    },
+    {
+      "csv": "Resumo_Semana_Filial_Diario.csv",
+      "tab": "Resumo_Semana_Filial_Diario",
+      "required": true,
+      "layer": "core",
+      "description": "Resumo diario por semana e filial",
+      "createIfMissing": true
+    },
+    {
+      "csv": "Resumo_Semana_Filial_Matriz.csv",
+      "tab": "Resumo_Semana_Filial_Matriz",
+      "required": true,
+      "layer": "core",
+      "description": "Matriz semanal para leitura operacional",
+      "createIfMissing": true
+    },
+    {
+      "csv": "Resumo_Ocupacao_Veic_Transp.csv",
+      "tab": "Resumo_Ocupacao_Veic_Transp",
+      "required": true,
+      "layer": "core",
+      "description": "Resumo de ocupacao por veiculo e transportador",
+      "createIfMissing": true
+    },
+    {
+      "csv": "Resumo_Filial.csv",
+      "tab": "Resumo_Filial",
+      "required": true,
+      "layer": "core",
+      "description": "Resumo executivo por filial",
+      "createIfMissing": true
+    },
+    {
+      "csv": "drill_rotas.csv",
+      "tab": "drill_rotas",
+      "required": true,
+      "layer": "support",
+      "description": "Detalhe analitico pronto para investigacao",
+      "createIfMissing": true
+    },
+    {
+      "csv": "alertas_rotas.csv",
+      "tab": "alertas_rotas",
+      "required": true,
+      "layer": "support",
+      "description": "Flags operacionais e priorizacao",
+      "createIfMissing": true
+    },
+    {
+      "csv": "kpi_resumo_diario.csv",
+      "tab": "kpi_resumo_diario",
+      "required": true,
+      "layer": "support",
+      "description": "Snapshot diario consolidado",
+      "createIfMissing": true
+    },
+    {
+      "csv": "kpi_filial_dia.csv",
+      "tab": "kpi_filial_dia",
+      "required": true,
+      "layer": "support",
+      "description": "KPIs diarios por filial",
+      "createIfMissing": true
+    },
+    {
+      "csv": "kpi_transportador_dia.csv",
+      "tab": "kpi_transportador_dia",
+      "required": true,
+      "layer": "support",
+      "description": "KPIs diarios por transportador",
+      "createIfMissing": true
+    },
+    {
+      "csv": "kpi_card_latest.csv",
+      "tab": "kpi_card_latest",
+      "required": true,
+      "layer": "support",
+      "description": "Cards prontos do ultimo snapshot",
+      "createIfMissing": true
+    },
+    {
+      "csv": "metas_globais.csv",
+      "tab": "metas_globais",
+      "required": true,
+      "layer": "support",
+      "description": "Metas de referencia para o dashboard",
+      "createIfMissing": true
+    },
+    {
+      "csv": "dim_filial_tratada.csv",
+      "tab": "dim_filial_tratada",
+      "required": true,
+      "layer": "support",
+      "description": "Dimensao tratada de filial",
+      "createIfMissing": true
+    }
+  ]
+}

@@ -1,10 +1,15 @@
 {
-  "name": "dashboard-tms-extractor",
+  "name": "dashboard-monitoramento-google-sheets",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
+  "description": "Workspace local do fluxo TMS -> Google Sheets -> Apps Script.",
   "scripts": {
-    "extract:tms": "node ./scripts/extrair_relatorio_tms.mjs"
+    "setup:google-apps": "npm --prefix ./google_apps install",
+    "pipeline:extract": "node ./extraction/extrair_relatorio_tms.mjs",
+    "google-apps:status": "npm --prefix ./google_apps run clasp:status",
+    "google-apps:push": "npm --prefix ./google_apps run clasp:push",
+    "google-apps:pull": "npm --prefix ./google_apps run clasp:pull",
+    "google-apps:open": "npm --prefix ./google_apps run clasp:open"
   },
   "dependencies": {
     "playwright": "^1.52.0"

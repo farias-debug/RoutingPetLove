@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-03-21T18:56:41.743811",
+  "results": {
+    "mart_kpi_diario_latest": {
+      "data": "2026-03-19",
+      "qtd_rotas": 277.0,
+      "spr_ped": 45.541516245487365,
+      "spr_vol": 54.33935018050541,
+      "pct_entregas": 0.9159159159159159,
+      "orh": 4.008724428399519,
+      "dpph": 0.824015009380863,
+      "ocup_composta": 29.81895258562379,
+      "score_operacional": 12.5
+    },
+    "mart_kpi_filial_count": {
+      "n": 1655.0
+    },
+    "mart_kpi_transp_count": {
+      "n": 920.0
+    },
+    "kpi_card_latest_count": {
+      "n": 9.0
+    },
+    "fct_execucao_sample": {
+      "n": 27879.0,
+      "max_data": "2026-03-19"
+    },
+    "alertas_rotas_count": {
+      "n": 17356.0
+    },
+    "score_consistency": {
+      "avg_score": 63.9,
+      "min_score": 12.5,
+      "max_score": 83.33333333333334
+    }
+  }
+}
