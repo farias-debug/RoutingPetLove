@@ -135,7 +135,7 @@ CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.vehicle_w
     WHEN 'Toco' THEN 6000.0         WHEN 'VUC' THEN 3500.0
     WHEN 'Motocicleta' THEN 50.0    WHEN 'Fiorino' THEN 600.0
     WHEN '3/4 Medio' THEN 4000.0    WHEN 'Truck' THEN 10000.0
-    WHEN 'Carreta' THEN 20000.0     ELSE 0.0
+    WHEN 'Carreta' THEN 20000.0     ELSE NULL
   END
 );
 

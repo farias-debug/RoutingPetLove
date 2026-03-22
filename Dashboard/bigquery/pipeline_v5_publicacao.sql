@@ -525,6 +525,9 @@ SELECT
   f.qtd_pedidos                       AS `Pedidos da Rota`,
   f.qtd_volumes                       AS `Volumes da Rota`,
   ROUND(f.peso_kg, 2)                AS `Peso kg`,
+  f.pedidos_plan                      AS `Pedidos Planejados`,
+  f.volumes_plan                      AS `Volumes Planejados`,
+  ROUND(f.peso_plan_kg, 2)            AS `Peso Planejado kg`,
   f.paradas                           AS `Paradas`,
   f.clientes                          AS `Clientes`,
   f.entregues                         AS `Entregues`,
@@ -605,6 +608,9 @@ SELECT
   f.qtd_pedidos                       AS `Pedidos da Rota`,
   f.qtd_volumes                       AS `Volumes da Rota`,
   ROUND(f.peso_kg, 2)                AS `Peso kg`,
+  f.pedidos_plan                      AS `Pedidos Planejados`,
+  f.volumes_plan                      AS `Volumes Planejados`,
+  ROUND(f.peso_plan_kg, 2)            AS `Peso Planejado kg`,
   f.paradas                           AS `Paradas`,
   f.clientes                          AS `Clientes`,
   f.entregues                         AS `Entregues`,
@@ -813,6 +819,8 @@ SELECT
   ROUND(f.peso_plan_kg, 2)               AS `Peso Planejado kg`,
   CASE WHEN IFNULL(f.possui_planejamento, FALSE) THEN 'Sim' ELSE 'Nao' END
     AS `Possui Planejado`,
+  CASE WHEN f.flag_rota_concluida THEN 'Sim' ELSE 'Nao' END
+    AS `Rota Concluida`,
   cal.dia_semana_nome                     AS `Dia Semana`,
   cal.semana_inicio                       AS `Semana Inicio`,
   cal.semana_ano                          AS `Numero Semana`,

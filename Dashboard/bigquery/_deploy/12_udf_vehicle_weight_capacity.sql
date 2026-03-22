@@ -11,6 +11,6 @@ CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.vehicle_w
     WHEN '3/4/MEDIO' THEN 4000.0
     WHEN 'TRUCK' THEN 10000.0
     WHEN 'CARRETA' THEN 20000.0
-    ELSE 0.0
+    ELSE NULL
   END
 );

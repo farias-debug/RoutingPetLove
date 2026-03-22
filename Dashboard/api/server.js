@@ -535,7 +535,7 @@ app.get("/api/resumo/tendencia-semanal", async (req, res) => {
           \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
             \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Pedidos da Rota\`), NULLIF(SUM(base.\`Pedidos Planejados\`), 0)),
             \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Volumes da Rota\`), NULLIF(SUM(base.\`Volumes Planejados\`), 0)),
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Peso kg\`), NULLIF(SUM(base.\`Peso Planejado kg\`), 0))
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Peso Realizado kg\`), NULLIF(SUM(base.\`Peso Planejado kg\`), 0))
           ) AS ocup_composta
         FROM \`${projectId}.${dataset}.VW_Base_Execucao\` base
         ${where}
@@ -687,7 +687,10 @@ app.get("/api/filiais/performance", async (req, res) => {
                SAFE_DIVIDE(` + "`Volumes Real`" + `, NULLIF(` + "`Volumes Plan`" + `, 0)), mp.meta_ader_vol),
              'Informativo'),
           \`data-aileron-482822-d0.monitoramento_carga.capacity_status\`(
-            SAFE_DIVIDE(` + "`Volumes Real`" + `, NULLIF(` + "`Volumes Plan`" + `, 0)))
+            \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
+              SAFE_DIVIDE(` + "`Pedidos Real`" + `, NULLIF(` + "`Pedidos Plan`" + `, 0)),
+              SAFE_DIVIDE(` + "`Volumes Real`" + `, NULLIF(` + "`Volumes Plan`" + `, 0)),
+              SAFE_DIVIDE(` + "`Peso Real kg`" + `, NULLIF(` + "`Peso Plan kg`" + `, 0))))
         ), 1) AS scoreOperacional,
         NULL AS aderenciaPedidos,
         NULL AS aderenciaVolumes,
@@ -860,7 +863,7 @@ app.get("/api/drill-rotas", async (req, res) => {
         ROUND(\`data-aileron-482822-d0.monitoramento_carga.fn_score_operacional\`(
           \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(` + "`Volumes da Rota`" + `, mp.meta_spr_vol),
           \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(` + "`Entrega Efetiva Rota`" + `, mp.meta_entregas),
-          CASE WHEN ` + "`Rota Concluida`" + ` = 'Sim' THEN 'OK' ELSE 'Critico' END,
+          IF(` + "`Rota Concluida`" + ` = 'Sim', 'OK', \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(0.0, mp.meta_rotas)),
           \`data-aileron-482822-d0.monitoramento_carga.status_target_band\`(
             COALESCE(` + "`Tempo Realizado h`" + `, ` + "`Tempo Planejado h`" + `), mp.meta_orh, 1.0, 2.1),
           IF(` + "`Possui Planejado`" + ` = 'Sim',
