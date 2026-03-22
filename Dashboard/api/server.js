@@ -13,12 +13,14 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:8080,ht
 
 const bigquery = new BigQuery({ projectId });
 const firebasePreviewPattern = /^https:\/\/data-aileron-482822-d0--[a-z0-9-]+\.web\.app$/i;
+const lovablePattern = /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/i;
+const lovableAppPattern = /^https:\/\/[a-z0-9-]+\.lovable\.app$/i;
 const bqNormalizeText = "`data-aileron-482822-d0.monitoramento_carga.normalize_text`";
 
 app.use(express.json({ limit: "1mb" }));
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || firebasePreviewPattern.test(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || firebasePreviewPattern.test(origin) || lovablePattern.test(origin) || lovableAppPattern.test(origin)) {
       callback(null, true);
       return;
     }
