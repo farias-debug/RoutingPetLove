@@ -1,6 +1,6 @@
 param(
-    [string]$Owner = "farias-debug",
-    [string]$Title = "RoutingPetLove - Kanban"
+  [string]$Owner = "farias-debug",
+  [string]$Title = "RoutingPetLove - Kanban"
 )
 
 $ErrorActionPreference = "Stop"
