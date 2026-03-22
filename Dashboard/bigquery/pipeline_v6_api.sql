@@ -40,8 +40,7 @@ SELECT
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(
       f.aderencia_volumes, m.meta_ader_vol),
     `data-aileron-482822-d0.monitoramento_carga.capacity_status`(
-      `data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta`(
-        f.ocup_pedidos, f.ocup_volumes, f.ocup_peso))
+      f.ocup_peso_veiculo)
   )), 1)                                      AS score_operacional
 FROM `data-aileron-482822-d0.monitoramento_carga.fct_execucao` f
 CROSS JOIN metas m
@@ -126,7 +125,7 @@ SELECT
          SAFE_DIVIDE(r.`Volumes Real`, NULLIF(r.`Volumes Plan`, 0)), m.meta_ader_vol),
        'Informativo'),
     `data-aileron-482822-d0.monitoramento_carga.capacity_status`(
-      SAFE_DIVIDE(r.`Volumes Real`, NULLIF(r.`Volumes Plan`, 0)))
+      SAFE_DIVIDE(r.`Peso Real kg`, NULLIF(r.`Capacidade Peso Total kg`, 0)))
   ), 1) AS score_operacional
 FROM `data-aileron-482822-d0.monitoramento_carga.Resumo_Filial` r
 CROSS JOIN metas m

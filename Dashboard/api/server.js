@@ -437,7 +437,7 @@ app.get("/api/resumo/cards", async (req, res) => {
           SUM(f.pedidos_plan) AS pedidos_plan,
           SUM(f.volumes_plan) AS volumes_plan,
           SUM(f.peso_kg) AS total_peso_kg,
-          SUM(f.peso_plan_kg) AS peso_plan,
+          SUM(\`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(f.tipo_veiculo)) AS capacidade_peso_total,
           COUNTIF(f.flag_nao_planejada) AS qtd_nao_plan
         FROM \`${projectId}.${dataset}.fct_execucao\` f
         ${where}
@@ -448,9 +448,7 @@ app.get("/api/resumo/cards", async (req, res) => {
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.qtd_pedidos, CAST(d.qtd_rotas AS FLOAT64)) AS spr_pedidos,
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.qtd_entregas, d.qtd_entregas + d.qtd_insucessos) AS entregas_efetivas,
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.tempo_oper_total, CAST(d.qtd_rotas AS FLOAT64)) AS orh,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.qtd_pedidos, NULLIF(d.pedidos_plan, 0)) AS ocup_ped,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.qtd_volumes, NULLIF(d.volumes_plan, 0)) AS ocup_vol,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.total_peso_kg, NULLIF(d.peso_plan, 0)) AS ocup_peso,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.total_peso_kg, NULLIF(d.capacidade_peso_total, 0)) AS ocup_peso_veiculo,
           \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(d.qtd_volumes, d.volumes_plan) AS ader_vol,
           ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.qtd_entregas, NULLIF(d.tempo_oper_total, 0)), 2) AS dpph
         FROM daily d
@@ -460,7 +458,7 @@ app.get("/api/resumo/cards", async (req, res) => {
           CAST(k.qtd_rotas AS FLOAT64) AS rotas_f,
           CAST(k.qtd_pedidos AS FLOAT64) AS pedidos_f,
           CAST(k.qtd_nao_plan AS FLOAT64) AS nao_plan_f,
-          \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(k.ocup_ped, k.ocup_vol, k.ocup_peso) AS ocup_composta
+          k.ocup_peso_veiculo AS ocup_composta
         FROM kpis k
       ),
       ordered AS (
@@ -543,10 +541,9 @@ app.get("/api/resumo/tendencia-semanal", async (req, res) => {
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(
             CAST(COUNTIF(f.flag_rota_concluida) AS FLOAT64),
             CAST(COUNT(DISTINCT f.id_carga) AS FLOAT64)) AS pct_rotas_concl,
-          \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_pedidos), NULLIF(SUM(f.pedidos_plan), 0)),
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_volumes), NULLIF(SUM(f.volumes_plan), 0)),
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.peso_kg), NULLIF(SUM(f.peso_plan_kg), 0))
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(
+            SUM(f.peso_kg),
+            NULLIF(SUM(\`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(f.tipo_veiculo)), 0)
           ) AS ocup_composta
         FROM \`${projectId}.${dataset}.fct_execucao\` f
         ${where}
@@ -590,132 +587,131 @@ app.get("/api/resumo/tendencia-semanal", async (req, res) => {
 
 app.get("/api/filiais/performance", async (req, res) => {
   try {
-    const { periodo, filial } = req.query;
-    if (periodo) {
-      const params = {};
-      let filter = " WHERE base.Tipo = 'Unidade'";
-      filter += buildDateFilter("base.Data", periodo, params);
-      if (filial) {
-        params.filial = String(filial);
-        filter += " AND base.Filial = @filial";
-      }
-      const rows = await runQuery(`
-        WITH filial_dim AS (
-          SELECT
-            Filial,
-            ANY_VALUE(` + "`Nome Filial`" + `) AS nome_filial
-          FROM \`${projectId}.${dataset}.Resumo_Filial\`
-          GROUP BY Filial
-        )
-        SELECT
-          base.Filial AS filial,
-          COALESCE(MAX(filial_dim.nome_filial), base.Filial) AS nomeFilial,
-          base.Tipo AS tipoFilial,
-          base.Regiao AS regiao,
-          ROUND(AVG(base.` + "`Meta SPR Pedidos`" + `), 2) AS metaSpr,
-          COUNT(DISTINCT base.Data) AS diasCobertos,
-          SUM(base.` + "`Qtd Rotas`" + `) AS rotas,
-          SUM(base.` + "`Qtd Veiculos Ativos`" + `) AS placasDistintas,
-          SUM(base.` + "`Qtd Pedidos`" + `) AS pedidosReal,
-          NULL AS pedidosPlan,
-          SUM(base.` + "`Qtd Volumes`" + `) AS volumesReal,
-          NULL AS volumesPlan,
-          SUM(base.` + "`Total Peso kg`" + `) AS pesoReal,
-          NULL AS pesoPlan,
-          SUM(base.` + "`Qtd Entregas`" + `) AS entregues,
-          SUM(base.` + "`Qtd Insucessos`" + `) AS insucessos,
-          ROUND(AVG(base.` + "`Pct Entregas Efetivas`" + `), 4) AS entregasEfetivas,
-          ROUND(AVG(base.` + "`SPR Vol Realizado`" + `), 2) AS sprVolumesReal,
-          ROUND(AVG(base.` + "`SPR Ped Realizado`" + `), 2) AS sprPedidosReal,
-          ROUND(AVG(base.` + "`SPR Pedidos vs Meta`" + `), 2) AS sprVsMeta,
-          ROUND(SUM(base.` + "`Tempo Med Realizado h`" + `), 2) AS tempoReal,
-          NULL AS tempoPlan,
-          NULL AS desvioTempoH,
-          NULL AS desvioTempoPct,
-          SUM(base.` + "`Total KM Realizado`" + `) AS kmReal,
-          NULL AS kmPlan,
-          ROUND(AVG(base.` + "`Pct Rotas Concluidas`" + `), 4) AS progressoPct,
-          ROUND(AVG(base.` + "`Score Operacional`" + `), 1) AS scoreOperacional,
-          ROUND(AVG(base.` + "`Pct Ader Pedidos`" + `), 4) AS aderenciaPedidos,
-          ROUND(AVG(base.` + "`Pct Ader Volumes`" + `), 4) AS aderenciaVolumes,
-          ROUND(AVG(base.` + "`Pct Ader Peso`" + `), 4) AS aderenciaPeso,
-          ROUND(AVG(base.` + "`Pct Ader KM`" + `), 4) AS aderenciaKm,
-          ROUND(AVG(base.` + "`Pct Ader Tempo`" + `), 4) AS aderenciaTempo
-        FROM \`${projectId}.${dataset}.kpi_filial_dia\` base
-        LEFT JOIN filial_dim ON filial_dim.Filial = base.Filial
-        ${filter}
-        GROUP BY base.Filial, base.Tipo, base.Regiao
-        ORDER BY scoreOperacional DESC, filial
-      `, params);
-      res.json(rows.map((row) => ({ ...row, diasCobertos: Number(row.diasCobertos ?? 0) })));
-      return;
-    }
-
     const params = {};
-    let filter = " WHERE `Tipo Filial` = 'Unidade'";
-    if (filial) {
-      params.filial = String(filial);
-      filter += " AND Filial = @filial";
-    }
+    const where = `${buildFctWhere(req.query, params, { alias: "f" })} AND f.tipo_filial = 'Unidade'`;
     const rows = await runQuery(`
-      WITH metas_pivot AS (SELECT * FROM \`${projectId}.${dataset}.metas_pivot\`)
+      WITH metas_pivot AS (
+        SELECT * FROM \`${projectId}.${dataset}.metas_pivot\`
+      ),
+      filial_dim AS (
+        SELECT
+          Filial,
+          ANY_VALUE(` + "`Nome Filial`" + `) AS nome_filial,
+          ANY_VALUE(` + "`Meta SPR`" + `) AS meta_spr
+        FROM \`${projectId}.${dataset}.Resumo_Filial\`
+        GROUP BY Filial
+      ),
+      base AS (
+        SELECT
+          f.filial AS filial,
+          ANY_VALUE(f.tipo_filial) AS tipoFilial,
+          ANY_VALUE(f.regiao) AS regiao,
+          COUNT(DISTINCT f.data_planejada) AS diasCobertos,
+          COUNT(DISTINCT f.id_carga) AS rotas,
+          COUNT(DISTINCT CASE WHEN f.placa IS NOT NULL AND f.placa != '' THEN UPPER(f.placa) END) AS placasDistintas,
+          SUM(f.qtd_pedidos) AS pedidosReal,
+          SUM(f.pedidos_plan) AS pedidosPlan,
+          SUM(f.qtd_volumes) AS volumesReal,
+          SUM(f.volumes_plan) AS volumesPlan,
+          SUM(f.peso_kg) AS pesoReal,
+          SUM(f.peso_plan_kg) AS pesoPlan,
+          SUM(f.entregues) AS entregues,
+          SUM(f.insucessos) AS insucessos,
+          SUM(f.tempo_operacional_h) AS tempoReal,
+          SUM(f.tempo_plan) AS tempoPlan,
+          SUM(f.km_realizado) AS kmReal,
+          SUM(f.km_planejado) AS kmPlan,
+          COUNTIF(f.flag_rota_concluida) AS rotasConcluidas,
+          SUM(\`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(f.tipo_veiculo)) AS capacidadePesoTotal
+        FROM \`${projectId}.${dataset}.fct_execucao\` f
+        ${where}
+        GROUP BY 1
+      )
       SELECT
-        Filial AS filial,
-        ` + "`Nome Filial`" + ` AS nomeFilial,
-        ` + "`Tipo Filial`" + ` AS tipoFilial,
-        NULL AS regiao,
-        ` + "`Meta SPR`" + ` AS metaSpr,
-        ` + "`Dias Cobertos`" + ` AS diasCobertos,
-        ` + "`Total Cargas`" + ` AS rotas,
-        ` + "`Placas Distintas`" + ` AS placasDistintas,
-        ` + "`Pedidos Real`" + ` AS pedidosReal,
-        ` + "`Pedidos Plan`" + ` AS pedidosPlan,
-        ` + "`Volumes Real`" + ` AS volumesReal,
-        ` + "`Volumes Plan`" + ` AS volumesPlan,
-        ` + "`Peso Real kg`" + ` AS pesoReal,
-        ` + "`Peso Plan kg`" + ` AS pesoPlan,
-        Entregues AS entregues,
-        Insucessos AS insucessos,
-        ` + "`Entrega Efetiva`" + ` AS entregasEfetivas,
-        ` + "`SPR Vol Real`" + ` AS sprVolumesReal,
-        ` + "`SPR Ped Real`" + ` AS sprPedidosReal,
-        ` + "`SPR vs Meta`" + ` AS sprVsMeta,
-        ` + "`Tempo Real h`" + ` AS tempoReal,
-        ` + "`Tempo Plan h`" + ` AS tempoPlan,
-        ` + "`Desvio H`" + ` AS desvioTempoH,
-        ` + "`Desvio Pct`" + ` AS desvioTempoPct,
-        ` + "`KM Real`" + ` AS kmReal,
-        ` + "`KM Plan`" + ` AS kmPlan,
-        ` + "`Progresso Pct`" + ` AS progressoPct,
+        b.filial AS filial,
+        COALESCE(fd.nome_filial, b.filial) AS nomeFilial,
+        b.tipoFilial AS tipoFilial,
+        b.regiao AS regiao,
+        COALESCE(fd.meta_spr, mp.meta_spr_ped) AS metaSpr,
+        b.diasCobertos AS diasCobertos,
+        b.rotas AS rotas,
+        b.placasDistintas AS placasDistintas,
+        b.pedidosReal AS pedidosReal,
+        b.pedidosPlan AS pedidosPlan,
+        b.volumesReal AS volumesReal,
+        b.volumesPlan AS volumesPlan,
+        ROUND(b.pesoReal, 2) AS pesoReal,
+        ROUND(b.pesoPlan, 2) AS pesoPlan,
+        b.entregues AS entregues,
+        b.insucessos AS insucessos,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.entregues, b.entregues + b.insucessos), 4) AS entregasEfetivas,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.volumesReal, CAST(b.rotas AS FLOAT64)), 2) AS sprVolumesReal,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.pedidosReal, CAST(b.rotas AS FLOAT64)), 2) AS sprPedidosReal,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.pedidosReal, CAST(b.rotas AS FLOAT64)) - COALESCE(fd.meta_spr, mp.meta_spr_ped), 2) AS sprVsMeta,
+        ROUND(b.tempoReal, 2) AS tempoReal,
+        ROUND(b.tempoPlan, 2) AS tempoPlan,
+        ROUND(b.tempoReal - b.tempoPlan, 2) AS desvioTempoH,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.tempoReal - b.tempoPlan, NULLIF(b.tempoPlan, 0)), 4) AS desvioTempoPct,
+        ROUND(b.kmReal, 2) AS kmReal,
+        ROUND(b.kmPlan, 2) AS kmPlan,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(CAST(b.rotasConcluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), 4) AS progressoPct,
         ROUND(\`data-aileron-482822-d0.monitoramento_carga.fn_score_operacional\`(
-          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(` + "`SPR Vol Real`" + `, mp.meta_spr_vol),
-          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(` + "`Entrega Efetiva`" + `, mp.meta_entregas),
-          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(` + "`Progresso Pct`" + `, mp.meta_rotas),
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.volumesReal, CAST(b.rotas AS FLOAT64)), mp.meta_spr_vol),
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.entregues, b.entregues + b.insucessos), mp.meta_entregas),
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(CAST(b.rotasConcluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), mp.meta_rotas),
           \`data-aileron-482822-d0.monitoramento_carga.status_target_band\`(
-            SAFE_DIVIDE(` + "`Tempo Real h`" + `, NULLIF(` + "`Total Cargas`" + `, 0)), mp.meta_orh, 1.0, 2.1),
-          IF(` + "`Volumes Plan`" + ` > 0,
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.tempoReal, CAST(b.rotas AS FLOAT64)), mp.meta_orh, 1.0, 2.1),
+          IF(b.volumesPlan > 0,
              \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(
-               SAFE_DIVIDE(` + "`Volumes Real`" + `, NULLIF(` + "`Volumes Plan`" + `, 0)), mp.meta_ader_vol),
+               \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(b.volumesReal, b.volumesPlan), mp.meta_ader_vol),
              'Informativo'),
           \`data-aileron-482822-d0.monitoramento_carga.capacity_status\`(
-            \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
-              SAFE_DIVIDE(` + "`Pedidos Real`" + `, NULLIF(` + "`Pedidos Plan`" + `, 0)),
-              SAFE_DIVIDE(` + "`Volumes Real`" + `, NULLIF(` + "`Volumes Plan`" + `, 0)),
-              SAFE_DIVIDE(` + "`Peso Real kg`" + `, NULLIF(` + "`Peso Plan kg`" + `, 0))))
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.pesoReal, NULLIF(b.capacidadePesoTotal, 0)))
         ), 1) AS scoreOperacional,
-        NULL AS aderenciaPedidos,
-        NULL AS aderenciaVolumes,
-        NULL AS aderenciaPeso,
-        NULL AS aderenciaKm,
-        NULL AS aderenciaTempo
-      FROM \`${projectId}.${dataset}.Resumo_Filial\`
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(b.pedidosReal, b.pedidosPlan), 4) AS aderenciaPedidos,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(b.volumesReal, b.volumesPlan), 4) AS aderenciaVolumes,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(b.pesoReal, b.pesoPlan), 4) AS aderenciaPeso,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(b.kmReal, b.kmPlan), 4) AS aderenciaKm,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(b.tempoReal, b.tempoPlan), 4) AS aderenciaTempo
+      FROM base b
       CROSS JOIN metas_pivot mp
-      ${filter}
+      LEFT JOIN filial_dim fd ON fd.Filial = b.filial
       ORDER BY scoreOperacional DESC, filial
     `, params);
     res.json(rows.map((row) => ({
-      ...row,
+      filial: row.filial,
       nomeFilial: normalizeEntityLabel(row.nomeFilial, row.filial),
+      tipoFilial: row.tipoFilial,
+      regiao: row.regiao,
+      metaSpr: Number(row.metaSpr ?? 0),
+      diasCobertos: Number(row.diasCobertos ?? 0),
+      rotas: Number(row.rotas ?? 0),
+      placasDistintas: Number(row.placasDistintas ?? 0),
+      pedidosReal: Number(row.pedidosReal ?? 0),
+      pedidosPlan: row.pedidosPlan == null ? null : Number(row.pedidosPlan),
+      volumesReal: Number(row.volumesReal ?? 0),
+      volumesPlan: row.volumesPlan == null ? null : Number(row.volumesPlan),
+      pesoReal: Number(row.pesoReal ?? 0),
+      pesoPlan: row.pesoPlan == null ? null : Number(row.pesoPlan),
+      entregues: Number(row.entregues ?? 0),
+      insucessos: Number(row.insucessos ?? 0),
+      entregasEfetivas: Number(row.entregasEfetivas ?? 0),
+      sprVolumesReal: Number(row.sprVolumesReal ?? 0),
+      sprPedidosReal: Number(row.sprPedidosReal ?? 0),
+      sprVsMeta: Number(row.sprVsMeta ?? 0),
+      tempoReal: Number(row.tempoReal ?? 0),
+      tempoPlan: row.tempoPlan == null ? null : Number(row.tempoPlan),
+      desvioTempoH: row.desvioTempoH == null ? null : Number(row.desvioTempoH),
+      desvioTempoPct: row.desvioTempoPct == null ? null : Number(row.desvioTempoPct),
+      kmReal: Number(row.kmReal ?? 0),
+      kmPlan: row.kmPlan == null ? null : Number(row.kmPlan),
+      progressoPct: Number(row.progressoPct ?? 0),
+      scoreOperacional: Number(row.scoreOperacional ?? 0),
+      aderenciaPedidos: row.aderenciaPedidos == null ? null : Number(row.aderenciaPedidos),
+      aderenciaVolumes: row.aderenciaVolumes == null ? null : Number(row.aderenciaVolumes),
+      aderenciaPeso: row.aderenciaPeso == null ? null : Number(row.aderenciaPeso),
+      aderenciaKm: row.aderenciaKm == null ? null : Number(row.aderenciaKm),
+      aderenciaTempo: row.aderenciaTempo == null ? null : Number(row.aderenciaTempo),
     })));
   } catch (error) {
     sendError(res, 500, "FILIAL_PERFORMANCE_QUERY_FAILED", "Falha ao consultar performance de filiais", { message: error.message });
@@ -935,84 +931,56 @@ app.get("/api/drill-rotas", async (req, res) => {
 app.get("/api/transportadores", async (req, res) => {
   try {
     const params = {};
-    const dateFilterKpi = buildDateFilter("Data", req.query.periodo, params);
-    const dateFilterOcup = buildDateFilter("Data", req.query.periodo, params);
-    let whereKpi = " WHERE 1 = 1" + dateFilterKpi;
-    let whereOcup = " WHERE 1 = 1" + dateFilterOcup;
-    if (req.query.transportador) {
-      params.transportador = normalizeEntityKey(req.query.transportador);
-      whereKpi += ` AND ${bqNormalizeText}(Transportador) = @transportador`;
-      whereOcup += ` AND ${bqNormalizeText}(Transportador) = @transportador`;
-    }
+    const where = `${buildFctWhere(req.query, params, { alias: "f" })} AND f.tipo_filial = 'Unidade'`;
     const rows = await runQuery(`
-      WITH performance_raw AS (
-        SELECT
-          Transportador AS transportador,
-          SUM(` + "`Qtd Rotas`" + `) AS rotas,
-          SUM(` + "`Qtd Pedidos`" + `) AS pedidos,
-          SUM(` + "`Qtd Volumes`" + `) AS volumes,
-          ROUND(AVG(` + "`Pct Entregas Efetivas`" + `), 4) AS entregas_efetivas,
-          ROUND(AVG(` + "`Score Operacional`" + `), 1) AS score_operacional,
-          ROUND(AVG(` + "`SPR Ped Realizado`" + `), 2) AS spr_pedidos,
-          ROUND(AVG(` + "`SPR Vol Realizado`" + `), 2) AS spr_volumes,
-          ROUND(AVG(` + "`Pct Share Transportador`" + `), 4) AS share
-        FROM \`${projectId}.${dataset}.kpi_transportador_dia\`
-        ${whereKpi}
-        GROUP BY Transportador
+      WITH metas AS (
+        SELECT * FROM \`${projectId}.${dataset}.metas_pivot\`
       ),
-      performance AS (
+      base AS (
         SELECT
-          ${bqNormalizeText}(transportador) AS transportador_key,
-          ARRAY_AGG(transportador ORDER BY LENGTH(TRIM(transportador)) DESC, transportador LIMIT 1)[SAFE_OFFSET(0)] AS transportador_nome,
-          SUM(rotas) AS rotas,
-          SUM(pedidos) AS pedidos,
-          SUM(volumes) AS volumes,
-          ROUND(AVG(entregas_efetivas), 4) AS entregas_efetivas,
-          ROUND(AVG(score_operacional), 1) AS score_operacional,
-          ROUND(AVG(spr_pedidos), 2) AS spr_pedidos,
-          ROUND(AVG(spr_volumes), 2) AS spr_volumes,
-          ROUND(AVG(share), 4) AS share
-        FROM performance_raw
-        GROUP BY 1
-      ),
-      custos_raw AS (
-        SELECT
-          Transportador AS transportador,
-          SUM(` + "`Valor Pagamento Carga Total`" + `) AS valor_total,
-          SUM(Rotas) AS rotas,
-          SUM(Volumes) AS volumes,
-          SUM(Pedidos) AS pedidos
-        FROM \`${projectId}.${dataset}.Resumo_Ocupacao_Veic_Transp\`
-        ${whereOcup}
-        GROUP BY Transportador
-      ),
-      custos AS (
-        SELECT
-          ${bqNormalizeText}(transportador) AS transportador_key,
-          SUM(valor_total) AS valor_total,
-          ROUND(SAFE_DIVIDE(SUM(valor_total), NULLIF(SUM(rotas), 0)), 2) AS custo_medio_carga,
-          ROUND(SAFE_DIVIDE(SUM(valor_total), NULLIF(SUM(volumes), 0)), 2) AS custo_medio_volume,
-          ROUND(SAFE_DIVIDE(SUM(valor_total), NULLIF(SUM(pedidos), 0)), 2) AS custo_medio_pedido
-        FROM custos_raw
+          ${bqNormalizeText}(f.transportador) AS transportador_key,
+          ARRAY_AGG(f.transportador ORDER BY LENGTH(TRIM(f.transportador)) DESC, f.transportador LIMIT 1)[SAFE_OFFSET(0)] AS transportador_nome,
+          COUNT(DISTINCT f.id_carga) AS rotas,
+          SUM(f.qtd_pedidos) AS pedidos,
+          SUM(f.qtd_volumes) AS volumes,
+          SUM(f.entregues) AS entregues,
+          SUM(f.insucessos) AS insucessos,
+          SUM(f.tempo_operacional_h) AS tempo_oper_total,
+          SUM(f.volumes_plan) AS volumes_plan,
+          COUNTIF(f.flag_rota_concluida) AS rotas_concluidas,
+          SUM(f.peso_kg) AS peso_total,
+          SUM(\`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(f.tipo_veiculo)) AS capacidade_peso_total,
+          SUM(f.valor_total) AS valor_total
+        FROM \`${projectId}.${dataset}.fct_execucao\` f
+        ${where}
         GROUP BY 1
       )
       SELECT
-        COALESCE(p.transportador_nome, c.transportador_key) AS transportador,
-        COALESCE(p.rotas, 0) AS rotas,
-        COALESCE(p.share, 0) AS share,
-        COALESCE(c.custo_medio_carga, 0) AS custo_medio_carga,
-        COALESCE(c.custo_medio_volume, 0) AS custo_medio_volume,
-        COALESCE(c.custo_medio_pedido, 0) AS custo_medio_pedido,
-        COALESCE(p.entregas_efetivas, 0) AS entregas_efetivas,
-        COALESCE(p.score_operacional, 0) AS score_operacional,
-        COALESCE(p.spr_pedidos, 0) AS spr_pedidos,
-        COALESCE(p.spr_volumes, 0) AS spr_volumes,
-        COALESCE(p.pedidos, 0) AS pedidos,
-        COALESCE(p.volumes, 0) AS volumes,
-        COALESCE(c.valor_total, 0) AS valor_total
-      FROM performance p
-      LEFT JOIN custos c ON c.transportador_key = p.transportador_key
-      ORDER BY p.rotas DESC, transportador
+        COALESCE(b.transportador_nome, b.transportador_key, 'Transportador não informado') AS transportador,
+        b.rotas AS rotas,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(CAST(b.rotas AS FLOAT64), SUM(b.rotas) OVER ()), 4) AS share,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.valor_total, NULLIF(b.rotas, 0)), 2) AS custo_medio_carga,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.valor_total, NULLIF(b.volumes, 0)), 2) AS custo_medio_volume,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.valor_total, NULLIF(b.pedidos, 0)), 2) AS custo_medio_pedido,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.entregues, b.entregues + b.insucessos), 4) AS entregas_efetivas,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.fn_score_operacional\`(
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.volumes, CAST(b.rotas AS FLOAT64)), m.meta_spr_vol),
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.entregues, b.entregues + b.insucessos), m.meta_entregas),
+          \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(CAST(b.rotas_concluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), m.meta_rotas),
+          \`data-aileron-482822-d0.monitoramento_carga.status_target_band\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.tempo_oper_total, CAST(b.rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
+          IF(b.volumes_plan > 0,
+             \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(b.volumes, b.volumes_plan), m.meta_ader_vol),
+             'Informativo'),
+          \`data-aileron-482822-d0.monitoramento_carga.capacity_status\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.peso_total, NULLIF(b.capacidade_peso_total, 0)))
+        ), 1) AS score_operacional,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.pedidos, CAST(b.rotas AS FLOAT64)), 2) AS spr_pedidos,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.volumes, CAST(b.rotas AS FLOAT64)), 2) AS spr_volumes,
+        b.pedidos AS pedidos,
+        b.volumes AS volumes,
+        ROUND(b.valor_total, 2) AS valor_total
+      FROM base b
+      CROSS JOIN metas m
+      ORDER BY b.rotas DESC, transportador
     `, params);
     res.json(rows.map((row) => ({
       transportador: normalizeEntityLabel(row.transportador, "Transportador não informado"),
@@ -1093,47 +1061,80 @@ app.get("/api/motoristas", async (req, res) => {
     const limit = Math.min(200, Math.max(1, Number(req.query.limit || 20)));
     const offset = (page - 1) * limit;
     const params = { limit, offset };
-    let where = " WHERE 1 = 1";
-    where += buildDateFilter("data", req.query.periodo || req.query.data, params);
+    let where = `${buildFctWhere({ ...req.query, periodo: req.query.periodo || req.query.data }, params, { alias: "f" })} AND f.tipo_filial = 'Unidade' AND f.motorista IS NOT NULL AND f.motorista != ''`;
     if (req.query.filial) {
       params.filial = String(req.query.filial);
-      where += " AND filial = @filial";
+      where += " AND f.filial = @filial";
     }
     if (req.query.transportador) {
       params.transportador = normalizeEntityKey(req.query.transportador);
-      where += ` AND ${bqNormalizeText}(transportador) = @transportador`;
-    }
-    if (String(req.query.overtime || "") === "true") {
-      where += " AND flag_overtime = TRUE";
+      where += ` AND ${bqNormalizeText}(f.transportador) = @transportador`;
     }
     const groupedQuery = `
-      WITH grouped AS (
+      WITH metas AS (
+        SELECT * FROM \`${projectId}.${dataset}.metas_pivot\`
+      ),
+      base AS (
         SELECT
-          data,
-          filial,
-          ${bqNormalizeText}(transportador) AS transportador_key,
-          ARRAY_AGG(transportador ORDER BY LENGTH(TRIM(transportador)) DESC, transportador LIMIT 1)[SAFE_OFFSET(0)] AS transportador_nome,
-          ${bqNormalizeText}(motorista) AS motorista_key,
-          ARRAY_AGG(motorista ORDER BY LENGTH(TRIM(motorista)) DESC, motorista LIMIT 1)[SAFE_OFFSET(0)] AS motorista_nome,
-          ARRAY_AGG(placa ORDER BY placa LIMIT 1)[SAFE_OFFSET(0)] AS placa,
-          SUM(qtd_rotas) AS qtd_rotas,
-          ROUND(AVG(horas_jornada), 2) AS horas_jornada,
-          LOGICAL_OR(flag_overtime) AS flag_overtime,
-          SUM(entregas) AS entregas,
-          SUM(insucessos) AS insucessos,
-          ROUND(AVG(score_operacional), 1) AS score_operacional,
-          SUM(pedidos) AS pedidos,
-          SUM(volumes) AS volumes
-        FROM \`${projectId}.${dataset}.api_motoristas_jornada\`
+          f.data_planejada AS data,
+          f.filial AS filial,
+          ${bqNormalizeText}(f.transportador) AS transportador_key,
+          ARRAY_AGG(f.transportador ORDER BY LENGTH(TRIM(f.transportador)) DESC, f.transportador LIMIT 1)[SAFE_OFFSET(0)] AS transportador_nome,
+          ${bqNormalizeText}(f.motorista) AS motorista_key,
+          ARRAY_AGG(f.motorista ORDER BY LENGTH(TRIM(f.motorista)) DESC, f.motorista LIMIT 1)[SAFE_OFFSET(0)] AS motorista_nome,
+          ARRAY_AGG(f.placa ORDER BY f.placa LIMIT 1)[SAFE_OFFSET(0)] AS placa,
+          COUNT(DISTINCT f.id_carga) AS qtd_rotas,
+          ROUND(SUM(f.tempo_operacional_h), 2) AS horas_jornada,
+          LOGICAL_OR(f.flag_overtime) AS flag_overtime,
+          SUM(f.entregues) AS entregas,
+          SUM(f.insucessos) AS insucessos,
+          SUM(f.qtd_pedidos) AS pedidos,
+          SUM(f.qtd_volumes) AS volumes,
+          COUNTIF(f.flag_rota_concluida) AS rotas_concluidas,
+          SUM(f.volumes_plan) AS volumes_plan,
+          SUM(f.peso_kg) AS peso_total,
+          SUM(\`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(f.tipo_veiculo)) AS capacidade_peso_total
+        FROM \`${projectId}.${dataset}.fct_execucao\` f
         ${where}
         GROUP BY 1, 2, 3, 5
+      ),
+      grouped AS (
+        SELECT
+          b.data,
+          b.filial,
+          b.transportador_key,
+          b.transportador_nome,
+          b.motorista_key,
+          b.motorista_nome,
+          b.placa,
+          b.qtd_rotas,
+          b.horas_jornada,
+          b.flag_overtime,
+          b.entregas,
+          b.insucessos,
+          ROUND(\`data-aileron-482822-d0.monitoramento_carga.fn_score_operacional\`(
+            \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.volumes, CAST(b.qtd_rotas AS FLOAT64)), m.meta_spr_vol),
+            \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.entregas, b.entregas + b.insucessos), m.meta_entregas),
+            \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(CAST(b.rotas_concluidas AS FLOAT64), CAST(b.qtd_rotas AS FLOAT64)), m.meta_rotas),
+            \`data-aileron-482822-d0.monitoramento_carga.status_target_band\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.horas_jornada, CAST(b.qtd_rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
+            IF(b.volumes_plan > 0,
+               \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(\`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(b.volumes, b.volumes_plan), m.meta_ader_vol),
+               'Informativo'),
+            \`data-aileron-482822-d0.monitoramento_carga.capacity_status\`(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(b.peso_total, NULLIF(b.capacidade_peso_total, 0)))
+          ), 1) AS score_operacional,
+          b.pedidos,
+          b.volumes
+        FROM base b
+        CROSS JOIN metas m
       )
     `;
-    const countRows = await runQuery(`${groupedQuery} SELECT COUNT(*) AS total FROM grouped`, params);
+    const overtimeFilter = String(req.query.overtime || "") === "true" ? " WHERE flag_overtime = TRUE" : "";
+    const countRows = await runQuery(`${groupedQuery} SELECT COUNT(*) AS total FROM grouped${overtimeFilter}`, params);
     const total = Number(countRows[0]?.total || 0);
     const rows = await runQuery(`${groupedQuery}
       SELECT *
       FROM grouped
+      ${overtimeFilter}
       ORDER BY data DESC, horas_jornada DESC, motorista_nome ASC
       LIMIT @limit OFFSET @offset
     `, params);
@@ -1166,25 +1167,35 @@ app.get("/api/motoristas", async (req, res) => {
 app.get("/api/motoristas/kpis", async (req, res) => {
   try {
     const params = {};
-    let where = " WHERE 1 = 1";
-    where += buildDateFilter("data", req.query.periodo || req.query.data, params);
+    let where = `${buildFctWhere({ ...req.query, periodo: req.query.periodo || req.query.data }, params, { alias: "f" })} AND f.tipo_filial = 'Unidade' AND f.motorista IS NOT NULL AND f.motorista != ''`;
     if (req.query.filial) {
       params.filial = String(req.query.filial);
-      where += " AND filial = @filial";
+      where += " AND f.filial = @filial";
     }
     if (req.query.transportador) {
       params.transportador = normalizeEntityKey(req.query.transportador);
-      where += ` AND ${bqNormalizeText}(transportador) = @transportador`;
+      where += ` AND ${bqNormalizeText}(f.transportador) = @transportador`;
     }
     const rows = await runQuery(`
+      WITH grouped AS (
+        SELECT
+          f.data_planejada AS data,
+          ${bqNormalizeText}(f.motorista) AS motorista_key,
+          COUNT(DISTINCT f.id_carga) AS qtd_rotas,
+          SUM(f.tempo_operacional_h) AS horas_jornada,
+          LOGICAL_OR(f.flag_overtime) AS flag_overtime,
+          SUM(f.entregues) AS entregas
+        FROM \`${projectId}.${dataset}.fct_execucao\` f
+        ${where}
+        GROUP BY 1, 2
+      )
       SELECT
-        COUNT(DISTINCT motorista) AS motoristasAtivos,
+        COUNT(DISTINCT motorista_key) AS motoristasAtivos,
         ROUND(AVG(qtd_rotas), 2) AS mediaRotasDia,
         ROUND(AVG(horas_jornada), 2) AS jornadaMedia,
-        COUNTIF(flag_overtime) AS qtdOvertime,
-        ROUND(SAFE_DIVIDE(SUM(entregas), NULLIF(SUM(horas_jornada), 0)), 2) AS dpph
-      FROM \`${projectId}.${dataset}.api_motoristas_jornada\`
-      ${where}
+        COUNT(DISTINCT CASE WHEN flag_overtime THEN motorista_key END) AS qtdOvertime,
+        ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(entregas), NULLIF(SUM(horas_jornada), 0)), 2) AS dpph
+      FROM grouped
     `, params);
     res.json(rows[0] || { motoristasAtivos: 0, mediaRotasDia: 0, jornadaMedia: 0, qtdOvertime: 0, dpph: 0 });
   } catch (error) {
@@ -1220,7 +1231,8 @@ app.get("/api/kpi-diario", async (req, res) => {
           COUNTIF(f.flag_nao_planejada) AS qtdNaoPlanejada,
           COUNTIF(f.match_temporal != 'Sem Planejado' AND f.match_temporal IS NOT NULL) AS rotasPlanejadas,
           COUNTIF(f.match_temporal = 'Mesmo Dia') AS matchMesmoDia,
-          ROUND(SUM(f.valor_total), 2) AS valorPagamentoTotal
+          ROUND(SUM(f.valor_total), 2) AS valorPagamentoTotal,
+          SUM(\`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(f.tipo_veiculo)) AS capacidadePesoTotalKg
         FROM \`${projectId}.${dataset}.fct_execucao\` f
         ${where}
       ),
@@ -1246,12 +1258,8 @@ app.get("/api/kpi-diario", async (req, res) => {
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(CAST(o.rotasOvertime AS FLOAT64), CAST(o.rotas AS FLOAT64)) AS pctRotasOvertime,
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.pedidos, NULLIF(o.pedidosPlan, 0)) AS pctOcupacaoPedidos,
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.volumes, NULLIF(o.volumesPlan, 0)) AS pctOcupacaoVolumes,
-          \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.pedidos, NULLIF(o.pedidosPlan, 0)),
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.volumes, NULLIF(o.volumesPlan, 0)),
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.totalPesoKg, NULLIF(o.pesoPlanKg, 0))
-          ) AS pctOcupacaoComposta,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.totalPesoKg, NULLIF(o.pesoPlanKg, 0)) AS pctOcupacaoPeso,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.totalPesoKg, NULLIF(o.capacidadePesoTotalKg, 0)) AS pctOcupacaoComposta,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.totalPesoKg, NULLIF(o.capacidadePesoTotalKg, 0)) AS pctOcupacaoPeso,
           \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(o.pedidos, o.pedidosPlan) AS pctAderPedidos,
           \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(o.volumes, o.volumesPlan) AS pctAderVolumes,
           \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(o.totalPesoKg, o.pesoPlanKg) AS pctAderPeso,
@@ -1333,10 +1341,10 @@ app.get("/api/executivo/serie-diaria", async (req, res) => {
           SUM(f.volumes_plan) AS volumesPlanejados,
           SUM(f.peso_kg) AS pesoRealizado,
           SUM(f.peso_plan_kg) AS pesoPlanejado,
-          \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_pedidos), NULLIF(SUM(f.pedidos_plan), 0)),
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_volumes), NULLIF(SUM(f.volumes_plan), 0)),
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.peso_kg), NULLIF(SUM(f.peso_plan_kg), 0))
+          SUM(\`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(f.tipo_veiculo)) AS capacidadePesoTotalKg,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(
+            SUM(f.peso_kg),
+            NULLIF(SUM(\`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(f.tipo_veiculo)), 0)
           ) AS ocupacaoComposta,
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(
             CAST(COUNTIF(f.flag_rota_concluida) AS FLOAT64), CAST(COUNT(DISTINCT f.id_carga) AS FLOAT64)) AS pctRotasConcl
@@ -1384,12 +1392,7 @@ app.get("/api/executivo/serie-diaria", async (req, res) => {
              \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(
                \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.volumes, NULLIF(d.volumesPlanejados, 0)), m.meta_ader_vol),
              'Informativo'),
-          \`data-aileron-482822-d0.monitoramento_carga.capacity_status\`(
-            \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
-              \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.pedidos, NULLIF(d.pedidosPlanejados, 0)),
-              \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.volumes, NULLIF(d.volumesPlanejados, 0)),
-              \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.pesoRealizado, NULLIF(d.pesoPlanejado, 0))
-            ))
+          \`data-aileron-482822-d0.monitoramento_carga.capacity_status\`(d.ocupacaoComposta)
         ), 1) AS scoreOperacional,
         ROUND(d.ocupacaoComposta, 4) AS ocupacaoComposta,
         ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.volumes, NULLIF(d.volumesPlanejados, 0)), 4) AS aderenciaVolumes,

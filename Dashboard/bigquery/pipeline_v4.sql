@@ -37,7 +37,7 @@
 --   1. Marts filtram tipo_filial = 'Unidade' (obrigatÃ³rio)
 --   2. fct_execucao mantÃ©m TUDO (filtro explÃ­cito na camada de consumo)
 --   3. MÃ©tricas agregadas (SPR, score) NUNCA no fct â€” apenas em marts
---   4. ocup_composta via UDF fn_ocup_composta (fonte Ãºnica)
+--   4. OcupaÃ§Ã£o operacional usa peso real / capacidade do veÃ­culo
 --   5. Valores numÃ©ricos puros nos marts; formato BR nas sem_*
 --   6. Chaves: id_carga (INT64), planning_key (STRING composta)
 -- ============================================================================
@@ -149,19 +149,6 @@ CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.vehicle_f
     WHEN 'Truck' THEN 'Pesado'     WHEN 'Carreta' THEN 'Pesado'
     ELSE 'Outros'
   END
-);
-
--- [NOVO v4] OcupaÃ§Ã£o composta centralizada
-CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta`(
-  ocup_ped FLOAT64, ocup_vol FLOAT64, ocup_peso FLOAT64
-) AS (
-  (IFNULL(ocup_ped, 0) * IF(ocup_ped IS NOT NULL, 1, 0)
-   + IFNULL(ocup_vol, 0) * IF(ocup_vol IS NOT NULL, 1, 0)
-   + IFNULL(ocup_peso, 0) * IF(ocup_peso IS NOT NULL, 1, 0)
-  ) / NULLIF(
-    IF(ocup_ped IS NOT NULL, 1, 0)
-    + IF(ocup_vol IS NOT NULL, 1, 0)
-    + IF(ocup_peso IS NOT NULL, 1, 0), 0)
 );
 
 -- [NOVO v4] Tempo ocioso de jornada (8h padrÃ£o)
@@ -757,6 +744,7 @@ base AS (
     COUNT(DISTINCT CASE WHEN f.motorista IS NOT NULL AND f.motorista != '' THEN UPPER(TRIM(f.motorista)) END) AS qtd_motoristas,
     SUM(f.km_realizado)                 AS total_km,
     SUM(f.peso_kg)                      AS total_peso_kg,
+    SUM(`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity`(f.tipo_veiculo)) AS capacidade_peso_total,
     SUM(f.tempo_operacional_h)          AS tempo_oper_total,
     SUM(f.tempo_ocioso_jornada_h)       AS horas_ociosas_total,
     SUM(f.tempo_plan)                   AS tempo_plan_total,
@@ -787,6 +775,7 @@ kpis AS (
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.qtd_pedidos, NULLIF(b.pedidos_plan, 0)) AS ocup_ped,
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.qtd_volumes, NULLIF(b.volumes_plan, 0)) AS ocup_vol,
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.total_peso_kg, NULLIF(b.peso_plan, 0)) AS ocup_peso,
+    `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.total_peso_kg, NULLIF(b.capacidade_peso_total, 0)) AS ocup_peso_veiculo,
     `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(b.qtd_pedidos, b.pedidos_plan) AS ader_ped,
     `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(b.qtd_volumes, b.volumes_plan) AS ader_vol,
     `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(b.total_peso_kg, b.peso_plan)  AS ader_peso,
@@ -799,15 +788,11 @@ kpis AS (
   FROM base b
   CROSS JOIN metas m
 ),
-com_composta AS (
-  SELECT k.*,
-    `data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta`(k.ocup_ped, k.ocup_vol, k.ocup_peso) AS ocup_composta
-  FROM kpis k
-),
 com_status AS (
   SELECT c.*,
-    `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta) AS status_capacidade,
-    `data-aileron-482822-d0.monitoramento_carga.status_color`(`data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta)) AS cor_capacidade,
+    c.ocup_peso_veiculo AS ocup_composta,
+    `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo) AS status_capacidade,
+    `data-aileron-482822-d0.monitoramento_carga.status_color`(`data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo)) AS cor_capacidade,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.spr_ped, c.meta_spr_ped) AS status_spr_ped,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.spr_vol, c.meta_spr_vol) AS status_spr_vol,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_entregas, c.meta_entregas) AS status_entregas,
@@ -821,17 +806,17 @@ com_status AS (
       `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_rotas_concl, c.meta_rotas),
       `data-aileron-482822-d0.monitoramento_carga.status_target_band`(c.orh, c.meta_orh, 1.0, 2.1),
       `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.ader_vol, c.meta_ader_vol),
-      `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta)
+      `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo)
     ) AS score_operacional,
     CASE
       WHEN `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.spr_vol, c.meta_spr_vol) = 'Critico' THEN 'SPR abaixo da meta'
       WHEN `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_entregas, c.meta_entregas) = 'Critico' THEN 'Entregas em nivel critico'
       WHEN `data-aileron-482822-d0.monitoramento_carga.status_target_band`(c.orh, c.meta_orh, 1.0, 2.1) = 'Critico' THEN 'Jornada fora da meta'
-      WHEN `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta) IN ('Saturado','Critico') THEN 'Ocupacao fora da faixa'
+      WHEN `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo) IN ('Saturado','Critico') THEN 'Ocupacao fora da faixa'
       WHEN c.qtd_nao_plan > 0 THEN 'Rotas sem planejamento'
       ELSE 'OK'
     END AS alerta
-  FROM com_composta c
+  FROM kpis c
 ),
 com_lag AS (
   SELECT cs.*,
@@ -879,6 +864,7 @@ base AS (
     COUNT(DISTINCT CASE WHEN f.motorista IS NOT NULL AND f.motorista != '' THEN UPPER(TRIM(f.motorista)) END) AS qtd_motoristas,
     SUM(f.km_realizado)                 AS total_km,
     SUM(f.peso_kg)                      AS total_peso_kg,
+    SUM(`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity`(f.tipo_veiculo)) AS capacidade_peso_total,
     SUM(f.tempo_operacional_h)          AS tempo_oper_total,
     SUM(f.tempo_ocioso_jornada_h)       AS horas_ociosas_total,
     SUM(f.tempo_plan)                   AS tempo_plan_total,
@@ -909,6 +895,7 @@ kpis AS (
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.qtd_pedidos, NULLIF(b.pedidos_plan, 0)) AS ocup_ped,
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.qtd_volumes, NULLIF(b.volumes_plan, 0)) AS ocup_vol,
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.total_peso_kg, NULLIF(b.peso_plan, 0)) AS ocup_peso,
+    `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.total_peso_kg, NULLIF(b.capacidade_peso_total, 0)) AS ocup_peso_veiculo,
     `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(b.qtd_pedidos, b.pedidos_plan) AS ader_ped,
     `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(b.qtd_volumes, b.volumes_plan) AS ader_vol,
     `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(b.total_peso_kg, b.peso_plan)  AS ader_peso,
@@ -921,15 +908,11 @@ kpis AS (
   FROM base b
   CROSS JOIN metas m
 ),
-com_composta AS (
-  SELECT k.*,
-    `data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta`(k.ocup_ped, k.ocup_vol, k.ocup_peso) AS ocup_composta
-  FROM kpis k
-),
 com_status AS (
   SELECT c.*,
-    `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta) AS status_capacidade,
-    `data-aileron-482822-d0.monitoramento_carga.status_color`(`data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta)) AS cor_capacidade,
+    c.ocup_peso_veiculo AS ocup_composta,
+    `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo) AS status_capacidade,
+    `data-aileron-482822-d0.monitoramento_carga.status_color`(`data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo)) AS cor_capacidade,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.spr_ped, c.meta_spr_ped) AS status_spr_ped,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.spr_vol, c.meta_spr_vol) AS status_spr_vol,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_entregas, c.meta_entregas) AS status_entregas,
@@ -943,17 +926,17 @@ com_status AS (
       `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_rotas_concl, c.meta_rotas),
       `data-aileron-482822-d0.monitoramento_carga.status_target_band`(c.orh, c.meta_orh, 1.0, 2.1),
       `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.ader_vol, c.meta_ader_vol),
-      `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta)
+      `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo)
     ) AS score_operacional,
     CASE
       WHEN `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.spr_vol, c.meta_spr_vol) = 'Critico' THEN 'SPR abaixo da meta'
       WHEN `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_entregas, c.meta_entregas) = 'Critico' THEN 'Entregas em nivel critico'
       WHEN `data-aileron-482822-d0.monitoramento_carga.status_target_band`(c.orh, c.meta_orh, 1.0, 2.1) = 'Critico' THEN 'Jornada fora da meta'
-      WHEN `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta) IN ('Saturado','Critico') THEN 'Ocupacao fora da faixa'
+      WHEN `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo) IN ('Saturado','Critico') THEN 'Ocupacao fora da faixa'
       WHEN c.qtd_nao_plan > 0 THEN 'Rotas sem planejamento'
       ELSE 'OK'
     END AS alerta
-  FROM com_composta c
+  FROM kpis c
 )
 SELECT * FROM com_status
 ORDER BY data DESC, filial;
@@ -979,6 +962,7 @@ base AS (
     COUNT(DISTINCT CASE WHEN f.motorista IS NOT NULL AND f.motorista != '' THEN UPPER(TRIM(f.motorista)) END) AS qtd_motoristas,
     SUM(f.km_realizado)                 AS total_km,
     SUM(f.peso_kg)                      AS total_peso_kg,
+    SUM(`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity`(f.tipo_veiculo)) AS capacidade_peso_total,
     SUM(f.tempo_operacional_h)          AS tempo_oper_total,
     SUM(f.tempo_ocioso_jornada_h)       AS horas_ociosas_total,
     SUM(f.tempo_plan)                   AS tempo_plan_total,
@@ -1009,6 +993,7 @@ kpis AS (
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.qtd_pedidos, NULLIF(b.pedidos_plan, 0)) AS ocup_ped,
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.qtd_volumes, NULLIF(b.volumes_plan, 0)) AS ocup_vol,
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.total_peso_kg, NULLIF(b.peso_plan, 0)) AS ocup_peso,
+    `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.total_peso_kg, NULLIF(b.capacidade_peso_total, 0)) AS ocup_peso_veiculo,
     `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(b.qtd_pedidos, b.pedidos_plan) AS ader_ped,
     `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(b.qtd_volumes, b.volumes_plan) AS ader_vol,
     `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(b.total_peso_kg, b.peso_plan)  AS ader_peso,
@@ -1021,15 +1006,11 @@ kpis AS (
   FROM base b
   CROSS JOIN metas m
 ),
-com_composta AS (
-  SELECT k.*,
-    `data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta`(k.ocup_ped, k.ocup_vol, k.ocup_peso) AS ocup_composta
-  FROM kpis k
-),
 com_status AS (
   SELECT c.*,
-    `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta) AS status_capacidade,
-    `data-aileron-482822-d0.monitoramento_carga.status_color`(`data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta)) AS cor_capacidade,
+    c.ocup_peso_veiculo AS ocup_composta,
+    `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo) AS status_capacidade,
+    `data-aileron-482822-d0.monitoramento_carga.status_color`(`data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo)) AS cor_capacidade,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.spr_ped, c.meta_spr_ped) AS status_spr_ped,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.spr_vol, c.meta_spr_vol) AS status_spr_vol,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_entregas, c.meta_entregas) AS status_entregas,
@@ -1043,19 +1024,19 @@ com_status AS (
       `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_rotas_concl, c.meta_rotas),
       `data-aileron-482822-d0.monitoramento_carga.status_target_band`(c.orh, c.meta_orh, 1.0, 2.1),
       `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.ader_vol, c.meta_ader_vol),
-      `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta)
+      `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo)
     ) AS score_operacional,
     CASE
       WHEN `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.spr_vol, c.meta_spr_vol) = 'Critico' THEN 'SPR abaixo da meta'
       WHEN `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_entregas, c.meta_entregas) = 'Critico' THEN 'Entregas em nivel critico'
       WHEN `data-aileron-482822-d0.monitoramento_carga.status_target_band`(c.orh, c.meta_orh, 1.0, 2.1) = 'Critico' THEN 'Jornada fora da meta'
-      WHEN `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta) IN ('Saturado','Critico') THEN 'Ocupacao fora da faixa'
+      WHEN `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo) IN ('Saturado','Critico') THEN 'Ocupacao fora da faixa'
       WHEN c.qtd_nao_plan > 0 THEN 'Rotas sem planejamento'
       ELSE 'OK'
     END AS alerta,
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(CAST(c.qtd_rotas AS FLOAT64),
       SUM(c.qtd_rotas) OVER (PARTITION BY c.data)) AS pct_share
-  FROM com_composta c
+  FROM kpis c
 )
 SELECT * FROM com_status
 ORDER BY data DESC, transportador;
@@ -1079,6 +1060,7 @@ base AS (
     SUM(f.insucessos)                   AS qtd_insucessos,
     SUM(f.km_realizado)                 AS total_km,
     SUM(f.peso_kg)                      AS total_peso_kg,
+    SUM(`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity`(f.tipo_veiculo)) AS capacidade_peso_total,
     SUM(f.tempo_operacional_h)          AS tempo_oper_total,
     SUM(f.tempo_ocioso_jornada_h)       AS horas_ociosas_total,
     SUM(f.tempo_plan)                   AS tempo_plan_total,
@@ -1103,19 +1085,16 @@ kpis AS (
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.qtd_pedidos, NULLIF(b.pedidos_plan, 0)) AS ocup_ped,
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.qtd_volumes, NULLIF(b.volumes_plan, 0)) AS ocup_vol,
     `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.total_peso_kg, NULLIF(b.peso_plan, 0)) AS ocup_peso,
+    `data-aileron-482822-d0.monitoramento_carga.safe_div`(b.total_peso_kg, NULLIF(b.capacidade_peso_total, 0)) AS ocup_peso_veiculo,
     `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(b.qtd_volumes, b.volumes_plan) AS ader_vol,
     b.tempo_oper_total AS horas_jornada,
     (b.rotas_overtime > 0) AS flag_overtime
   FROM base b
   CROSS JOIN metas m
 ),
-com_composta AS (
-  SELECT k.*,
-    `data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta`(k.ocup_ped, k.ocup_vol, k.ocup_peso) AS ocup_composta
-  FROM kpis k
-),
 com_status AS (
   SELECT c.*,
+    c.ocup_peso_veiculo AS ocup_composta,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.spr_vol, c.meta_spr_vol) AS status_spr_vol,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_entregas, c.meta_entregas) AS status_entregas,
     `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_rotas_concl, c.meta_rotas) AS status_rotas,
@@ -1128,9 +1107,9 @@ com_status AS (
       `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.pct_rotas_concl, c.meta_rotas),
       `data-aileron-482822-d0.monitoramento_carga.status_target_band`(c.orh, c.meta_orh, 1.0, 2.1),
       `data-aileron-482822-d0.monitoramento_carga.status_higher`(c.ader_vol, c.meta_ader_vol),
-      `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_composta)
+      `data-aileron-482822-d0.monitoramento_carga.capacity_status`(c.ocup_peso_veiculo)
     ) AS score_operacional
-  FROM com_composta c
+  FROM kpis c
 )
 SELECT * FROM com_status
 ORDER BY data DESC, filial, motorista;

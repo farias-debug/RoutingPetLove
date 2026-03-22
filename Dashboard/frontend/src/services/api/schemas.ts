@@ -82,7 +82,7 @@ export const cockpitSerieDiariaSchema = z.object({
   sprVolumes: z.number(),
   scoreOperacional: z.number(),
   ocupacaoComposta: z.number(),
-  aderenciaVolumes: z.number(),
+  aderenciaVolumes: z.number().nullable(),
   tempoMedRealizado: z.number(),
   qtdRotasNaoPlanejadas: z.number(),
   qtdRotasSemTempo: z.number(),
