@@ -61,12 +61,12 @@ async function request<T>(path: string, params?: Record<string, string | number 
 
 async function requestValidated<T>(
   path: string,
-  schema: { parse: (value: unknown) => T },
+  schema: { parse: (value: unknown) => unknown },
   params?: Record<string, string | number | boolean | undefined>,
 ): Promise<T> {
   const payload = await request<unknown>(path, params);
   try {
-    return schema.parse(payload);
+    return schema.parse(payload) as T;
   } catch (error) {
     console.error("Schema drift detected", { path, error, payload });
     throw new SchemaError(`Resposta inválida para ${path}`, error);

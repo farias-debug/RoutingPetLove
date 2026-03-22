@@ -66,13 +66,13 @@ export function getMockFilialPerformance(): FilialPerformance[] {
 // ─── Transportadores ──────────────────────────────────────────────
 export function getMockTransportadores(): TransportadorResumo[] {
   return [
-    { transportador: "Rapido Translog", rotas: 287, share: 0.23, custoMedioCarga: 2150, custoMedioVolume: 66.4, custoMedioPedido: 154.5, entregasEfetivas: 0.961, scoreOperacional: 91.2, sprPedidos: 15.2, sprVolumes: 35.1, pedidos: 4364, volumes: 10076, valorTotal: 617050 },
-    { transportador: "Expresso Sul", rotas: 214, share: 0.172, custoMedioCarga: 2340, custoMedioVolume: 72.1, custoMedioPedido: 168.2, entregasEfetivas: 0.943, scoreOperacional: 87.8, sprPedidos: 14.8, sprVolumes: 34.2, pedidos: 3167, volumes: 7319, valorTotal: 500760 },
-    { transportador: "Carga Segura", rotas: 198, share: 0.159, custoMedioCarga: 2180, custoMedioVolume: 67.2, custoMedioPedido: 156.8, entregasEfetivas: 0.957, scoreOperacional: 90.1, sprPedidos: 15.0, sprVolumes: 34.7, pedidos: 2970, volumes: 6871, valorTotal: 431640 },
-    { transportador: "Norte Log", rotas: 167, share: 0.134, custoMedioCarga: 2520, custoMedioVolume: 77.7, custoMedioPedido: 181.3, entregasEfetivas: 0.924, scoreOperacional: 84.6, sprPedidos: 14.2, sprVolumes: 32.8, pedidos: 2371, volumes: 5478, valorTotal: 420840 },
-    { transportador: "TransBrasil", rotas: 145, share: 0.116, custoMedioCarga: 2410, custoMedioVolume: 74.3, custoMedioPedido: 173.4, entregasEfetivas: 0.938, scoreOperacional: 86.3, sprPedidos: 14.5, sprVolumes: 33.5, pedidos: 2103, volumes: 4858, valorTotal: 349450 },
-    { transportador: "Via Rápida", rotas: 126, share: 0.101, custoMedioCarga: 2290, custoMedioVolume: 70.6, custoMedioPedido: 164.8, entregasEfetivas: 0.949, scoreOperacional: 88.5, sprPedidos: 14.9, sprVolumes: 34.4, pedidos: 1877, volumes: 4334, valorTotal: 288540 },
-    { transportador: "Outros", rotas: 110, share: 0.088, custoMedioCarga: 2680, custoMedioVolume: 82.6, custoMedioPedido: 192.8, entregasEfetivas: 0.912, scoreOperacional: 82.1, sprPedidos: 13.8, sprVolumes: 31.9, pedidos: 1518, volumes: 3509, valorTotal: 294800 },
+    { transportador: "Rapido Translog", rotas: 287, share: 0.23, custoMedioCarga: 2150, custoMedioVolume: 66.4, custoMedioPedido: 154.5, entregasEfetivas: 0.961, scoreOperacional: 91.2, sprPedidos: 15.2, sprVolumes: 35.1, pedidos: 4364, volumes: 10076, valorTotal: 617050, status: "OK", statusCor: "green" },
+    { transportador: "Expresso Sul", rotas: 214, share: 0.172, custoMedioCarga: 2340, custoMedioVolume: 72.1, custoMedioPedido: 168.2, entregasEfetivas: 0.943, scoreOperacional: 87.8, sprPedidos: 14.8, sprVolumes: 34.2, pedidos: 3167, volumes: 7319, valorTotal: 500760, status: "Atenção", statusCor: "yellow" },
+    { transportador: "Carga Segura", rotas: 198, share: 0.159, custoMedioCarga: 2180, custoMedioVolume: 67.2, custoMedioPedido: 156.8, entregasEfetivas: 0.957, scoreOperacional: 90.1, sprPedidos: 15.0, sprVolumes: 34.7, pedidos: 2970, volumes: 6871, valorTotal: 431640, status: "OK", statusCor: "green" },
+    { transportador: "Norte Log", rotas: 167, share: 0.134, custoMedioCarga: 2520, custoMedioVolume: 77.7, custoMedioPedido: 181.3, entregasEfetivas: 0.924, scoreOperacional: 84.6, sprPedidos: 14.2, sprVolumes: 32.8, pedidos: 2371, volumes: 5478, valorTotal: 420840, status: "Crítico", statusCor: "red" },
+    { transportador: "TransBrasil", rotas: 145, share: 0.116, custoMedioCarga: 2410, custoMedioVolume: 74.3, custoMedioPedido: 173.4, entregasEfetivas: 0.938, scoreOperacional: 86.3, sprPedidos: 14.5, sprVolumes: 33.5, pedidos: 2103, volumes: 4858, valorTotal: 349450, status: "Atenção", statusCor: "yellow" },
+    { transportador: "Via Rápida", rotas: 126, share: 0.101, custoMedioCarga: 2290, custoMedioVolume: 70.6, custoMedioPedido: 164.8, entregasEfetivas: 0.949, scoreOperacional: 88.5, sprPedidos: 14.9, sprVolumes: 34.4, pedidos: 1877, volumes: 4334, valorTotal: 288540, status: "OK", statusCor: "green" },
+    { transportador: "Outros", rotas: 110, share: 0.088, custoMedioCarga: 2680, custoMedioVolume: 82.6, custoMedioPedido: 192.8, entregasEfetivas: 0.912, scoreOperacional: 82.1, sprPedidos: 13.8, sprVolumes: 31.9, pedidos: 1518, volumes: 3509, valorTotal: 294800, status: "Crítico", statusCor: "red" },
   ];
 }
 
@@ -137,7 +137,7 @@ export function getMockMotoristas(page = 1, limit = 50): PaginatedResponse<Motor
 }
 
 export function getMockMotoristasKpis(): MotoristaKpis {
-  return { motoristasAtivos: 298, mediaRotasDia: 2.1, jornadaMedia: 7.7, qtdOvertime: 47 };
+  return { motoristasAtivos: 298, mediaRotasDia: 2.1, jornadaMedia: 7.7, qtdOvertime: 47, dpph: 4.3 };
 }
 
 // ─── KPI Diário ───────────────────────────────────────────────────
