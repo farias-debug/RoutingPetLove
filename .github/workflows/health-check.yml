@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Verificar estrutura do projeto
+        id: check_dirs
         run: |
           echo "=== Verificando estrutura canônica ==="
           MISSING=()
@@ -27,13 +28,14 @@ jobs:
 
           if [ ${#MISSING[@]} -gt 0 ]; then
             echo "❌ Diretórios ausentes: ${MISSING[*]}"
-            echo "HEALTH_DIRS=FAIL" >> $GITHUB_ENV
+            echo "status=FAIL" >> $GITHUB_OUTPUT
           else
             echo "✅ Estrutura de diretórios OK"
-            echo "HEALTH_DIRS=OK" >> $GITHUB_ENV
+            echo "status=OK" >> $GITHUB_OUTPUT
           fi
 
       - name: Verificar arquivos críticos
+        id: check_files
         run: |
           echo "=== Verificando arquivos críticos ==="
           MISSING=()
@@ -45,25 +47,32 @@ jobs:
 
           if [ ${#MISSING[@]} -gt 0 ]; then
             echo "⚠️ Arquivos ausentes: ${MISSING[*]}"
-            echo "HEALTH_FILES=WARN" >> $GITHUB_ENV
-            echo "MISSING_FILES=${MISSING[*]}" >> $GITHUB_ENV
+            echo "status=WARN" >> $GITHUB_OUTPUT
+            echo "missing_files=${MISSING[*]}" >> $GITHUB_OUTPUT
           else
             echo "✅ Arquivos críticos OK"
-            echo "HEALTH_FILES=OK" >> $GITHUB_ENV
+            echo "status=OK" >> $GITHUB_OUTPUT
           fi
 
       - name: Contar objetos SQL
+        id: count_sql
         run: |
           echo "=== Contagem de objetos SQL ==="
           V4_COUNT=$(grep -c "^CREATE OR REPLACE" Dashboard/bigquery/pipeline_v4.sql 2>/dev/null || echo 0)
           V5_COUNT=$(grep -c "^CREATE OR REPLACE" Dashboard/bigquery/pipeline_v5_publicacao.sql 2>/dev/null || echo 0)
           echo "Pipeline v4: $V4_COUNT statements"
           echo "Pipeline v5: $V5_COUNT statements"
-          echo "SQL_V4=$V4_COUNT" >> $GITHUB_ENV
-          echo "SQL_V5=$V5_COUNT" >> $GITHUB_ENV
+          echo "sql_v4=$V4_COUNT" >> $GITHUB_OUTPUT
+          echo "sql_v5=$V5_COUNT" >> $GITHUB_OUTPUT
 
       - name: Criar issue se houver problemas
-        if: env.HEALTH_DIRS == 'FAIL' || env.HEALTH_FILES == 'WARN'
+        if: ${{ steps.check_dirs.outputs.status == 'FAIL' || steps.check_files.outputs.status == 'WARN' }}
+        env:
+          HEALTH_DIRS: ${{ steps.check_dirs.outputs.status }}
+          HEALTH_FILES: ${{ steps.check_files.outputs.status }}
+          MISSING_FILES: ${{ steps.check_files.outputs.missing_files }}
+          SQL_V4: ${{ steps.count_sql.outputs.sql_v4 }}
+          SQL_V5: ${{ steps.count_sql.outputs.sql_v5 }}
         uses: actions/github-script@v7
         with:
           script: |
