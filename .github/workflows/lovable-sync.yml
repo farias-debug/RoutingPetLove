@@ -1,0 +1,234 @@
+name: Lovable Sync Check
+
+on:
+  # Verifica a cada 30 min se houve mudanças no Lovable
+  schedule:
+    - cron: "*/30 8-20 * * 1-5" # A cada 30min, horário comercial (8h-20h, seg-sex)
+
+  # Trigger manual
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Ação de sincronização"
+        required: true
+        default: "status"
+        type: choice
+        options:
+          - status
+          - pull
+          - push
+
+  # Quando houver push no repo principal (para notificar o Lovable)
+  push:
+    branches: [main]
+    paths:
+      - "Dashboard/frontend/**"
+
+permissions:
+  contents: write
+  issues: write
+
+env:
+  LOVABLE_REPO: farias-debug/git-connect
+  MAIN_BRANCH: main
+
+jobs:
+  check-sync:
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.compare.outputs.has_changes }}
+      change_count: ${{ steps.compare.outputs.change_count }}
+      change_summary: ${{ steps.compare.outputs.change_summary }}
+    steps:
+      - name: Checkout RoutingPetLove
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add Lovable remote
+        run: |
+          git remote add lovable https://github.com/${{ env.LOVABLE_REPO }}.git
+          git fetch lovable main
+
+      - name: Compare repositories
+        id: compare
+        run: |
+          # Exportar Lovable para temp
+          mkdir -p /tmp/lovable-export
+          git archive lovable/main | tar -x -C /tmp/lovable-export
+
+          # Comparar arquivos (excluindo lovable-only e local-only)
+          CHANGES=0
+          SUMMARY=""
+
+          # Verificar arquivos modificados no Lovable
+          cd /tmp/lovable-export
+          for file in $(find . -type f -not -path './.git/*' -not -name 'lovable-context.md' -not -name 'README.md' -not -path './node_modules/*'); do
+            rel_path="${file#./}"
+            local_path="${GITHUB_WORKSPACE}/Dashboard/frontend/${rel_path}"
+
+            if [ -f "$local_path" ]; then
+              if ! diff -q "$file" "$local_path" > /dev/null 2>&1; then
+                CHANGES=$((CHANGES + 1))
+                SUMMARY="${SUMMARY}M ${rel_path}\n"
+              fi
+            else
+              CHANGES=$((CHANGES + 1))
+              SUMMARY="${SUMMARY}+ ${rel_path}\n"
+            fi
+          done
+
+          echo "has_changes=$([ $CHANGES -gt 0 ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "change_count=$CHANGES" >> $GITHUB_OUTPUT
+
+          # Escapar summary para multiline output
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "change_summary<<$EOF" >> $GITHUB_OUTPUT
+          echo -e "$SUMMARY" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+      - name: Log sync status
+        run: |
+          echo "═══ Lovable Sync Status ═══"
+          echo "Mudanças detectadas: ${{ steps.compare.outputs.has_changes }}"
+          echo "Total de arquivos: ${{ steps.compare.outputs.change_count }}"
+          if [ "${{ steps.compare.outputs.has_changes }}" = "true" ]; then
+            echo ""
+            echo "Arquivos alterados:"
+            echo -e "${{ steps.compare.outputs.change_summary }}"
+          fi
+
+  # Se houver mudanças e o trigger for schedule/manual, criar issue de notificação
+  notify-changes:
+    needs: check-sync
+    if: needs.check-sync.outputs.has_changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for existing sync issue
+        id: existing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'lovable-sync',
+              state: 'open'
+            });
+            return issues.data.length > 0 ? issues.data[0].number : 0;
+
+      - name: Create or update sync issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changeCount = '${{ needs.check-sync.outputs.change_count }}';
+            const changeSummary = `${{ needs.check-sync.outputs.change_summary }}`;
+            const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+
+            const body = `## 🔄 Lovable Sync — Mudanças Detectadas
+
+            **Detectado em**: ${now}
+            **Arquivos alterados**: ${changeCount}
+
+            ### Alterações
+            \`\`\`
+            ${changeSummary}
+            \`\`\`
+
+            ### Como sincronizar
+            Execute localmente:
+            \`\`\`powershell
+            .\\scripts\\sync_lovable.ps1 -Mode pull -Force
+            \`\`\`
+
+            Ou use o workflow manual com ação \`pull\`.
+
+            ---
+            _Issue gerenciada automaticamente pelo workflow lovable-sync_`;
+
+            const existingNumber = ${{ steps.existing.outputs.result }};
+
+            if (existingNumber > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingNumber,
+                body: `**Atualização ${now}**: ${changeCount} arquivo(s) ainda pendentes de sincronização.\n\n\`\`\`\n${changeSummary}\n\`\`\``
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🔄 Lovable Sync: ${changeCount} mudança(s) pendente(s)`,
+                body: body,
+                labels: ['lovable-sync', 'automated']
+              });
+            }
+
+  # Quando push no frontend local, atualizar o Lovable automaticamente
+  auto-push-to-lovable:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout RoutingPetLove
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clone git-connect
+        run: |
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ env.LOVABLE_REPO }}.git /tmp/lovable-repo
+
+      - name: Sync frontend to Lovable
+        run: |
+          # Limpar tudo exceto .git, lovable-context.md e README.md
+          cd /tmp/lovable-repo
+          find . -maxdepth 1 -not -name '.git' -not -name 'lovable-context.md' -not -name 'README.md' -not -name '.' | xargs rm -rf
+
+          # Copiar frontend (excluindo env e dist)
+          cd $GITHUB_WORKSPACE/Dashboard/frontend
+          for item in $(ls -A | grep -v -E '^(\.env|\.env\.|dist|node_modules)'); do
+            cp -r "$item" /tmp/lovable-repo/
+          done
+
+          # Commit e push
+          cd /tmp/lovable-repo
+          git config user.name "RoutingPetLove Bot"
+          git config user.email "actions@github.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração para sincronizar."
+          else
+            COMMIT_MSG="sync: RoutingPetLove → Lovable ($(date '+%Y-%m-%d %H:%M'))"
+            git commit -m "$COMMIT_MSG"
+            git push origin main
+            echo "✓ Sincronizado com sucesso!"
+          fi
+
+      - name: Close sync issues if any
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'lovable-sync',
+              state: 'open'
+            });
+            for (const issue of issues.data) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'completed'
+              });
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: '✅ Sincronização completa via push automático.'
+              });
+            }
