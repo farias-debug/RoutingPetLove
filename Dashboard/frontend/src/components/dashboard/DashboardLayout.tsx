@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import petloveLogo from "@/assets/petlove-logo.png";
 import GlobalFiltersBar from "@/components/dashboard/GlobalFiltersBar";
+import { API_ENABLED, MOCKS_ENABLED } from "@/config/env";
 
 const navItems = [
   { path: "/", label: "Cockpit Executivo", icon: LayoutDashboard },
@@ -100,6 +101,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Content */}
+        {!API_ENABLED && (
+          <div className="bg-amber-500/90 text-white text-center text-xs font-semibold py-1.5 px-4 shrink-0">
+            {MOCKS_ENABLED
+              ? "⚠ Modo demonstração — dados fictícios (mocks). Configure VITE_API_BASE_URL para dados reais."
+              : "⚠ API não configurada e mocks desativados. Nenhum dado disponível."}
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto p-6 glow-soft">
           {children}
         </div>

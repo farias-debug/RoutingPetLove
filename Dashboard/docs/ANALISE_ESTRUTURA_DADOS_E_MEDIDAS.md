@@ -623,8 +623,8 @@ Para eliminar ambiguidade:
 
 | # | Tarefa | Arquivo | Prioridade |
 |---|--------|---------|-----------|
-| 1.1 | Corrigir fórmula DPPH: trocar `qtd_pedidos` por `entregues` em todos os lugares | v4, v5, v6, API | **P0** |
-| 1.2 | Corrigir fn_score_operacional em api_motoristas_jornada (v6) para usar mesma ordem de argumentos que v5 | pipeline_v6_api.sql | **P0** |
+| 1.1 | ~~Corrigir fórmula DPPH~~ ✅ DPPH já usa `entregues` em mart_kpi_diario e server.js | v4, v5, v6, API | **P0** |
+| 1.2 | ~~Corrigir fn_score_operacional~~ ✅ Corrigido em server.js (Resumo_Filial arg6, drill-rotas arg3) | pipeline_v6_api.sql | **P0** |
 | 1.3 | Validar meta custo_por_carga (R$500) com operação | negócio | **P0** |
 | 1.4 | Confirmar com negócio: metas globais vs metas por filial | negócio | **P1** |
 | 1.5 | Documentar oficialmente a definição de cada KPI (nome, fórmula, fonte, meta) | docs/ | **P1** |
@@ -634,13 +634,13 @@ Para eliminar ambiguidade:
 
 | # | Tarefa | Arquivo | Prioridade |
 |---|--------|---------|-----------|
-| 2.1 | Criar mart_kpi_diario que agregue fct_execucao em nível data (global) com TODOS os KPIs calculados uma vez | pipeline_v4.sql | **P1** |
-| 2.2 | Criar mart_kpi_filial_dia (data × filial) | pipeline_v4.sql | **P1** |
-| 2.3 | Criar mart_kpi_transportador_dia (data × transportador) | pipeline_v4.sql | **P1** |
-| 2.4 | Criar mart_kpi_motorista_dia (data × filial × motorista) | pipeline_v4.sql | **P2** |
+| 2.1 | ~~Criar mart_kpi_diario~~ ✅ Existe com 82 colunas, LAG D-1/D-7, score, status | pipeline_v4.sql | **P1** |
+| 2.2 | ~~Criar mart_kpi_filial_dia~~ ✅ Existe em pipeline_v4.sql | pipeline_v4.sql | **P1** |
+| 2.3 | ~~Criar mart_kpi_transportador_dia~~ ✅ Existe em pipeline_v4.sql | pipeline_v4.sql | **P1** |
+| 2.4 | ~~Criar mart_kpi_motorista_dia~~ ✅ Existe em pipeline_v4.sql | pipeline_v4.sql | **P2** |
 | 2.5 | Remover ocup_pedidos, ocup_volumes, ocup_peso da fct_execucao. Manter apenas aderência. Criar ocup_peso_veiculo = peso_kg / vehicle_weight_capacity(tipo_veiculo) | pipeline_v4.sql | **P2** |
 | 2.6 | Mover colunas de status/cor/score para fora da fct_execucao (se existirem) — calcular apenas nos marts | pipeline_v4.sql | **P2** |
-| 2.7 | Adicionar LAG D-1 no mart_kpi_diario | pipeline_v4.sql | **P2** |
+| 2.7 | ~~Adicionar LAG D-1 no mart_kpi_diario~~ ✅ LAG D-1 e D-7 já presentes (16 campos) | pipeline_v4.sql | **P2** |
 | 2.8 | Decidir uso de flag_elegivel_kpi: se rotas não finalizadas devem ou não entrar nos KPIs | negócio | **P1** |
 
 ### FASE 3 — Simplificar Publicação (Semana 3-4)
@@ -661,9 +661,9 @@ Para eliminar ambiguidade:
 
 | # | Tarefa | Arquivo | Prioridade |
 |---|--------|---------|-----------|
-| 4.1 | Criar script de validação pós-carga: checar contagens raw→stg→fct | bigquery/validate_pipeline.py | **P1** |
-| 4.2 | Automatizar recarga de raw_planejamento e raw_dim_filial no daily_pipeline | scripts/daily_pipeline.ps1 | **P1** |
-| 4.3 | Criar teste de regressão: comparar KPIs antes/depois de deploy | bigquery/ | **P2** |
+| 4.1 | ~~Criar script de validação pós-carga~~ ✅ validate_pipeline.py (16 checks) criado | bigquery/validate_pipeline.py | **P1** |
+| 4.2 | ~~Automatizar recarga raw_planejamento e raw_dim_filial~~ ✅ daily_pipeline.ps1 agora usa `--table all` | scripts/daily_pipeline.ps1 | **P1** |
+| 4.3 | ~~Criar teste de regressão~~ ✅ regression_test.py criado | bigquery/ | **P2** |
 | 4.4 | health_check.ps1 deve verificar data mais recente em BQ | scripts/health_check.ps1 | **P2** |
 | 4.5 | Documentar dicionário de dados oficial | docs/DICIONARIO_DADOS.md | **P2** |
 
@@ -673,9 +673,9 @@ Para eliminar ambiguidade:
 | # | Tarefa | Arquivo | Prioridade |
 |---|--------|---------|-----------|
 | 5.1 | Fundir Cockpit + Resumo Executivo em uma única página de entrada | frontend/src/pages/ | **P2** |
-| 5.2 | Remover mock fallback dos hooks (ou tornar explícito com banner de alerta) | frontend/src/hooks/ | **P2** |
+| 5.2 | ~~Tornar mock explícito com banner de alerta~~ ✅ Banner amber adicionado em DashboardLayout quando API não configurada | frontend/src/hooks/ | **P2** |
 | 5.3 | Remover cálculos duplicados do server.js (tendências, formatação) | api/server.js | **P2** |
-| 5.4 | Atualizar types TypeScript para refletir campos corrigidos (aderência vs ocupação) | frontend/src/types/ | **P2** |
+| 5.4 | ~~Atualizar types TypeScript~~ ✅ Types já alinhados com API (aderência, ocupação, LAG D-1/WoW, score) | frontend/src/types/ | **P2** |
 
 ---
 

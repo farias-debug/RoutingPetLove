@@ -84,16 +84,16 @@ else {
 Write-Host ""
 
 # ── 2) Carregar dados no BigQuery ───────────────────────────
-Write-Host "[2/4] Carregando dados no BigQuery..." -ForegroundColor Yellow
+Write-Host "[2/4] Carregando dados no BigQuery (all tables)..." -ForegroundColor Yellow
 
 Push-Location $dashboardDir
 try {
-    & $pythonExe $loadScript
+    & $pythonExe $loadScript --table all
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[ERRO] Carga BQ falhou com codigo $LASTEXITCODE" -ForegroundColor Red
         exit $LASTEXITCODE
     }
-    Write-Host "[2/4] Carga BQ concluida." -ForegroundColor Green
+    Write-Host "[2/4] Carga BQ concluida (raw_monitoramento + raw_planejamento + raw_dim_filial)." -ForegroundColor Green
 }
 finally {
     Pop-Location
