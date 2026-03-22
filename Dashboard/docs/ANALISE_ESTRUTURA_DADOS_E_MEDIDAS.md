@@ -654,7 +654,7 @@ Para eliminar ambiguidade:
 | 3.4 | Reescrever kpi_card_latest como SELECT do mart_kpi_diario (latest) + formatação | pipeline_v5_publicacao.sql | **P2** |
 | 3.5 | Avaliar remoção de VW_Base_Execucao (redundante com fct/drill) ou simplificar | pipeline_v5_publicacao.sql | **P2** |
 | 3.6 | Alinhar v6 para consumir marts ou v5, não fct diretamente | pipeline_v6_api.sql | **P2** |
-| 3.7 | Remover cálculos de tendência D-1 e WoW do server.js — consumir do mart | api/server.js | **P2** |
+| 3.7 | ~~Remover cálculos de tendência D-1 e WoW do server.js — consumir do mart~~ ✅ 4 endpoints refatorados para consultar fct_execucao com UDFs idênticas aos marts (commit 9a03d83) | api/server.js | **P2** |
 
 ### FASE 4 — Validação e Automação (Semana 4-5)
 > **Foco**: Garantir confiabilidade contínua
@@ -674,7 +674,7 @@ Para eliminar ambiguidade:
 |---|--------|---------|-----------|
 | 5.1 | Fundir Cockpit + Resumo Executivo em uma única página de entrada | frontend/src/pages/ | **P2** |
 | 5.2 | ~~Tornar mock explícito com banner de alerta~~ ✅ Banner amber adicionado em DashboardLayout quando API não configurada | frontend/src/hooks/ | **P2** |
-| 5.3 | Remover cálculos duplicados do server.js (tendências, formatação) | api/server.js | **P2** |
+| 5.3 | ~~Remover cálculos duplicados do server.js (tendências, formatação)~~ ✅ cards, tendencia-semanal, kpi-diario, serie-diaria agora usam fn_ocup_composta, adherence_ratio, tempo_operacional_h (commit 9a03d83) | api/server.js | **P2** |
 | 5.4 | ~~Atualizar types TypeScript~~ ✅ Types já alinhados com API (aderência, ocupação, LAG D-1/WoW, score) | frontend/src/types/ | **P2** |
 
 ---
