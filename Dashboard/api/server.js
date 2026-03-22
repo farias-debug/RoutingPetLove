@@ -242,6 +242,36 @@ function buildAlertasWhere(query, params = {}, options = {}) {
   return where;
 }
 
+function buildFctWhere(query, params = {}, options = {}) {
+  const alias = options.alias ? `${options.alias}.` : "";
+  const exclude = new Set(options.exclude || []);
+  let where = ` WHERE ${alias}tipo_filial = 'Unidade'`;
+  if (!exclude.has("periodo")) {
+    where += buildDateFilter(`${alias}data_planejada`, query.periodo || query.data, params);
+  }
+  if (!exclude.has("filial") && query.filial) {
+    params.filial = String(query.filial);
+    where += ` AND ${alias}filial = @filial`;
+  }
+  if (!exclude.has("transportador") && query.transportador) {
+    params.transportador = normalizeEntityKey(query.transportador);
+    where += ` AND ${bqNormalizeText}(${alias}transportador) = @transportador`;
+  }
+  if (!exclude.has("status") && query.status) {
+    params.status = String(query.status);
+    where += ` AND ${alias}status = @status`;
+  }
+  if (!exclude.has("tipoVeiculo") && query.tipoVeiculo) {
+    params.tipoVeiculo = String(query.tipoVeiculo);
+    where += ` AND ${alias}tipo_veiculo = @tipoVeiculo`;
+  }
+  if (!exclude.has("prioridade") && query.prioridade) {
+    params.prioridade = String(query.prioridade);
+    where += ` AND EXISTS (SELECT 1 FROM \`${projectId}.${dataset}.alertas_rotas\` _a WHERE _a.Data = ${alias}data_planejada AND _a.Rota = ${alias}rota AND _a.Prioridade = @prioridade)`;
+  }
+  return where;
+}
+
 function formatNumber(value, options = {}) {
   return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: 0,
@@ -392,65 +422,46 @@ app.get("/api/filtros/opcoes", async (req, res) => {
 app.get("/api/resumo/cards", async (req, res) => {
   try {
     const params = {};
-    const where = buildAlertasWhere(req.query, params);
+    const where = buildFctWhere(req.query, params, { alias: "f" });
     const rows = await runQuery(`
-      WITH metas AS (
-        SELECT
-          MAX(CASE WHEN kpi_id = 'spr_pedidos' THEN meta END) AS m_spr_ped,
-          MAX(CASE WHEN kpi_id = 'entregas_efetivas' THEN meta END) AS m_entregas,
-          MAX(CASE WHEN kpi_id = 'orh' THEN meta END) AS m_orh,
-          MAX(CASE WHEN kpi_id = 'ocupacao_composta' THEN meta END) AS m_ocup,
-          MAX(CASE WHEN kpi_id = 'aderencia_volumes' THEN meta END) AS m_ader_vol,
-          MAX(CASE WHEN kpi_id = 'dpph' THEN meta END) AS m_dpph
-        FROM \`${projectId}.${dataset}.dim_metas\`
-      ),
-      route_level AS (
-        SELECT
-          Data,
-          Filial,
-          Rota,
-          MAX(\`Pedidos da Rota\`) AS pedidos_rota,
-          MAX(\`Volumes da Rota\`) AS volumes_rota,
-          MAX(\`Peso kg\`) AS peso_kg,
-          MAX(\`Tipo de Veiculo Padrao\`) AS tipo_veiculo,
-          MAX(Entregues) AS entregues,
-          MAX(Insucessos) AS insucessos,
-          MAX(\`Tempo Realizado h\`) AS tempo_realizado_h,
-          MAX(\`Ocupacao Volumes Rota\`) AS ader_volumes,
-          LOGICAL_OR(\`Flag Nao Planejada\`) AS flag_nao_planejada
-        FROM \`${projectId}.${dataset}.alertas_rotas\`
-        ${where}
-        GROUP BY 1, 2, 3
-      ),
+      WITH metas AS (SELECT * FROM \`${projectId}.${dataset}.metas_pivot\`),
       daily AS (
         SELECT
-          Data AS data,
-          COUNT(*) AS qtd_rotas,
-          SUM(pedidos_rota) AS qtd_pedidos,
-          SUM(volumes_rota) AS qtd_volumes,
-          SUM(peso_kg) AS peso_total_kg,
-          SUM(\`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(tipo_veiculo)) AS capacidade_total_kg,
-          SUM(entregues) AS qtd_entregas,
-          SUM(insucessos) AS qtd_insucessos,
-          SUM(tempo_realizado_h) AS tempo_real_total,
-          AVG(ader_volumes) AS ader_volumes,
-          COUNTIF(flag_nao_planejada) AS qtd_nao_plan
-        FROM route_level
+          f.data_planejada AS data,
+          COUNT(DISTINCT f.id_carga) AS qtd_rotas,
+          SUM(f.qtd_pedidos) AS qtd_pedidos,
+          SUM(f.qtd_volumes) AS qtd_volumes,
+          SUM(f.entregues) AS qtd_entregas,
+          SUM(f.insucessos) AS qtd_insucessos,
+          SUM(f.tempo_operacional_h) AS tempo_oper_total,
+          SUM(f.pedidos_plan) AS pedidos_plan,
+          SUM(f.volumes_plan) AS volumes_plan,
+          SUM(f.peso_kg) AS total_peso_kg,
+          SUM(f.peso_plan_kg) AS peso_plan,
+          COUNTIF(f.flag_nao_planejada) AS qtd_nao_plan
+        FROM \`${projectId}.${dataset}.fct_execucao\` f
+        ${where}
         GROUP BY 1
       ),
+      kpis AS (
+        SELECT d.*,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.qtd_pedidos, CAST(d.qtd_rotas AS FLOAT64)) AS spr_pedidos,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.qtd_entregas, d.qtd_entregas + d.qtd_insucessos) AS entregas_efetivas,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.tempo_oper_total, CAST(d.qtd_rotas AS FLOAT64)) AS orh,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.qtd_pedidos, NULLIF(d.pedidos_plan, 0)) AS ocup_ped,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.qtd_volumes, NULLIF(d.volumes_plan, 0)) AS ocup_vol,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.total_peso_kg, NULLIF(d.peso_plan, 0)) AS ocup_peso,
+          \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(d.qtd_volumes, d.volumes_plan) AS ader_vol,
+          ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.qtd_entregas, NULLIF(d.tempo_oper_total, 0)), 2) AS dpph
+        FROM daily d
+      ),
       metrics AS (
-        SELECT
-          data,
-          CAST(qtd_rotas AS FLOAT64) AS qtd_rotas,
-          CAST(qtd_pedidos AS FLOAT64) AS qtd_pedidos,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(qtd_pedidos, CAST(qtd_rotas AS FLOAT64)) AS spr_pedidos,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(qtd_entregas, qtd_entregas + qtd_insucessos) AS entregas_efetivas,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(tempo_real_total, CAST(qtd_rotas AS FLOAT64)) AS orh,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(peso_total_kg, NULLIF(capacidade_total_kg, 0)) AS ocupacao_peso,
-          ader_volumes,
-          ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(qtd_entregas, NULLIF(tempo_real_total, 0)), 2) AS dpph,
-          CAST(qtd_nao_plan AS FLOAT64) AS qtd_nao_plan
-        FROM daily
+        SELECT k.*,
+          CAST(k.qtd_rotas AS FLOAT64) AS rotas_f,
+          CAST(k.qtd_pedidos AS FLOAT64) AS pedidos_f,
+          CAST(k.qtd_nao_plan AS FLOAT64) AS nao_plan_f,
+          \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(k.ocup_ped, k.ocup_vol, k.ocup_peso) AS ocup_composta
+        FROM kpis k
       ),
       ordered AS (
         SELECT *, ROW_NUMBER() OVER (ORDER BY data DESC) AS rn
@@ -469,15 +480,15 @@ app.get("/api/resumo/cards", async (req, res) => {
       LEFT JOIN wow w ON TRUE
       CROSS JOIN metas m,
       UNNEST([
-        STRUCT('Qtd Rotas' AS kpi, l.qtd_rotas AS valor, CAST(NULL AS FLOAT64) AS meta, CAST(NULL AS FLOAT64) AS delta, 'Informativo' AS status, l.qtd_rotas - COALESCE(p.qtd_rotas, 0) AS trend_d1, l.qtd_rotas - COALESCE(w.qtd_rotas, 0) AS trend_wow, l.data AS database_dt, 'Atuar em excecoes e capacidade' AS acao),
-        STRUCT('Qtd Pedidos', l.qtd_pedidos, CAST(NULL AS FLOAT64), CAST(NULL AS FLOAT64), 'Informativo', l.qtd_pedidos - COALESCE(p.qtd_pedidos, 0), l.qtd_pedidos - COALESCE(w.qtd_pedidos, 0), l.data, 'Avaliar volume e mix por filial'),
-        STRUCT('SPR Pedidos', l.spr_pedidos, m.m_spr_ped, l.spr_pedidos - m.m_spr_ped, \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(l.spr_pedidos, m.m_spr_ped), l.spr_pedidos - COALESCE(p.spr_pedidos, 0), l.spr_pedidos - COALESCE(w.spr_pedidos, 0), l.data, 'Revisar consolidacao, mix e ocupacao'),
-        STRUCT('Entregas Efetivas', l.entregas_efetivas, m.m_entregas, l.entregas_efetivas - m.m_entregas, \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(l.entregas_efetivas, m.m_entregas), l.entregas_efetivas - COALESCE(p.entregas_efetivas, 0), l.entregas_efetivas - COALESCE(w.entregas_efetivas, 0), l.data, 'Atacar insucessos e janelas criticas'),
-        STRUCT('ORH', l.orh, m.m_orh, l.orh - m.m_orh, \`data-aileron-482822-d0.monitoramento_carga.status_target_band\`(l.orh, m.m_orh, 1.0, 2.1), l.orh - COALESCE(p.orh, 0), l.orh - COALESCE(w.orh, 0), l.data, 'Rebalancear jornadas e overtime'),
-        STRUCT('Capacidade Utilizada', l.ocupacao_peso, m.m_ocup, l.ocupacao_peso - m.m_ocup, \`data-aileron-482822-d0.monitoramento_carga.capacity_status\`(l.ocupacao_peso), l.ocupacao_peso - COALESCE(p.ocupacao_peso, 0), l.ocupacao_peso - COALESCE(w.ocupacao_peso, 0), l.data, 'Ajustar mix e capacidade por tipo de veiculo'),
-        STRUCT('Aderencia Volumes', l.ader_volumes, m.m_ader_vol, l.ader_volumes - m.m_ader_vol, \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(l.ader_volumes, m.m_ader_vol), l.ader_volumes - COALESCE(p.ader_volumes, 0), l.ader_volumes - COALESCE(w.ader_volumes, 0), l.data, 'Comparar planejamento e executado'),
-        STRUCT('DPPH', l.dpph, m.m_dpph, l.dpph - m.m_dpph, \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(l.dpph, m.m_dpph), l.dpph - COALESCE(p.dpph, 0), l.dpph - COALESCE(w.dpph, 0), l.data, 'Revisar produtividade por hora trabalhada'),
-        STRUCT('Qtd Rotas Nao Planejadas', l.qtd_nao_plan, 0.0, l.qtd_nao_plan, CASE WHEN l.qtd_nao_plan > 0 THEN 'Critico' ELSE 'OK' END, l.qtd_nao_plan - COALESCE(p.qtd_nao_plan, 0), l.qtd_nao_plan - COALESCE(w.qtd_nao_plan, 0), l.data, 'Atuar na governanca do planejamento')
+        STRUCT('Qtd Rotas' AS kpi, l.rotas_f AS valor, CAST(NULL AS FLOAT64) AS meta, CAST(NULL AS FLOAT64) AS delta, 'Informativo' AS status, l.rotas_f - COALESCE(p.rotas_f, 0) AS trend_d1, l.rotas_f - COALESCE(w.rotas_f, 0) AS trend_wow, l.data AS database_dt, 'Atuar em excecoes e capacidade' AS acao),
+        STRUCT('Qtd Pedidos', l.pedidos_f, CAST(NULL AS FLOAT64), CAST(NULL AS FLOAT64), 'Informativo', l.pedidos_f - COALESCE(p.pedidos_f, 0), l.pedidos_f - COALESCE(w.pedidos_f, 0), l.data, 'Avaliar volume e mix por filial'),
+        STRUCT('SPR Pedidos', l.spr_pedidos, m.meta_spr_ped, l.spr_pedidos - m.meta_spr_ped, \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(l.spr_pedidos, m.meta_spr_ped), l.spr_pedidos - COALESCE(p.spr_pedidos, 0), l.spr_pedidos - COALESCE(w.spr_pedidos, 0), l.data, 'Revisar consolidacao, mix e ocupacao'),
+        STRUCT('Entregas Efetivas', l.entregas_efetivas, m.meta_entregas, l.entregas_efetivas - m.meta_entregas, \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(l.entregas_efetivas, m.meta_entregas), l.entregas_efetivas - COALESCE(p.entregas_efetivas, 0), l.entregas_efetivas - COALESCE(w.entregas_efetivas, 0), l.data, 'Atacar insucessos e janelas criticas'),
+        STRUCT('ORH', l.orh, m.meta_orh, l.orh - m.meta_orh, \`data-aileron-482822-d0.monitoramento_carga.status_target_band\`(l.orh, m.meta_orh, 1.0, 2.1), l.orh - COALESCE(p.orh, 0), l.orh - COALESCE(w.orh, 0), l.data, 'Rebalancear jornadas e overtime'),
+        STRUCT('Capacidade Utilizada', l.ocup_composta, m.meta_ocup, l.ocup_composta - m.meta_ocup, \`data-aileron-482822-d0.monitoramento_carga.capacity_status\`(l.ocup_composta), l.ocup_composta - COALESCE(p.ocup_composta, 0), l.ocup_composta - COALESCE(w.ocup_composta, 0), l.data, 'Ajustar mix e capacidade por tipo de veiculo'),
+        STRUCT('Aderencia Volumes', l.ader_vol, m.meta_ader_vol, l.ader_vol - m.meta_ader_vol, \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(l.ader_vol, m.meta_ader_vol), l.ader_vol - COALESCE(p.ader_vol, 0), l.ader_vol - COALESCE(w.ader_vol, 0), l.data, 'Comparar planejamento e executado'),
+        STRUCT('DPPH', l.dpph, m.meta_dpph, l.dpph - m.meta_dpph, \`data-aileron-482822-d0.monitoramento_carga.status_higher\`(l.dpph, m.meta_dpph), l.dpph - COALESCE(p.dpph, 0), l.dpph - COALESCE(w.dpph, 0), l.data, 'Revisar produtividade por hora trabalhada'),
+        STRUCT('Qtd Rotas Nao Planejadas', l.nao_plan_f, 0.0, l.nao_plan_f, CASE WHEN l.qtd_nao_plan > 0 THEN 'Critico' ELSE 'OK' END, l.nao_plan_f - COALESCE(p.nao_plan_f, 0), l.nao_plan_f - COALESCE(w.nao_plan_f, 0), l.data, 'Atuar na governanca do planejamento')
       ]) AS metric
       ORDER BY metric.kpi
     `, params);
@@ -507,37 +518,37 @@ app.get("/api/resumo/tendencia-semanal", async (req, res) => {
   try {
     const semanas = Math.max(1, Math.min(Number(req.query.semanas || 8), 26));
     const params = { semanas };
-    const where = buildBaseExecWhere(req.query, params, { alias: "base" });
+    const where = buildFctWhere(req.query, params, { alias: "f" });
     const rows = await runQuery(`
       WITH metas AS (
         SELECT * FROM \`${projectId}.${dataset}.metas_pivot\`
       ),
       weekly AS (
         SELECT
-          DATE_TRUNC(base.\`Data Planejada\`, ISOWEEK) AS semana_inicio,
-          DATE_ADD(DATE_TRUNC(base.\`Data Planejada\`, ISOWEEK), INTERVAL 6 DAY) AS semana_fim,
-          CONCAT('S', LPAD(CAST(EXTRACT(ISOWEEK FROM base.\`Data Planejada\`) AS STRING), 2, '0'), ' ', FORMAT_DATE('%d/%m', DATE_TRUNC(base.\`Data Planejada\`, ISOWEEK)), '-', FORMAT_DATE('%d/%m', DATE_ADD(DATE_TRUNC(base.\`Data Planejada\`, ISOWEEK), INTERVAL 6 DAY))) AS semana_label,
-          FORMAT_DATE('%G-W%V', base.\`Data Planejada\`) AS ano_semana,
-          COUNT(DISTINCT base.IdCarga) AS rotas,
-          SUM(base.\`Pedidos da Rota\`) AS pedidos,
-          SUM(base.\`Volumes da Rota\`) AS volumes,
-          SUM(base.Entregues) AS entregas,
-          SUM(base.\`Insucessos Clean\`) AS insucessos,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.Entregues), SUM(base.Entregues) + SUM(base.\`Insucessos Clean\`)) AS pct_entregas_efetivas,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Pedidos da Rota\`), COUNT(DISTINCT base.IdCarga)) AS spr_pedidos,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Volumes da Rota\`), COUNT(DISTINCT base.IdCarga)) AS spr_volumes,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(COALESCE(base.\`Tempo Realizado h\`, base.\`Tempo Planejado h\`, 0)), CAST(COUNT(DISTINCT base.IdCarga) AS FLOAT64)) AS orh,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Volumes da Rota\`), NULLIF(SUM(base.\`Volumes Planejados\`), 0)) AS ader_vol,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.Entregues), NULLIF(SUM(COALESCE(base.\`Tempo Realizado h\`, base.\`Tempo Planejado h\`, 0)), 0)) AS dpph,
+          DATE_TRUNC(f.data_planejada, ISOWEEK) AS semana_inicio,
+          DATE_ADD(DATE_TRUNC(f.data_planejada, ISOWEEK), INTERVAL 6 DAY) AS semana_fim,
+          CONCAT('S', LPAD(CAST(EXTRACT(ISOWEEK FROM f.data_planejada) AS STRING), 2, '0'), ' ', FORMAT_DATE('%d/%m', DATE_TRUNC(f.data_planejada, ISOWEEK)), '-', FORMAT_DATE('%d/%m', DATE_ADD(DATE_TRUNC(f.data_planejada, ISOWEEK), INTERVAL 6 DAY))) AS semana_label,
+          FORMAT_DATE('%G-W%V', f.data_planejada) AS ano_semana,
+          COUNT(DISTINCT f.id_carga) AS rotas,
+          SUM(f.qtd_pedidos) AS pedidos,
+          SUM(f.qtd_volumes) AS volumes,
+          SUM(f.entregues) AS entregas,
+          SUM(f.insucessos) AS insucessos,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.entregues), SUM(f.entregues) + SUM(f.insucessos)) AS pct_entregas_efetivas,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_pedidos), CAST(COUNT(DISTINCT f.id_carga) AS FLOAT64)) AS spr_pedidos,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_volumes), CAST(COUNT(DISTINCT f.id_carga) AS FLOAT64)) AS spr_volumes,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.tempo_operacional_h), CAST(COUNT(DISTINCT f.id_carga) AS FLOAT64)) AS orh,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_volumes), NULLIF(SUM(f.volumes_plan), 0)) AS ader_vol,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.entregues), NULLIF(SUM(f.tempo_operacional_h), 0)) AS dpph,
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(
-            CAST(COUNTIF(base.\`Rota Concluida\` = 'Sim') AS FLOAT64),
-            CAST(COUNT(DISTINCT base.IdCarga) AS FLOAT64)) AS pct_rotas_concl,
+            CAST(COUNTIF(f.flag_rota_concluida) AS FLOAT64),
+            CAST(COUNT(DISTINCT f.id_carga) AS FLOAT64)) AS pct_rotas_concl,
           \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Pedidos da Rota\`), NULLIF(SUM(base.\`Pedidos Planejados\`), 0)),
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Volumes da Rota\`), NULLIF(SUM(base.\`Volumes Planejados\`), 0)),
-            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Peso Realizado kg\`), NULLIF(SUM(base.\`Peso Planejado kg\`), 0))
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_pedidos), NULLIF(SUM(f.pedidos_plan), 0)),
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_volumes), NULLIF(SUM(f.volumes_plan), 0)),
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.peso_kg), NULLIF(SUM(f.peso_plan_kg), 0))
           ) AS ocup_composta
-        FROM \`${projectId}.${dataset}.VW_Base_Execucao\` base
+        FROM \`${projectId}.${dataset}.fct_execucao\` f
         ${where}
         GROUP BY 1, 2, 3, 4
       )
@@ -1184,79 +1195,34 @@ app.get("/api/motoristas/kpis", async (req, res) => {
 app.get("/api/kpi-diario", async (req, res) => {
   try {
     const params = {};
-    const alertasWhere = buildAlertasWhere(req.query, params);
-    const baseWhere = buildBaseExecWhere(req.query, params, { alias: "base" });
+    const where = buildFctWhere(req.query, params, { alias: "f" });
     const rows = await runQuery(`
-      WITH route_level AS (
+      WITH agg AS (
         SELECT
-          Data,
-          Filial,
-          Transportador,
-          Rota,
-          ANY_VALUE(Placa) AS placa,
-          ANY_VALUE(Motorista) AS motorista,
-          ANY_VALUE(\`Tipo de Veiculo Padrao\`) AS tipo_veiculo,
-          MAX(\`Pedidos da Rota\`) AS pedidos_rota,
-          MAX(\`Volumes da Rota\`) AS volumes_rota,
-          MAX(\`Peso kg\`) AS peso_kg,
-          MAX(\`Pedidos Planejados\`) AS pedidos_plan,
-          MAX(\`Volumes Planejados\`) AS volumes_plan,
-          MAX(\`Peso Planejado kg\`) AS peso_plan_kg,
-          MAX(Entregues) AS entregues,
-          MAX(Insucessos) AS insucessos,
-          MAX(\`KM Planejado\`) AS km_planejado,
-          MAX(\`KM Realizado\`) AS km_realizado,
-          MAX(\`Tempo Planejado h\`) AS tempo_planejado_h,
-          MAX(\`Tempo Realizado h\`) AS tempo_realizado_h,
-          MAX(\`Ocupacao Pedidos Rota\`) AS ocupacao_pedidos,
-          MAX(\`Ocupacao Volumes Rota\`) AS ocupacao_volumes,
-          MAX(\`Ocupacao Composta Rota\`) AS ocupacao_composta,
-          MAX(CASE WHEN \`Rota Concluida\` = 'Sim' THEN 1 ELSE 0 END) AS rota_concluida,
-          MAX(CASE WHEN \`Match Temporal\` = 'Mesmo Dia' THEN 1 ELSE 0 END) AS match_mesmo_dia,
-          MAX(CASE WHEN \`Possui Planejado\` = 'Sim' THEN 1 ELSE 0 END) AS possui_planejado,
-          LOGICAL_OR(\`Flag Overtime\`) AS flag_overtime,
-          LOGICAL_OR(\`Flag Nao Planejada\`) AS flag_nao_planejada
-        FROM \`${projectId}.${dataset}.alertas_rotas\`
-        ${alertasWhere}
-        GROUP BY 1, 2, 3, 4
-      ),
-      operational AS (
-        SELECT
-          MAX(Data) AS data,
-          COUNT(*) AS rotas,
-          SUM(pedidos_rota) AS pedidos,
-          SUM(volumes_rota) AS volumes,
-          SUM(entregues) AS entregas,
-          SUM(insucessos) AS insucessos,
-          COUNT(DISTINCT CASE WHEN placa IS NOT NULL AND TRIM(placa) != '' THEN UPPER(placa) END) AS veiculosAtivos,
-          COUNT(DISTINCT CASE WHEN motorista IS NOT NULL AND TRIM(motorista) != '' THEN UPPER(motorista) END) AS motoristasAtivos,
-          SUM(km_realizado) AS totalKmRealizado,
-          SUM(peso_kg) AS totalPesoKg,
-          SUM(\`data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity\`(tipo_veiculo)) AS capacidadeTotalPesoKg,
-          SUM(CASE WHEN possui_planejado = 1 THEN pedidos_plan ELSE 0 END) AS pedidosPlan,
-          SUM(CASE WHEN possui_planejado = 1 THEN volumes_plan ELSE 0 END) AS volumesPlan,
-          SUM(CASE WHEN possui_planejado = 1 THEN peso_plan_kg ELSE 0 END) AS pesoPlanKg,
-          SUM(tempo_realizado_h) AS tempoOperacionalTotal,
-          SUM(km_planejado) AS kmPlan,
-          SUM(tempo_planejado_h) AS tempoPlan,
-          SUM(rota_concluida) AS rotasConcluidas,
-          COUNTIF(flag_overtime) AS rotasOvertime,
-          COUNTIF(flag_nao_planejada) AS qtdNaoPlanejada,
-          SUM(possui_planejado) AS rotasPlanejadas,
-          SUM(match_mesmo_dia) AS matchMesmoDia,
-          AVG(ocupacao_pedidos) AS pctOcupacaoPedidos,
-          AVG(ocupacao_volumes) AS pctOcupacaoVolumes,
-          AVG(ocupacao_composta) AS pctOcupacaoComposta
-        FROM route_level
-      ),
-      costs AS (
-        SELECT
-          ROUND(SUM(base.\`Valor Pagamento Carga\`), 2) AS valorPagamentoTotal,
-          ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Valor Pagamento Carga\`), CAST(COUNT(DISTINCT base.IdCarga) AS FLOAT64)), 2) AS custoMedioCarga,
-          ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Valor Pagamento Carga\`), NULLIF(SUM(base.\`Volumes da Rota\`), 0)), 2) AS custoMedioVolume,
-          ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(base.\`Valor Pagamento Carga\`), NULLIF(SUM(base.\`Pedidos da Rota\`), 0)), 2) AS custoMedioPedido
-        FROM \`${projectId}.${dataset}.VW_Base_Execucao\` base
-        ${baseWhere}
+          MAX(f.data_planejada) AS data,
+          COUNT(DISTINCT f.id_carga) AS rotas,
+          SUM(f.qtd_pedidos) AS pedidos,
+          SUM(f.qtd_volumes) AS volumes,
+          SUM(f.entregues) AS entregas,
+          SUM(f.insucessos) AS insucessos,
+          COUNT(DISTINCT CASE WHEN f.placa IS NOT NULL AND f.placa != '' THEN UPPER(f.placa) END) AS veiculosAtivos,
+          COUNT(DISTINCT CASE WHEN f.motorista IS NOT NULL AND f.motorista != '' THEN UPPER(TRIM(f.motorista)) END) AS motoristasAtivos,
+          SUM(f.km_realizado) AS totalKmRealizado,
+          SUM(f.peso_kg) AS totalPesoKg,
+          SUM(f.pedidos_plan) AS pedidosPlan,
+          SUM(f.volumes_plan) AS volumesPlan,
+          SUM(f.peso_plan_kg) AS pesoPlanKg,
+          SUM(f.tempo_operacional_h) AS tempoOperacionalTotal,
+          SUM(f.km_planejado) AS kmPlan,
+          SUM(f.tempo_plan) AS tempoPlan,
+          COUNTIF(f.flag_rota_concluida) AS rotasConcluidas,
+          COUNTIF(f.flag_overtime) AS rotasOvertime,
+          COUNTIF(f.flag_nao_planejada) AS qtdNaoPlanejada,
+          COUNTIF(f.match_temporal != 'Sem Planejado' AND f.match_temporal IS NOT NULL) AS rotasPlanejadas,
+          COUNTIF(f.match_temporal = 'Mesmo Dia') AS matchMesmoDia,
+          ROUND(SUM(f.valor_total), 2) AS valorPagamentoTotal
+        FROM \`${projectId}.${dataset}.fct_execucao\` f
+        ${where}
       ),
       metrics AS (
         SELECT
@@ -1278,23 +1244,26 @@ app.get("/api/kpi-diario", async (req, res) => {
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.tempoOperacionalTotal, CAST(o.rotas AS FLOAT64) * 8.0) AS pctUtilizacaoJornada,
           GREATEST(0, 1.0 - IFNULL(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.tempoOperacionalTotal, CAST(o.rotas AS FLOAT64) * 8.0), 0)) AS pctOciosidadeJornada,
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(CAST(o.rotasOvertime AS FLOAT64), CAST(o.rotas AS FLOAT64)) AS pctRotasOvertime,
-          o.pctOcupacaoPedidos,
-          o.pctOcupacaoVolumes,
-          o.pctOcupacaoComposta,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.totalPesoKg, NULLIF(o.capacidadeTotalPesoKg, 0)) AS pctOcupacaoPeso,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.pedidos, NULLIF(o.pedidosPlan, 0)) AS pctAderPedidos,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.volumes, NULLIF(o.volumesPlan, 0)) AS pctAderVolumes,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.totalPesoKg, NULLIF(o.pesoPlanKg, 0)) AS pctAderPeso,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.pedidos, NULLIF(o.pedidosPlan, 0)) AS pctOcupacaoPedidos,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.volumes, NULLIF(o.volumesPlan, 0)) AS pctOcupacaoVolumes,
+          \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.pedidos, NULLIF(o.pedidosPlan, 0)),
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.volumes, NULLIF(o.volumesPlan, 0)),
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.totalPesoKg, NULLIF(o.pesoPlanKg, 0))
+          ) AS pctOcupacaoComposta,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.totalPesoKg, NULLIF(o.pesoPlanKg, 0)) AS pctOcupacaoPeso,
+          \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(o.pedidos, o.pedidosPlan) AS pctAderPedidos,
+          \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(o.volumes, o.volumesPlan) AS pctAderVolumes,
+          \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(o.totalPesoKg, o.pesoPlanKg) AS pctAderPeso,
           \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(o.totalKmRealizado, o.kmPlan) AS pctAderKm,
           \`data-aileron-482822-d0.monitoramento_carga.adherence_ratio\`(o.tempoOperacionalTotal, o.tempoPlan) AS pctAderTempo,
-          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(CAST(matchMesmoDia AS FLOAT64), NULLIF(CAST(rotasPlanejadas AS FLOAT64), 0)) AS pctMatchMesmoDia,
-          c.valorPagamentoTotal,
-          c.custoMedioCarga,
-          c.custoMedioVolume,
-          c.custoMedioPedido,
+          \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(CAST(o.matchMesmoDia AS FLOAT64), NULLIF(CAST(o.rotasPlanejadas AS FLOAT64), 0)) AS pctMatchMesmoDia,
+          o.valorPagamentoTotal,
+          ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.valorPagamentoTotal, CAST(o.rotas AS FLOAT64)), 2) AS custoMedioCarga,
+          ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.valorPagamentoTotal, NULLIF(o.volumes, 0)), 2) AS custoMedioVolume,
+          ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.valorPagamentoTotal, NULLIF(o.pedidos, 0)), 2) AS custoMedioPedido,
           ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(o.entregas, NULLIF(o.tempoOperacionalTotal, 0)), 2) AS dpph
-        FROM operational o
-        CROSS JOIN costs c
+        FROM agg o
       )
       SELECT
         *,
@@ -1347,63 +1316,53 @@ app.get("/api/executivo/serie-diaria", async (req, res) => {
     }
 
     const params = {};
-    const where = buildAlertasWhere(query, params);
+    const where = buildFctWhere(query, params, { alias: "f" });
     const rows = await runQuery(`
-      WITH route_level AS (
+      WITH daily AS (
         SELECT
-          Data AS data,
-          Filial AS filial,
-          Rota,
-          MAX(\`Pedidos da Rota\`) AS pedidos_rota,
-          MAX(\`Volumes da Rota\`) AS volumes_rota,
-          MAX(\`Peso kg\`) AS peso_kg,
-          MAX(\`Pedidos Planejados\`) AS pedidos_plan,
-          MAX(\`Volumes Planejados\`) AS volumes_plan,
-          MAX(\`Peso Planejado kg\`) AS peso_plan_kg,
-          MAX(Entregues) AS entregues,
-          MAX(Insucessos) AS insucessos,
-          MAX(\`Tempo Planejado h\`) AS tempo_planejado_h,
-          MAX(\`Tempo Realizado h\`) AS tempo_realizado_h,
-          MAX(\`Ocupacao Composta Rota\`) AS ocupacao_composta,
-          MAX(CASE WHEN \`Possui Planejado\` = 'Sim' THEN 1 ELSE 0 END) AS possui_planejado,
-          MAX(CASE WHEN \`Rota Concluida\` = 'Sim' THEN 1 ELSE 0 END) AS rota_concluida,
-          MAX(CASE WHEN \`Flag Nao Planejada\` THEN 1 ELSE 0 END) AS flag_nao_planejada,
-          MAX(CASE WHEN \`Flag Sem Tempo\` THEN 1 ELSE 0 END) AS flag_sem_tempo
-        FROM \`${projectId}.${dataset}.alertas_rotas\`
-        ${where}
-        GROUP BY 1, 2, 3
-      ),
-      daily AS (
-        SELECT
-          data,
-          COUNT(*) AS rotas,
-          SUM(pedidos_rota) AS pedidos,
-          SUM(volumes_rota) AS volumes,
-          SUM(entregues) AS entregues,
-          SUM(insucessos) AS insucessos,
-          SUM(CASE WHEN IFNULL(tempo_realizado_h, 0) > 0 THEN tempo_realizado_h ELSE tempo_planejado_h END) AS tempoOperacionalTotal,
-          SUM(flag_nao_planejada) AS qtdRotasNaoPlanejadas,
-          SUM(flag_sem_tempo) AS qtdRotasSemTempo,
-          SUM(CASE WHEN possui_planejado = 1 THEN pedidos_plan ELSE 0 END) AS pedidosPlanejados,
-          SUM(CASE WHEN possui_planejado = 1 THEN volumes_plan ELSE 0 END) AS volumesPlanejados,
-          SUM(peso_kg) AS pesoRealizado,
-          SUM(CASE WHEN possui_planejado = 1 THEN peso_plan_kg ELSE 0 END) AS pesoPlanejado,
-          AVG(ocupacao_composta) AS ocupacaoComposta,
+          f.data_planejada AS data,
+          COUNT(DISTINCT f.id_carga) AS rotas,
+          SUM(f.qtd_pedidos) AS pedidos,
+          SUM(f.qtd_volumes) AS volumes,
+          SUM(f.entregues) AS entregues,
+          SUM(f.insucessos) AS insucessos,
+          SUM(f.tempo_operacional_h) AS tempoOperacionalTotal,
+          COUNTIF(f.flag_nao_planejada) AS qtdRotasNaoPlanejadas,
+          COUNTIF(f.flag_sem_tempo) AS qtdRotasSemTempo,
+          SUM(f.pedidos_plan) AS pedidosPlanejados,
+          SUM(f.volumes_plan) AS volumesPlanejados,
+          SUM(f.peso_kg) AS pesoRealizado,
+          SUM(f.peso_plan_kg) AS pesoPlanejado,
+          \`data-aileron-482822-d0.monitoramento_carga.fn_ocup_composta\`(
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_pedidos), NULLIF(SUM(f.pedidos_plan), 0)),
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.qtd_volumes), NULLIF(SUM(f.volumes_plan), 0)),
+            \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(SUM(f.peso_kg), NULLIF(SUM(f.peso_plan_kg), 0))
+          ) AS ocupacaoComposta,
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(
-            CAST(SUM(rota_concluida) AS FLOAT64), CAST(COUNT(*) AS FLOAT64)) AS pctRotasConcl
-        FROM route_level
+            CAST(COUNTIF(f.flag_rota_concluida) AS FLOAT64), CAST(COUNT(DISTINCT f.id_carga) AS FLOAT64)) AS pctRotasConcl
+        FROM \`${projectId}.${dataset}.fct_execucao\` f
+        ${where}
         GROUP BY 1
       ),
       filial_daily AS (
         SELECT
-          data,
-          filial AS Filial,
+          f.data_planejada AS data,
+          f.filial AS Filial,
           \`data-aileron-482822-d0.monitoramento_carga.safe_div\`(
-            SUM(volumes_rota),
-            CAST(COUNT(*) AS FLOAT64)
+            SUM(f.qtd_volumes),
+            CAST(COUNT(DISTINCT f.id_carga) AS FLOAT64)
           ) AS sprVolumes
-        FROM route_level
+        FROM \`${projectId}.${dataset}.fct_execucao\` f
+        ${where}
         GROUP BY 1, 2
+      ),
+      filial_criticas AS (
+        SELECT
+          fd.data,
+          COUNTIF(fd.sprVolumes < mp.meta_spr_vol) AS qtdFiliaisCriticasSpr
+        FROM filial_daily fd
+        CROSS JOIN \`${projectId}.${dataset}.metas_pivot\` mp
+        GROUP BY 1
       )
       SELECT
         d.data,
@@ -1437,13 +1396,10 @@ app.get("/api/executivo/serie-diaria", async (req, res) => {
         ROUND(\`data-aileron-482822-d0.monitoramento_carga.safe_div\`(d.tempoOperacionalTotal, CAST(d.rotas AS FLOAT64)), 2) AS tempoMedRealizado,
         d.qtdRotasNaoPlanejadas,
         d.qtdRotasSemTempo,
-        (
-          SELECT COUNTIF(fd.sprVolumes < m.meta_spr_vol)
-          FROM filial_daily fd
-          WHERE fd.data = d.data
-        ) AS qtdFiliaisCriticasSpr
+        COALESCE(fc.qtdFiliaisCriticasSpr, 0) AS qtdFiliaisCriticasSpr
       FROM daily d
       CROSS JOIN \`${projectId}.${dataset}.metas_pivot\` m
+      LEFT JOIN filial_criticas fc ON fc.data = d.data
       ORDER BY d.data ASC
     `, params);
 
