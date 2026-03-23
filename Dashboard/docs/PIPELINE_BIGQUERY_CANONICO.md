@@ -159,6 +159,7 @@ Não deve:
 | api/helpers.js | ativo | filtros, parsing, defaults temporais |
 
 **Arquivos descontinuados (deletados):**
+
 - pipeline_v4.sql, pipeline_v5_publicacao.sql, pipeline_v6_api.sql
 - deploy_v4.py, deploy_v5_publicacao.py, deploy_v6_api.py
 - sync_bq_to_sheets.py (sheets consumem views diretamente)
@@ -249,11 +250,13 @@ CREATE OR REPLACE FUNCTION motorista_key_canonical(cpf STRING, nome STRING) AS (
 **Uso obrigatório:** TODOS os marts por motorista devem usar `motorista_key_canonico` em GROUP BY, nunca `motorista` ou `cpf_motorista` isoladamente.
 
 **Regra de negócio:**
+
 - Se CPF disponível e não vazio: usa CPF como chave
 - Se CPF NULL ou vazio: usa normalize_text(nome) como chave
 - Motoristas com mesmo CPF são sempre o mesmo motorista, independente de variações no nome
 
 **Validação operacional:**
+
 - Alertar quando > 20% dos registros usam fallback para nome (CPF ausente)
 - CPF deve ser tratado com zero à esquerda preservado
 
@@ -277,6 +280,7 @@ COALESCE(
 **Uso obrigatório:** Marts por transportador devem usar `transportador_key_canonico`
 
 **Regra de negócio:**
+
 - Transportador NULL ou vazio é tratado como categoria explícita 'SEM_TRANSPORTADOR'
 - Permite rastreamento e análise de registros com dado faltante
 

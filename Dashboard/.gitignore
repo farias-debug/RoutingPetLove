@@ -12,8 +12,11 @@ __pycache__/
 .venv/
 node_modules/
 frontend/dist/
+frontend/dist.zip
 frontend/.env
 frontend/.env.local
+frontend/bun.lock
+frontend/bun.lockb
 
 # OS
 .DS_Store

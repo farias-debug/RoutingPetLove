@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "model": "claude-sonnet-4-6",
+  "effortLevel": "high",
+  "alwaysThinkingEnabled": true,
+  "language": "portuguese",
+  "outputStyle": "Explanatory",
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run build)",
+      "Bash(npm run test)",
+      "Bash(npm run test:watch)",
+      "Bash(npm install *)",
+      "Bash(node *)",
+      "Bash(python *)",
+      "Bash(pytest *)",
+      "Bash(pip install *)",
+      "Bash(bq *)"
+    ],
+    "ask": [
+      "Bash(firebase *)",
+      "Bash(git push *)",
+      "Bash(npm run deploy:*)",
+      "Bash(python Dashboard/bigquery/deploy_*)"
+    ],
+    "deny": [
+      "Read(./Dashboard/frontend/.env)",
+      "Read(./Dashboard/frontend/.env.*)",
+      "Read(./Dashboard/config/credentials.json)",
+      "Read(./Dashboard/config/**/*.pem)",
+      "Read(./Dashboard/config/**/*.key)",
+      "Read(./Dashboard/secrets/**)",
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  }
+}

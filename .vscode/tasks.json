@@ -156,6 +156,40 @@
         "clear": true
       },
       "problemMatcher": []
+    },
+    {
+      "label": "🧪 Dashboard: Validar Contrato Canônico",
+      "type": "shell",
+      "command": "${workspaceFolder}/Dashboard/.venv/Scripts/python.exe",
+      "args": [
+        "${workspaceFolder}/Dashboard/bigquery/validate_data_contract.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/Dashboard"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🧪 Dashboard: Smoke API Publicada",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/smoke_dashboard_api.ps1"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
     }
   ],
   "inputs": [

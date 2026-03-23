@@ -7,6 +7,7 @@
 #>
 $ErrorActionPreference = "Continue"
 Set-Location -Path (Split-Path $PSScriptRoot -Parent)
+$dashboardRoot = "Dashboard"
 
 $ok = 0; $warn = 0; $fail = 0
 
@@ -89,11 +90,19 @@ else { Check-FAIL "Planejamento XLSX nao encontrado em Dashboard/data/" }
 # -- 5. Dashboard - Config --------------------------------
 Write-Host "`n-- Dashboard: Config --" -ForegroundColor White
 
-foreach ($cfg in @("config\constantes.py", "config\de_para_tipo.py")) {
+$requiredConfigs = @(
+    "config\google_sheets_visual_config.json"
+)
+
+foreach ($cfg in $requiredConfigs) {
     $cfgPath = Join-Path "Dashboard" $cfg
     if (Test-Path $cfgPath) { Check-OK $cfg }
     else { Check-FAIL "$cfg nao encontrado" }
 }
+
+$credentialsPath = Join-Path "Dashboard" "config\credentials"
+if (Test-Path $credentialsPath) { Check-OK "config\credentials/" }
+else { Check-WARN "config\credentials/ nao encontrado" }
 
 # Tabelas auxiliares (fonte local)
 foreach ($aux in @("data\tab_auxiliar\dim_filial.xlsx", "data\tab_auxiliar\dim_placas_veiculos.xlsx")) {
@@ -125,15 +134,15 @@ $reportCanonical = "Dashboard\Painel Monitoramento - Petlove.Report"
 $semanticCanonical = "Dashboard\Painel Monitoramento - Petlove.SemanticModel"
 
 if (Test-Path $pbipCanonical) { Check-OK "PBIP canônico: $pbipCanonical" }
-else { Check-FAIL "PBIP canônico nao encontrado: $pbipCanonical" }
+else { Check-WARN "PBIP canônico nao encontrado neste workspace: $pbipCanonical" }
 
 if (Test-Path $reportCanonical) { Check-OK "Report canônico: $reportCanonical" }
-else { Check-FAIL "Report canônico nao encontrado: $reportCanonical" }
+else { Check-WARN "Report canônico nao encontrado neste workspace: $reportCanonical" }
 
 if (Test-Path $semanticCanonical) { Check-OK "SemanticModel canônico: $semanticCanonical" }
-else { Check-FAIL "SemanticModel canônico nao encontrado: $semanticCanonical" }
+else { Check-WARN "SemanticModel canônico nao encontrado neste workspace: $semanticCanonical" }
 
-if (Test-Path $pbipCanonical) {
+if ((Test-Path $pbipCanonical) -and (Test-Path $reportCanonical) -and (Test-Path $semanticCanonical)) {
     try {
         $pbip = Get-Content $pbipCanonical -Raw | ConvertFrom-Json
         $reportPath = $pbip.artifacts[0].report.path
@@ -147,6 +156,9 @@ if (Test-Path $pbipCanonical) {
     catch {
         Check-WARN "Nao foi possivel validar JSON do PBIP canônico"
     }
+}
+else {
+    Check-WARN "Artefatos PBIP não são obrigatórios no workspace atual; validação estrutural pulada"
 }
 
 # -- 7. Git status -----------------------------------------
@@ -174,7 +186,7 @@ try:
             MAX(data_planejada) AS max_data,
             COUNT(*) AS total_rows,
             DATE_DIFF(CURRENT_DATE(), MAX(data_planejada), DAY) AS dias_atraso
-        FROM \`data-aileron-482822-d0.monitoramento_carga.fct_execucao\`
+        FROM `data-aileron-482822-d0.monitoramento_carga.fct_execucao`
     '''
     rows = list(client.query(q).result())
     r = rows[0]
@@ -206,6 +218,38 @@ except Exception as e:
 }
 else {
     Check-WARN "Python venv nao encontrado - pulando check de BigQuery"
+}
+
+# == BigQuery Contract Validation ===============================
+Write-Host "`n-- BigQuery Data Contract --" -ForegroundColor Cyan
+$contractScript = Join-Path $dashboardRoot "bigquery\validate_data_contract.py"
+if ((Test-Path $venvPython) -and (Test-Path $contractScript)) {
+    $contractOutput = & $venvPython $contractScript 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Check-OK "Validacao do contrato canonico da API BigQuery aprovada"
+    }
+    else {
+        Check-WARN "Falha na validacao do contrato canonico: $contractOutput"
+    }
+}
+else {
+    Check-WARN "Contrato canonico nao validado (venv ou script ausente)"
+}
+
+# == API Smoke ==================================================
+Write-Host "`n-- API Smoke --" -ForegroundColor Cyan
+$smokeScript = Join-Path "scripts" "smoke_dashboard_api.ps1"
+if (Test-Path $smokeScript) {
+    $smokeOutput = & powershell -ExecutionPolicy Bypass -File $smokeScript 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Check-OK "Smoke test da API publicada aprovado"
+    }
+    else {
+        Check-WARN "Smoke test da API publicada falhou: $smokeOutput"
+    }
+}
+else {
+    Check-WARN "Script de smoke da API nao encontrado"
 }
 
 # -- Resumo ------------------------------------------------

@@ -1,37 +1,27 @@
-# Documentação — Monitoramento Logístico Last-Mile
+# Documentação Canônica
 
-## Documentos Ativos
+Este diretório contém apenas a documentação ativa do projeto.
 
-| Documento | Descrição |
-|-----------|-----------|
-| [AUDITORIA_ARQUITETURA_PIPELINE.md](AUDITORIA_ARQUITETURA_PIPELINE.md) | **Auditoria completa: arquitetura SQL, medidas, fluxo, recomendações (2026-03-21)** |
-| [MAPA_PROJETO_MONITORAMENTO.md](MAPA_PROJETO_MONITORAMENTO.md) | Visão geral do projeto (escopo, período, frequência, usuários) |
-| [PIPELINE_V4_DOCUMENTACAO.md](PIPELINE_V4_DOCUMENTACAO.md) | Documentação de deploy do pipeline v4 (28 statements) |
-| [data_contract_frontend.md](data_contract_frontend.md) | Contrato analítico Frontend ↔ API ↔ BigQuery (v2.0) |
-| [matriz_contrato_front_api_bq.md](matriz_contrato_front_api_bq.md) | Matriz completa Hook × Endpoint × Fonte BQ × Filtros × Status |
-| [mapeamento_arquitetura.md](mapeamento_arquitetura.md) | Fluxo ponta a ponta: TMS → Playwright → Python → BQ → Consumo |
-| [publicacao_frontend.md](publicacao_frontend.md) | URLs de produção/staging, revisões Cloud Run, status de deploy |
-| [setup_redesign_cockpit.md](setup_redesign_cockpit.md) | Redesign da home → CockpitOperacional, rotas e escopo |
-| [AUDITORIA_SCRIPT_MONITORAMENTO.md](AUDITORIA_SCRIPT_MONITORAMENTO.md) | Auditoria do Apps Script Google Sheets (schema .xlsx, gaps) |
+## Documentos ativos
 
-## Documentos Históricos
+| Documento | Papel |
+| --------- | ----- |
+| [PLANO_ESTRUTURAL_DADOS_CANONICO.md](PLANO_ESTRUTURAL_DADOS_CANONICO.md) | Estrutura do projeto, camadas e regras de organização |
+| [CATALOGO_MEDIDAS_CANONICO.md](CATALOGO_MEDIDAS_CANONICO.md) | Fonte única de verdade para KPIs, fórmulas e nomenclatura |
+| [SCHEMA_RAW_CANONICO.md](SCHEMA_RAW_CANONICO.md) | Contrato de entrada dos arquivos raw |
+| [PIPELINE_BIGQUERY_CANONICO.md](PIPELINE_BIGQUERY_CANONICO.md) | Pipeline ativo no BigQuery |
+| [data_contract_frontend.md](data_contract_frontend.md) | Contrato API -> frontend |
+| [matriz_contrato_front_api_bq.md](matriz_contrato_front_api_bq.md) | Rastreabilidade hook -> endpoint -> BigQuery |
+| [AUDIT_REVISAO_ORIGEM_2026-03-22.md](AUDIT_REVISAO_ORIGEM_2026-03-22.md) | Auditoria final da revisão da origem |
+| [README.md](README.md) | Este índice |
 
-Registros de tarefas concluídas e logs de execução. Mantidos para referência.
+## Arquivamento
 
-| Documento | Descrição |
-|-----------|-----------|
-| [GAPS_E_MELHORIAS.md](GAPS_E_MELHORIAS.md) | Tracker de gaps e melhorias (maioria resolvida) |
-| [correcao_regras_negocio.md](correcao_regras_negocio.md) | Log de correções em metas, KPIs, mocks e endpoints |
-| [validacao_funcional_frontend.md](validacao_funcional_frontend.md) | Log de validações: deploy v6, Zod, paginação, smoke tests |
-| [setup_evolucao_dashboard.md](setup_evolucao_dashboard.md) | Checklist de setup (frontend, API, SQL, Firebase, Cloud Run) |
-| [setup_execucao_real.md](setup_execucao_real.md) | Versões de ferramentas encontradas no ambiente |
-| [diagnostico_integracao_real.md](diagnostico_integracao_real.md) | Diagnóstico do que existia vs. faltava para integração real |
+- Material legado, temporário, diagnósticos, planos encerrados e documentos supersedidos ficam em [docs/_archive/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/docs/_archive)
+- Documentos de transição do diretório raiz foram movidos para [_archive/legacy_docs_root/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/_archive/legacy_docs_root)
 
-## Documentos Arquivados
+## Regra de governança
 
-Movidos para `_archive/` por estarem supersedidos:
-
-- `diagnostico_melhorias_dashboard.md` → supersedido por `correcao_regras_negocio` + `GAPS_E_MELHORIAS`
-- `gaps_regras_negocio.md` → supersedido por `correcao_regras_negocio` + `data_contract_frontend` v2
-- `mapeamento_pagina_para_view.md` → supersedido por `matriz_contrato_front_api_bq`
-- `PLANO_CANONICO_ABAS_E_VISUAL.md` → supersedido (frontend React substituiu Sheets como consumer principal)
+- Não criar novo documento para substituir assunto já coberto por um canônico.
+- Atualizar o arquivo canônico existente.
+- Encerrado o uso de um diagnóstico ou plano temporário, mover para arquivo morto.

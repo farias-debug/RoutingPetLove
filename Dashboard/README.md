@@ -1,137 +1,90 @@
-# Dashboard Monitoramento Logístico — Last Mile
+# Dashboard Monitoramento Logístico
 
-Painel de monitoramento de cargas last-mile (Petlove) com pipeline de dados completo:
-**TMS → CSV → BigQuery → Google Sheets → Apps Script (Dashboard Visual)**.
+Versão canônica final do projeto.
 
-## Arquitetura
+O fluxo ativo é simples:
 
-```text
-┌──────────────┐    ┌─────────────────┐    ┌──────────────────┐    ┌──────────────┐    ┌──────────────┐
-│  TMS Web     │───▶│  CSVs Locais    │───▶│  BigQuery        │───▶│ Google       │───▶│ Apps Script  │
-│  (Playwright)│    │  (Consolidado)  │    │  (v4+v5+v6 Views)│    │ Sheets (13)  │    │ (Painéis)    │
-└──────────────┘    └─────────────────┘    └──────────────────┘    └──────────────┘    └──────────────┘
- extrair_relatorio   consolidar_            load_raw_to_bq.py      sync_bq_to_         main.gs
- _tms.mjs            monitoramento.py       pipeline_v4.sql        sheets.py           dashboard_
-                                            pipeline_v5.sql                            builder.gs
-                                            pipeline_v6_api.sql
-                                                    │
-                                                    ▼
-                                           ┌──────────────────┐
-                                           │  React Dashboard │
-                                           │  (frontend/)     │
-                                           └──────────────────┘
-```text
+TMS -> CSV consolidado -> BigQuery canônico -> API Express -> Frontend React
 
-## Estrutura do Projeto
+## Fluxo ativo
 
-```text
-Dashboard/
-├── api/                       # API Node/Express publicada no Cloud Run
-├── bigquery/                  # SQL (v4 analítico + v5 publicação + v6 API), deploy, load, sync
-│   └── _deploy/               #   Módulos SQL individuais (UDFs + Views)
-├── extraction/                # Extração TMS (Playwright) + consolidação CSV
-├── config/                    # Config Google Sheets + credentials
-├── frontend/                  # React Dashboard (Vite + shadcn/ui + Recharts)
-│   ├── src/pages/             #   10 páginas publicadas do painel
-│   ├── src/hooks/             #   React Query hooks (useApiData, useGlobalFilters)
-│   ├── src/services/api/      #   Client API + mock adapter
-│   └── src/components/        #   Componentes UI (shadcn + dashboard)
-├── google_apps/               # Apps Script (dashboard visual no Sheets)
-│   ├── main.gs                #   Entry points
-│   ├── dashboard_builder.gs   #   Construção dos painéis
-│   ├── panel_cache.gs         #   Cache materializado
-│   └── ...                    #   8 módulos .gs + Sidebar.html
-├── data/                      # Fontes locais (CSV/XLSX) — NÃO editar
-├── docs/                      # Documentação técnica
-└── _archive/                  # Código legado (v2, v3, Power BI, experimentos)
-```
+1. Extração e consolidação dos dados em [extraction/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/extraction) e [data/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/data)
+2. Carga raw no BigQuery com [bigquery/load_raw_to_bq.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/load_raw_to_bq.py)
+3. Publicação da camada canônica com [bigquery/pipeline_dashboard_v7.sql](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/pipeline_dashboard_v7.sql), [bigquery/pipeline_sheets_v8.sql](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/pipeline_sheets_v8.sql) e módulos em [bigquery/_deploy/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/_deploy)
+4. API publicada a partir de [api/server.js](c:/Users/lucas.batista/Documents/Projetos/Dashboard/api/server.js), [api/queries.js](c:/Users/lucas.batista/Documents/Projetos/Dashboard/api/queries.js) e [api/helpers.js](c:/Users/lucas.batista/Documents/Projetos/Dashboard/api/helpers.js)
+5. Dashboard React em [frontend/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/frontend)
 
-## Pipeline de Dados — Fluxo Atual (7 Estágios)
+## Estrutura canônica
 
-| # | Estágio | Script | Entrada | Saída |
-| --- | --------- | -------- | --------- | ------- |
-| 1 | **Extrair TMS** | `extraction/extrair_relatorio_tms.mjs` | TMS Web (Playwright) | CSVs incrementais em `data/Relatorio_Monitoramento_Carga/` |
-| 2 | **Consolidar** | `extraction/consolidar_monitoramento.py` | CSVs incrementais | `data/Relatorio_Monitoramento_Carga_Completo.csv` |
-| 3 | **Carregar BigQuery** | `bigquery/load_raw_to_bq.py` | CSV consolidado | `raw_monitoramento` (BigQuery) |
-| 4 | **Views Analíticas** | Auto-refresh | `pipeline_v4.sql` (14 UDFs + staging/dims/fatos/marts) | 45 objetos BigQuery |
-| 5 | **Views Publicação** | Auto-refresh | `pipeline_v5_publicacao.sql` | 13 views finais (nomes PT-BR) |
-| 6 | **Sync Sheets** | `bigquery/sync_bq_to_sheets.py` | 13 views BigQuery | 13 abas Google Sheets |
-| 7 | **Dashboard Visual** | `google_apps/main.gs` | 13 abas de dados | PAINEL_GERENCIAL, PAINEL_OPERACIONAL, DRILLDOWN |
+- [api/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/api): backend Express consumido pelo frontend
+- [bigquery/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery): pipeline e validadores ativos
+- [frontend/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/frontend): aplicação React publicada no Firebase
+- [extraction/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/extraction): extração TMS e consolidação
+- [google_apps/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/google_apps): automações de Google Apps Script ainda ativas
+- [config/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/config): configurações e credenciais de publicação
+- [data/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/data): arquivos de entrada correntes
+- [docs/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/docs): documentação ativa
+- [_archive/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/_archive): todo conteúdo legado, transitório ou histórico
 
-## Infraestrutura
+## BigQuery ativo
 
-| Componente | Detalhe |
-| ------------ | --------- |
-| **BigQuery** | Projeto `data-aileron-482822-d0`, dataset `monitoramento_carga` |
-| **Google Sheets** | Spreadsheet ID `1Z-Jhaf9g4dbnti_ry7IO2J6BuZhCsqhoUREKtWMd3k4` |
-| **Python** | 3.14+ (`.venv/`), pandas, pyarrow, google-cloud-bigquery, gspread |
-| **Node.js** | 22+ (playwright, googleapis) |
-| **Auth** | ADC (`gcloud auth application-default login`), env vars `TMS_USER`/`TMS_PASS` |
+Arquivos mantidos como fonte de verdade:
 
-## Comandos Principais
+- [bigquery/pipeline_dashboard_v7.sql](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/pipeline_dashboard_v7.sql)
+- [bigquery/pipeline_sheets_v8.sql](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/pipeline_sheets_v8.sql)
+- [bigquery/deploy_v7_dashboard.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/deploy_v7_dashboard.py)
+- [bigquery/validate_pipeline.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/validate_pipeline.py)
+- [bigquery/validate_data_contract.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/validate_data_contract.py)
+- [bigquery/score_parity_test.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/score_parity_test.py)
+- [bigquery/regression_test.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/regression_test.py)
+
+Os arquivos v4, v5 e v6 foram movidos para [_archive/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/_archive).
+
+## Documentação ativa
+
+Use só estes documentos:
+
+- [docs/README.md](c:/Users/lucas.batista/Documents/Projetos/Dashboard/docs/README.md)
+- [docs/PLANO_ESTRUTURAL_DADOS_CANONICO.md](c:/Users/lucas.batista/Documents/Projetos/Dashboard/docs/PLANO_ESTRUTURAL_DADOS_CANONICO.md)
+- [docs/CATALOGO_MEDIDAS_CANONICO.md](c:/Users/lucas.batista/Documents/Projetos/Dashboard/docs/CATALOGO_MEDIDAS_CANONICO.md)
+- [docs/SCHEMA_RAW_CANONICO.md](c:/Users/lucas.batista/Documents/Projetos/Dashboard/docs/SCHEMA_RAW_CANONICO.md)
+- [docs/PIPELINE_BIGQUERY_CANONICO.md](c:/Users/lucas.batista/Documents/Projetos/Dashboard/docs/PIPELINE_BIGQUERY_CANONICO.md)
+- [docs/data_contract_frontend.md](c:/Users/lucas.batista/Documents/Projetos/Dashboard/docs/data_contract_frontend.md)
+- [docs/matriz_contrato_front_api_bq.md](c:/Users/lucas.batista/Documents/Projetos/Dashboard/docs/matriz_contrato_front_api_bq.md)
+- [docs/AUDIT_REVISAO_ORIGEM_2026-03-22.md](c:/Users/lucas.batista/Documents/Projetos/Dashboard/docs/AUDIT_REVISAO_ORIGEM_2026-03-22.md)
+
+Se um documento estiver fora dessa lista e não fizer parte da operação corrente, ele deve ficar em [_archive/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/_archive).
+
+## Comandos principais
 
 ```powershell
-# Setup
-..\scripts\setup_monitoramento.ps1
-
-# Pipeline diário (consolidação → carga BQ → sync Sheets)
-..\scripts\daily_pipeline.ps1
-
-# Pipeline BigQuery (carga → views → sync Sheets)
+# pipeline de dados
 .venv\Scripts\python.exe bigquery\load_raw_to_bq.py
+.venv\Scripts\python.exe bigquery\deploy_v7_dashboard.py
 .venv\Scripts\python.exe bigquery\sync_bq_to_sheets.py "1Z-Jhaf9g4dbnti_ry7IO2J6BuZhCsqhoUREKtWMd3k4"
 
-# Deploy BigQuery (quando SQL for alterado)
-.venv\Scripts\python.exe bigquery\deploy_v4.py
-.venv\Scripts\python.exe bigquery\deploy_v5_publicacao.py
+# validações
+.venv\Scripts\python.exe bigquery\validate_pipeline.py
+.venv\Scripts\python.exe bigquery\validate_data_contract.py
+.venv\Scripts\python.exe bigquery\score_parity_test.py
+.venv\Scripts\python.exe bigquery\regression_test.py
 
-# Extração TMS
-node extraction\extrair_relatorio_tms.mjs
+# frontend
+cd frontend
+npm run dev
+npm run build
 
-# Apps Script (push/pull)
-cd google_apps; npx @google/clasp push
+# publicação frontend
+cd ..
+npx firebase deploy --only hosting --project data-aileron-482822-d0
 
-# Frontend React (dev)
-cd frontend; npm install; npm run dev
-
-# Frontend React (build produção)
-cd frontend; npm run build
+# publicação API
+gcloud run deploy dashboard-logistico-api --source api --region us-central1 --project data-aileron-482822-d0 --allow-unauthenticated
 ```
 
-## Fontes de Dados
+## Regras de organização
 
-| Fonte | Arquivo | Formato |
-| ------- | --------- | --------- |
-| Monitoramento TMS | `data/Relatorio_Monitoramento_Carga_Completo.csv` | CSV (`;`, UTF-8-SIG, decimal `,`) |
-| Planejamento | `data/Relorio_Planejamento_Carga_Completo.xlsx` | Excel |
-| Dimensão Filial | `data/tab_auxiliar/dim_filial.xlsx` | Excel |
-| Demais dimensões | `data/tab_auxiliar/dim_*.xlsx` | Excel (7 tabelas) |
-
-## Convenções
-
-- **`_archive/`** contém código legado — não faz parte do fluxo ativo
-- **`data/`** é gerado pelo pipeline — não editar manualmente
-- **BigQuery v4** = camada analítica (UDFs, staging, dims, fatos, marts)
-- **BigQuery v5** = camada de publicação (13 views com nomes PT-BR pro Sheets)
-- O CSV do TMS usa formato BR: separador `;`, decimal `,`, timestamps `DD/MM/YYYY HH:MM`
-
-## Estado Atual do Produto
-
-- o frontend ativo do dashboard está em frontend/
-- a API consumida pelo frontend está em api/
-- o cockpit executivo-operacional já é a home principal publicada
-- as abas setoriais estão em expansão para o padrão longo com hero analítico, navegação intra-página e blocos de leitura executiva
-
-## Documentação Canônica
-
-- docs/diagnostico_melhorias_dashboard.md: diagnóstico consolidado, fechamento formal da Onda 1, Fase 1 e roadmap das próximas ondas
-- docs/setup_redesign_cockpit.md: escopo e publicação do cockpit executivo-operacional
-- docs/publicacao_frontend.md: publicação do frontend e validações associadas
-- docs/data_contract_frontend.md: contrato analítico padronizado da Fase 2 entre frontend, API e BigQuery
-- docs/matriz_contrato_front_api_bq.md: aderência operacional por hook, endpoint, fonte, filtros, grão e camadas temporais
-
-## Observação de Operação
-
-- o frontend não deve mais ser tratado como projeto externo separado
-- as validações de build do painel devem ser executadas a partir de frontend/
-- o diagnóstico em docs/diagnostico_melhorias_dashboard.md é a referência principal para as próximas ondas de refinamento visual e analítico
+- Não criar novos documentos versionados para explicar o mesmo assunto.
+- Atualizar sempre o documento canônico correspondente.
+- Qualquer arquivo legado, diagnóstico pontual, backup ou experimento deve ir para [_archive/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/_archive).
+- As pastas [_tmp/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/_tmp) e [downloads/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/downloads) não fazem parte do fluxo principal.

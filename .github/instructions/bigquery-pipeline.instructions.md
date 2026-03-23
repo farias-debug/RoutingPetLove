@@ -7,6 +7,12 @@ applyTo:
 
 # Instruções — Pipeline BigQuery
 
+## Fonte Documental
+
+- Referência arquitetural e operacional do pipeline: `Dashboard/docs/PIPELINE_BIGQUERY_CANONICO.md`
+- Referência semântica de dados: `Dashboard/docs/PLANO_ESTRUTURAL_DADOS_CANONICO.md`
+- Não criar novos documentos ativos com nomes versionados para descrever o pipeline corrente.
+
 ## Arquitetura de Dados
 
 ```
