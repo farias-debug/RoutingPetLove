@@ -9,7 +9,7 @@ import TemporalWindowTabs from "@/components/dashboard/TemporalWindowTabs";
 import { useCockpitSerieDiaria, useKpiDiario, useFilialPerformance } from "@/hooks/useApiData";
 import { formatShortDate, getMetricDomain, getSeriesExtremes, getVariation, sortDailySeries, sumMetric, temporalWindows, type TemporalWindow } from "@/lib/dashboardTemporal";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
-import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip, LineChart, Line, CartesianGrid, XAxis, YAxis } from "recharts";
+import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip, LineChart, Line, CartesianGrid, XAxis, YAxis, ReferenceLine, Legend } from "recharts";
 import { formatInteger, formatDecimal, formatPercent, formatSigned } from "@/lib/formatters";
 
 const sections: PageSectionNavItem[] = [
@@ -197,6 +197,25 @@ export default function AderenciaAtendimento() {
                     <XAxis dataKey="label" tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} />
                     <YAxis tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} domain={trendDomain} />
                     <Tooltip contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 12, fontWeight: 600 }} />
+                    <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
+                    {kpi?.metaAderenciaVolumes != null && (
+                      <ReferenceLine
+                        y={kpi.metaAderenciaVolumes * 100}
+                        stroke="#10b981"
+                        strokeWidth={1.5}
+                        strokeDasharray="5 3"
+                        label={{ value: `Meta vol. ${(kpi.metaAderenciaVolumes * 100).toFixed(0)}%`, position: "insideTopLeft", fill: "#10b981", fontSize: 10, fontWeight: 700 }}
+                      />
+                    )}
+                    {kpi?.metaEntregas != null && (
+                      <ReferenceLine
+                        y={kpi.metaEntregas * 100}
+                        stroke="#667085"
+                        strokeWidth={1.5}
+                        strokeDasharray="5 3"
+                        label={{ value: `Meta entr. ${(kpi.metaEntregas * 100).toFixed(0)}%`, position: "insideBottomLeft", fill: "#667085", fontSize: 10, fontWeight: 700 }}
+                      />
+                    )}
                     <Line type="monotone" dataKey="aderenciaPct" stroke="#522B8F" strokeWidth={2.5} dot={{ r: 3, fill: "#522B8F" }} name="Aderência vol. %" />
                     <Line type="monotone" dataKey="entregasPct" stroke="#EC5B13" strokeWidth={2.5} dot={{ r: 3, fill: "#EC5B13" }} name="Entregas %" />
                   </LineChart>

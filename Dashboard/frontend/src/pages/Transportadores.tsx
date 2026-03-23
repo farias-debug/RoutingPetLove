@@ -6,33 +6,18 @@ import StatusChip from "@/components/dashboard/StatusChip";
 import { useTransportadores } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { BarChart3, Building2, CircleDollarSign, TrendingUp } from "lucide-react";
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, ScatterChart, Scatter, CartesianGrid, XAxis, YAxis, ZAxis, ReferenceLine } from "recharts";
+import { formatInteger, formatPercent, formatMoney } from "@/lib/formatters";
 
 const COLORS = ["#522B8F", "#6B3FB3", "#EC5B13", "#F5913D", "#667085", "#98A2B3", "#D0D5DD"];
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
   { id: "concentracao", label: "Concentração" },
+  { id: "performance", label: "Performance" },
   { id: "ranking", label: "Ranking" },
   { id: "detalhe", label: "Detalhe" },
 ];
-
-function formatInteger(value: number | null | undefined) {
-  return Number(value ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
-}
-
-function formatPercent(value: number | null | undefined, digits = 1) {
-  return `${Number(value ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits })}%`;
-}
-
-function formatMoney(value: number | null | undefined) {
-  return Number(value ?? 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
 
 export default function Transportadores() {
   const { filters } = useGlobalFilters();
@@ -52,6 +37,31 @@ export default function Transportadores() {
     transportador: t.transportador,
     share: +(t.share * 100).toFixed(1),
   }));
+
+  // ScatterChart: Custo × Score com quadrantes
+  const scatterData = list.map(t => ({
+    nome: t.transportador,
+    custo: +t.custoMedioCarga.toFixed(2),
+    score: +t.scoreOperacional.toFixed(1),
+    rotas: t.rotas,
+    entregas: +(t.entregasEfetivas * 100).toFixed(1),
+    status: t.status,
+  }));
+  const custoMediano = list.length > 0
+    ? [...list].sort((a, b) => a.custoMedioCarga - b.custoMedioCarga)[Math.floor(list.length / 2)]?.custoMedioCarga ?? 0
+    : 0;
+  const scoreMediano = list.length > 0
+    ? [...list].sort((a, b) => a.scoreOperacional - b.scoreOperacional)[Math.floor(list.length / 2)]?.scoreOperacional ?? 0
+    : 0;
+
+  function scatterColor(custo: number, score: number): string {
+    const altoScore = score >= scoreMediano;
+    const baixoCusto = custo <= custoMediano;
+    if (altoScore && baixoCusto) return "#10b981"; // estratégico
+    if (altoScore && !baixoCusto) return "#522B8F"; // premium
+    if (!altoScore && baixoCusto) return "#f59e0b"; // atenção
+    return "#ef4444"; // revisão
+  }
 
   const heroHighlights = [
     {
@@ -160,8 +170,8 @@ export default function Transportadores() {
                     innerRadius={50}
                     strokeWidth={2}
                     stroke="hsl(0 0% 100%)"
-                    label={({ transportador, share }) => `${transportador} ${share}%`}
-                    labelLine={{ stroke: "#98A2B3", strokeWidth: 1 }}
+                    label={({ transportador, share }) => share >= 5 ? `${transportador} ${share}%` : ""}
+                    labelLine={({ share }) => share >= 5 ? { stroke: "#98A2B3", strokeWidth: 1 } : false}
                   >
                     {pieData.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -169,6 +179,97 @@ export default function Transportadores() {
                   </Pie>
                   <Tooltip contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 12, fontWeight: 600 }} />
                 </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </SectionCard>
+      </section>
+
+      {/* MAPA DE PERFORMANCE — Scatter Custo × Score */}
+      <section id="performance" className="scroll-mt-24">
+        <SectionCard
+          title="Mapa de performance"
+          subtitle="Custo médio por carga × score operacional — quadrantes por mediana"
+          delay={210}
+        >
+          <div className="mb-3 flex flex-wrap gap-3 text-[11px] font-bold">
+            <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-[#10b981]" /> Estratégico (alto score, baixo custo)</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-[#522B8F]" /> Premium (alto score, alto custo)</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-[#f59e0b]" /> Atenção (baixo score, baixo custo)</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-[#ef4444]" /> Revisão (baixo score, alto custo)</span>
+          </div>
+          <div className="h-72">
+            {isLoading ? (
+              <LoadingSkeleton rows={5} />
+            ) : scatterData.length < 2 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Dados insuficientes para mapa de performance (mínimo 2 transportadores).
+              </p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <ScatterChart margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+                  <XAxis
+                    type="number"
+                    dataKey="custo"
+                    name="Custo/Carga"
+                    tickFormatter={(v) => `R$${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`}
+                    tick={{ fontSize: 10, fontWeight: 600, fill: "#667085" }}
+                    label={{ value: "Custo médio por carga (R$)", position: "insideBottom", offset: -4, fill: "#667085", fontSize: 10 }}
+                  />
+                  <YAxis
+                    type="number"
+                    dataKey="score"
+                    name="Score operacional"
+                    tick={{ fontSize: 10, fontWeight: 600, fill: "#667085" }}
+                    label={{ value: "Score operacional", angle: -90, position: "insideLeft", fill: "#667085", fontSize: 10 }}
+                  />
+                  <ZAxis type="number" dataKey="rotas" range={[40, 260]} name="Rotas" />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 12, fontWeight: 600 }}
+                    cursor={{ strokeDasharray: "3 3" }}
+                    content={({ payload }) => {
+                      if (!payload?.length) return null;
+                      const d = payload[0]?.payload;
+                      if (!d) return null;
+                      return (
+                        <div className="rounded-xl border bg-card p-3 shadow-lg text-xs font-semibold space-y-1">
+                          <p className="font-bold text-sm text-foreground">{d.nome}</p>
+                          <p>Score: {d.score}</p>
+                          <p>Custo/carga: R$ {d.custo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                          <p>Entregas: {d.entregas}%</p>
+                          <p>Rotas: {d.rotas}</p>
+                        </div>
+                      );
+                    }}
+                  />
+                  {custoMediano > 0 && (
+                    <ReferenceLine
+                      x={custoMediano}
+                      stroke="#667085"
+                      strokeDasharray="5 3"
+                      strokeWidth={1.5}
+                      label={{ value: "Mediana custo", position: "insideTopRight", fill: "#667085", fontSize: 9 }}
+                    />
+                  )}
+                  {scoreMediano > 0 && (
+                    <ReferenceLine
+                      y={scoreMediano}
+                      stroke="#667085"
+                      strokeDasharray="5 3"
+                      strokeWidth={1.5}
+                      label={{ value: "Mediana score", position: "insideTopLeft", fill: "#667085", fontSize: 9 }}
+                    />
+                  )}
+                  <Scatter
+                    data={scatterData}
+                    name="Transportadores"
+                  >
+                    {scatterData.map((entry, i) => (
+                      <Cell key={i} fill={scatterColor(entry.custo, entry.score)} />
+                    ))}
+                  </Scatter>
+                </ScatterChart>
               </ResponsiveContainer>
             )}
           </div>
