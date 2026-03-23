@@ -50,6 +50,8 @@ import {
 } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { mapStatusBQtoUI, type DrillRota, type KPIData } from "@/types/api";
+import { formatInteger, formatDecimal, formatMoney, formatPercentFrac as formatPercent } from "@/lib/formatters";
+import { formatShortDate, getVariation } from "@/lib/dashboardTemporal";
 
 const sections = [
   { id: "visao-geral", label: "Visão geral" },
@@ -72,46 +74,8 @@ const trendWindows = [
   { value: "mtd", label: "MTD" },
 ] as const;
 
-function formatInteger(value: number | null | undefined) {
-  if (value == null) return "—";
-  return Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
-}
-
-function formatDecimal(value: number | null | undefined, digits = 1) {
-  if (value == null) return "—";
-  return Number(value).toLocaleString("pt-BR", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-}
-
-function formatPercent(value: number | null | undefined, digits = 1) {
-  if (value == null) return "—";
-  return `${formatDecimal(value * 100, digits)}%`;
-}
-
-function formatMoney(value: number | null | undefined) {
-  if (value == null) return "—";
-  return Number(value).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
-function formatShortDate(value: string | null | undefined) {
-  if (!value) return "-";
-  const [year, month, day] = value.slice(0, 10).split("-");
-  return `${day}/${month}`;
-}
-
-function getVariation(current: number, previous: number) {
-  const delta = current - previous;
-  return {
-    delta,
-    direction: delta > 0 ? "up" : delta < 0 ? "down" : "neutral",
-  };
+function isSameOrBefore(date: string, limitDate: string) {
+  return date <= limitDate;
 }
 
 export default function CockpitOperacional() {
@@ -121,6 +85,7 @@ export default function CockpitOperacional() {
   const [selectedRota, setSelectedRota] = useState<DrillRota | null>(null);
 
   const seriesFilters = {
+    periodo: filters.periodo,
     filial: filters.filial,
     transportador: filters.transportador,
     tipoVeiculo: filters.tipoVeiculo,
@@ -148,6 +113,7 @@ export default function CockpitOperacional() {
     filial: filters.filial,
     periodo: filters.periodo,
     transportador: filters.transportador,
+    tipoVeiculo: filters.tipoVeiculo,
   });
   const { data: motoristasKpis, isLoading: loadingMotoristasKpis } = useMotoristasKpis(filters);
   const { data: drillRotas, isLoading: loadingDrillRotas } = useDrillRotas({
@@ -196,16 +162,27 @@ export default function CockpitOperacional() {
     status: mapStatusBQtoUI(card.status),
   }));
 
-  const trendData = (serieDiaria ?? []).map((item) => ({
+  const baseComparavelEm = cards?.[0]?.databaseDt || kpiDiario?.data || "";
+  const seriesAteBaseComparavel = (serieDiaria ?? []).filter((item) => !baseComparavelEm || isSameOrBefore(item.data, baseComparavelEm));
+  const diasEmAberto = baseComparavelEm
+    ? (serieDiaria ?? []).filter((item) => item.data > baseComparavelEm)
+    : [];
+  const trendData = seriesAteBaseComparavel.map((item) => ({
     ...item,
     label: formatShortDate(item.data),
-    entregasPct: Number((item.entregasEfetivas * 100).toFixed(1)),
-    ocupacaoPct: Number((item.ocupacaoComposta * 100).toFixed(1)),
-    aderenciaPct: Number(((item.aderenciaVolumes ?? 0) * 100).toFixed(1)),
+    entregasPct: Number(((item.entregasEfetivas ?? 0) * 100).toFixed(1)),
+    ocupacaoPct: Number(((item.ocupacaoComposta ?? 0) * 100).toFixed(1)),
+    aderenciaPct: item.aderenciaVolumes == null ? null : Number((item.aderenciaVolumes * 100).toFixed(1)),
   }));
 
-  const latestSeriesPoint = serieDiaria?.[serieDiaria.length - 1];
-  const previousSeriesPoint = serieDiaria && serieDiaria.length > 1 ? serieDiaria[serieDiaria.length - 2] : undefined;
+  const flowTrendData = trendData.filter((item) => item.rotas > 0 || item.pedidos > 0 || item.volumes > 0);
+  const qualityTrendData = trendData.filter((item) => item.aderenciaVolumes != null || (item.tempoMedRealizado ?? 0) > 0 || (item.scoreOperacional ?? 0) > 0);
+
+  const latestSeriesPoint = flowTrendData[flowTrendData.length - 1];
+  const previousSeriesPoint = flowTrendData.length > 1 ? flowTrendData[flowTrendData.length - 2] : undefined;
+  const comparableSeries = qualityTrendData;
+  const latestComparablePoint = comparableSeries[comparableSeries.length - 1] ?? latestSeriesPoint;
+  const previousComparablePoint = comparableSeries.length > 1 ? comparableSeries[comparableSeries.length - 2] : previousSeriesPoint;
 
   const variationCards = latestSeriesPoint && previousSeriesPoint ? [
     {
@@ -216,15 +193,15 @@ export default function CockpitOperacional() {
     },
     {
       label: "Score operacional",
-      value: formatDecimal(latestSeriesPoint.scoreOperacional),
-      detail: `${getVariation(latestSeriesPoint.scoreOperacional, previousSeriesPoint.scoreOperacional).delta >= 0 ? "+" : ""}${formatDecimal(getVariation(latestSeriesPoint.scoreOperacional, previousSeriesPoint.scoreOperacional).delta)} pts`,
-      direction: getVariation(latestSeriesPoint.scoreOperacional, previousSeriesPoint.scoreOperacional).direction,
+      value: formatDecimal(latestComparablePoint.scoreOperacional),
+      detail: `${getVariation(latestComparablePoint.scoreOperacional, previousComparablePoint?.scoreOperacional).delta >= 0 ? "+" : ""}${formatDecimal(getVariation(latestComparablePoint.scoreOperacional, previousComparablePoint?.scoreOperacional).delta)} pts`,
+      direction: getVariation(latestComparablePoint.scoreOperacional, previousComparablePoint?.scoreOperacional).direction,
     },
     {
       label: "Aderência volumes",
-      value: formatPercent(latestSeriesPoint.aderenciaVolumes),
-      detail: `${getVariation(latestSeriesPoint.aderenciaVolumes ?? 0, previousSeriesPoint.aderenciaVolumes ?? 0).delta >= 0 ? "+" : ""}${formatPercent(getVariation(latestSeriesPoint.aderenciaVolumes ?? 0, previousSeriesPoint.aderenciaVolumes ?? 0).delta)}`,
-      direction: getVariation(latestSeriesPoint.aderenciaVolumes ?? 0, previousSeriesPoint.aderenciaVolumes ?? 0).direction,
+      value: formatPercent(latestComparablePoint.aderenciaVolumes),
+      detail: `${getVariation(latestComparablePoint.aderenciaVolumes ?? 0, previousComparablePoint?.aderenciaVolumes ?? 0).delta >= 0 ? "+" : ""}${formatPercent(getVariation(latestComparablePoint.aderenciaVolumes ?? 0, previousComparablePoint?.aderenciaVolumes ?? 0).delta)}`,
+      direction: getVariation(latestComparablePoint.aderenciaVolumes ?? 0, previousComparablePoint?.aderenciaVolumes ?? 0).direction,
     },
     {
       label: "Filiais críticas SPR",
@@ -293,7 +270,22 @@ export default function CockpitOperacional() {
     { label: "Match crítico", value: alertasContagem.matchCritico, tone: "bg-warning/10 text-warning" },
   ] : [];
 
-  const baseAtualizadaEm = cards?.[0]?.databaseDt || kpiDiario?.data || "";
+  const baseAtualizadaEm = baseComparavelEm;
+
+  const buildAlertKey = (rota: string, data: string, transportador: string, index: number) =>
+    `${rota}-${data}-${transportador}-${index}`;
+
+  const buildMotoristaKey = (motorista: string, placa: string, data: string, transportador: string, index: number) =>
+    `${motorista}-${placa}-${data}-${transportador}-${index}`;
+
+  const buildRotaCriticaKey = (
+    rota: string,
+    data: string,
+    filial: string,
+    transportador: string,
+    placa: string,
+    index: number,
+  ) => `${rota}-${data}-${filial}-${transportador}-${placa}-${index}`;
 
   const scrollToSection = (id: SectionId) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -308,7 +300,11 @@ export default function CockpitOperacional() {
               <div className="space-y-5">
                 <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/60">
                   <span>Cockpit executivo-operacional</span>
-                  {baseAtualizadaEm ? <span>Base em {baseAtualizadaEm}</span> : null}
+                  {baseComparavelEm && (
+                    <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold text-white/90 normal-case tracking-normal">
+                      Base: {baseComparavelEm}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <h2 className="max-w-4xl text-3xl font-black tracking-tight text-white sm:text-4xl">
@@ -389,6 +385,11 @@ export default function CockpitOperacional() {
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Tendências e variações</p>
               <h2 className="text-2xl font-black tracking-tight text-foreground">Ritmo diário da operação</h2>
+              {baseAtualizadaEm ? (
+                <p className="mt-2 text-sm font-semibold text-muted-foreground">
+                  Comparativos fechados em {baseAtualizadaEm}. {diasEmAberto.length > 0 ? "Dias posteriores seguem em aberto e foram ocultados dos gráficos comparativos." : ""}
+                </p>
+              ) : null}
             </div>
             <div className="flex items-center gap-2 rounded-2xl border border-border/70 bg-card/70 p-1">
               {trendWindows.map((windowOption) => (
@@ -428,10 +429,10 @@ export default function CockpitOperacional() {
 
           <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
             <SectionCard title="Fluxo diário" subtitle="Rotas, pedidos e volume no período selecionado" delay={80}>
-              <div className="h-80">
+              <div className="h-56 md:h-80">
                 {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={trendData}>
+                    <AreaChart data={flowTrendData}>
                       <defs>
                         <linearGradient id="rotasFill" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#0D7C86" stopOpacity={0.35} />
@@ -443,10 +444,10 @@ export default function CockpitOperacional() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <YAxis tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <Tooltip contentStyle={{ borderRadius: 14, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 16px 40px rgba(2,6,23,0.12)" }} />
-                      <Legend />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} angle={-45} textAnchor="end" height={56} />
+                      <YAxis width={44} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
+                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 8px 16px rgba(2,6,23,0.08)", fontSize: 11 }} />
+                      <Legend align="center" wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
                       <Area type="monotone" dataKey="rotas" stroke="#0D7C86" fill="url(#rotasFill)" strokeWidth={2.5} name="Rotas" />
                       <Area type="monotone" dataKey="pedidos" stroke="#F79009" fill="url(#pedidosFill)" strokeWidth={2.5} name="Pedidos" />
                     </AreaChart>
@@ -455,19 +456,19 @@ export default function CockpitOperacional() {
               </div>
             </SectionCard>
 
-            <SectionCard title="Qualidade de execução" subtitle="Entrega efetiva, score e aderência de volumes" delay={120}>
-              <div className="h-80">
+            <SectionCard title="Qualidade de execução" subtitle="Entrega efetiva e aderência de volumes (%)" delay={120}>
+              <div className="h-56 md:h-80">
                 {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trendData}>
+                    <LineChart data={qualityTrendData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <YAxis tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} domain={[0, 100]} />
-                      <Tooltip contentStyle={{ borderRadius: 14, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 16px 40px rgba(2,6,23,0.12)" }} />
-                      <Legend />
-                      <Line type="monotone" dataKey="scoreOperacional" stroke="#092234" strokeWidth={2.5} dot={false} name="Score" />
-                      <Line type="monotone" dataKey="entregasPct" stroke="#0D7C86" strokeWidth={2.5} dot={false} name="Entrega efetiva %" />
-                      <Line type="monotone" dataKey="aderenciaPct" stroke="#F04438" strokeWidth={2.5} dot={false} name="Aderência volumes %" />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} angle={-45} textAnchor="end" height={56} />
+                      <YAxis width={48} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} domain={[0, 100]} allowDataOverflow unit="%" />
+                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 8px 16px rgba(2,6,23,0.08)", fontSize: 11 }} formatter={(value: number) => `${value.toFixed(1)}%`} />
+                      <Legend align="center" wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
+                      <Line type="monotone" dataKey="entregasPct" stroke="#0D7C86" strokeWidth={2.5} dot={false} name="Entrega efetiva" />
+                      <Line type="monotone" dataKey="aderenciaPct" stroke="#F04438" strokeWidth={2.5} dot={false} name="Aderência volumes" />
+                      <Line type="monotone" dataKey="ocupacaoPct" stroke="#F79009" strokeWidth={2.5} dot={false} name="Ocupação peso" />
                     </LineChart>
                   </ResponsiveContainer>
                 )}
@@ -479,15 +480,15 @@ export default function CockpitOperacional() {
         <section id="filiais" className="scroll-mt-24">
           <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
             <SectionCard title="Filiais com melhor tração" subtitle="Score operacional e entrega efetiva no recorte" delay={140}>
-              <div className="h-80">
+              <div className="h-64 md:h-80">
                 {loadingFiliais ? <LoadingSkeleton rows={5} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={topFiliais.map((item) => ({ nome: item.nomeFilial || item.filial, score: item.scoreOperacional, entrega: Number((item.entregasEfetivas * 100).toFixed(1)) }))} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
                       <XAxis type="number" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} domain={[0, 100]} />
                       <YAxis dataKey="nome" type="category" width={120} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <Tooltip contentStyle={{ borderRadius: 14, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 16px 40px rgba(2,6,23,0.12)" }} />
-                      <Legend />
+                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 8px 16px rgba(2,6,23,0.08)", fontSize: 11 }} />
+                      <Legend align="center" wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
                       <Bar dataKey="score" fill="#092234" radius={[0, 6, 6, 0]} name="Score" />
                       <Bar dataKey="entrega" fill="#0D7C86" radius={[0, 6, 6, 0]} name="Entrega %" />
                     </BarChart>
@@ -563,15 +564,15 @@ export default function CockpitOperacional() {
         <section id="capacidade" className="scroll-mt-24">
           <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
             <SectionCard title="Mix de veículo e ocupação" subtitle="Onde a malha consome capacidade de peso" delay={220}>
-              <div className="h-80">
+              <div className="h-64 md:h-80">
                 {loadingOcupacao ? <LoadingSkeleton rows={5} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={frotaRanking}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
                       <XAxis dataKey="tipoVeiculo" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} interval={0} angle={-14} textAnchor="end" height={60} />
-                      <YAxis tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <Tooltip contentStyle={{ borderRadius: 14, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 16px 40px rgba(2,6,23,0.12)" }} />
-                      <Legend />
+                      <YAxis width={44} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
+                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 8px 16px rgba(2,6,23,0.08)", fontSize: 11 }} />
+                      <Legend align="center" wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
                       <Bar dataKey="rotas" fill="#092234" radius={[6, 6, 0, 0]} name="Rotas" />
                       <Bar dataKey="ocupacaoPercent" fill="#F79009" radius={[6, 6, 0, 0]} name="Ocupação peso %" />
                     </BarChart>
@@ -619,7 +620,7 @@ export default function CockpitOperacional() {
                   <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                     <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Entrega efetiva</p>
                     <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(kpiDiario?.pctEntregasEfetivas)}</p>
-                    <p className="mt-2 text-xs font-semibold text-muted-foreground">Meta {formatPercent(kpiDiario?.metaEntregas ?? 0.98)}</p>
+                    <p className="mt-2 text-xs font-semibold text-muted-foreground">Meta {formatPercent(kpiDiario?.metaEntregas)}</p>
                   </div>
                   <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                     <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">ORH médio</p>
@@ -629,7 +630,7 @@ export default function CockpitOperacional() {
                   <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                     <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Aderência volumes</p>
                     <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(kpiDiario?.pctAderVolumes)}</p>
-                    <p className="mt-2 text-xs font-semibold text-muted-foreground">Meta {formatPercent(kpiDiario?.metaAderenciaVolumes ?? 0.9)}</p>
+                    <p className="mt-2 text-xs font-semibold text-muted-foreground">Meta {formatPercent(kpiDiario?.metaAderenciaVolumes)}</p>
                   </div>
                   <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                     <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">DPPH</p>
@@ -640,19 +641,20 @@ export default function CockpitOperacional() {
               )}
             </SectionCard>
 
-            <SectionCard title="Ritmo de jornada e disciplina operacional" subtitle="Tempo médio, aderência de volumes e pressão de rotas sem tempo" delay={280}>
-              <div className="h-80">
+            <SectionCard title="Score operacional e produtividade" subtitle="Evolução do score e SPR volumes no período" delay={280}>
+              <div className="h-64 md:h-80">
                 {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={trendData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <YAxis tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <Tooltip contentStyle={{ borderRadius: 14, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 16px 40px rgba(2,6,23,0.12)" }} />
-                      <Legend />
-                      <Line type="monotone" dataKey="tempoMedRealizado" stroke="#092234" strokeWidth={2.5} dot={false} name="Tempo médio (h)" />
-                      <Line type="monotone" dataKey="aderenciaPct" stroke="#F79009" strokeWidth={2.5} dot={false} name="Aderência volumes %" />
-                      <Line type="monotone" dataKey="qtdRotasSemTempo" stroke="#F04438" strokeWidth={2.5} dot={false} name="Rotas sem tempo" />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} angle={-45} textAnchor="end" height={56} />
+                      <YAxis yAxisId="left" width={48} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} domain={[0, 100]} />
+                      <YAxis yAxisId="right" width={48} orientation="right" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
+                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 8px 16px rgba(2,6,23,0.08)", fontSize: 11 }} />
+                      <Legend align="center" wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
+                      <Line yAxisId="left" type="monotone" dataKey="scoreOperacional" stroke="#092234" strokeWidth={2.5} dot={false} name="Score operacional" />
+                      <Line yAxisId="left" type="monotone" dataKey="entregasPct" stroke="#0D7C86" strokeWidth={2.5} dot={false} name="Entrega efetiva %" />
+                      <Line yAxisId="right" type="monotone" dataKey="tempoMedRealizado" stroke="#F79009" strokeWidth={2.5} dot={false} name="Tempo médio (h)" />
                     </LineChart>
                   </ResponsiveContainer>
                 )}
@@ -677,7 +679,13 @@ export default function CockpitOperacional() {
             </SectionCard>
 
             <SectionCard title="Rotas com alerta operacional" subtitle="Últimas ocorrências relevantes já prontas para investigação" delay={320}>
-              {loadingAlertas ? <LoadingSkeleton rows={6} /> : (
+              {loadingAlertas ? <LoadingSkeleton rows={6} /> : alertasLista.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <AlertTriangle className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                  <p className="text-sm font-semibold text-muted-foreground">Nenhum alerta operacional no recorte</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Ajuste os filtros ou selecione outro período</p>
+                </div>
+              ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -692,7 +700,7 @@ export default function CockpitOperacional() {
                     </thead>
                     <tbody>
                       {alertasLista.map((item, index) => (
-                        <tr key={`${item.rota}-${index}`} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                        <tr key={buildAlertKey(item.rota, item.data, item.transportador, index)} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
                           <td className="px-3 py-3 font-bold text-foreground">{item.rota}</td>
                           <td className="px-3 py-3 text-muted-foreground">{item.nomeFilial || item.filial}</td>
                           <td className="px-3 py-3 text-muted-foreground">{item.transportador}</td>
@@ -740,7 +748,13 @@ export default function CockpitOperacional() {
             </SectionCard>
 
             <SectionCard title="Motoristas que exigem atenção" subtitle="Quem está puxando a jornada para cima" delay={360}>
-              {loadingMotoristas ? <LoadingSkeleton rows={6} /> : (
+              {loadingMotoristas ? <LoadingSkeleton rows={6} /> : motoristasLista.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Users className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                  <p className="text-sm font-semibold text-muted-foreground">Nenhum motorista encontrado no recorte</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Ajuste os filtros ou selecione outro período</p>
+                </div>
+              ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -754,8 +768,8 @@ export default function CockpitOperacional() {
                       </tr>
                     </thead>
                     <tbody>
-                      {motoristasLista.map((item) => (
-                        <tr key={`${item.motorista}-${item.placa}-${item.data}`} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                      {motoristasLista.map((item, index) => (
+                        <tr key={buildMotoristaKey(item.motorista, item.placa, item.data, item.transportador, index)} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
                           <td className="px-3 py-3 font-bold text-foreground">{item.motorista}</td>
                           <td className="px-3 py-3 text-muted-foreground">{item.transportador}</td>
                           <td className="px-3 py-3 text-muted-foreground">{formatDecimal(item.horasJornada, 2)}h</td>
@@ -779,7 +793,13 @@ export default function CockpitOperacional() {
 
         <section id="drill" className="scroll-mt-24">
           <SectionCard title="Drill operacional" subtitle="Rotas mais frágeis do recorte, prontas para abertura de detalhe" delay={380}>
-            {loadingDrillRotas ? <LoadingSkeleton rows={7} /> : (
+            {loadingDrillRotas ? <LoadingSkeleton rows={7} /> : rotasCriticas.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Route className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                <p className="text-sm font-semibold text-muted-foreground">Nenhuma rota encontrada no recorte</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Ajuste os filtros ou selecione outro período</p>
+              </div>
+            ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -794,9 +814,9 @@ export default function CockpitOperacional() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rotasCriticas.map((item) => (
+                    {rotasCriticas.map((item, index) => (
                       <tr
-                        key={`${item.rota}-${item.data}`}
+                        key={buildRotaCriticaKey(item.rota, item.data, item.filial, item.transportador, item.placa, index)}
                         className="cursor-pointer border-b border-border/40 transition-colors hover:bg-muted/30"
                         onClick={() => setSelectedRota(item)}
                       >

@@ -2,14 +2,15 @@ import { ReactNode, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, DollarSign, Truck, Clock, CheckCircle,
-  BarChart3, Users, Building2, AlertTriangle, ChevronLeft, Menu
+  BarChart3, Users, Building2, AlertTriangle, ChevronLeft, Menu, Info
 } from "lucide-react";
 import petloveLogo from "@/assets/petlove-logo.png";
 import GlobalFiltersBar from "@/components/dashboard/GlobalFiltersBar";
 import { API_ENABLED, MOCKS_ENABLED } from "@/config/env";
+import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 
 const navItems = [
-  { path: "/", label: "Cockpit Executivo", icon: LayoutDashboard },
+  { path: "/", label: "Cockpit Executivo-Operacional", icon: LayoutDashboard },
   { path: "/planejado-realizado", label: "Planejado × Realizado", icon: BarChart3 },
   { path: "/custos", label: "Custos e Eficiência", icon: DollarSign },
   { path: "/frota", label: "Frota e Capacidade", icon: Truck },
@@ -27,6 +28,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { filters } = useGlobalFilters();
   const currentPage = navItems.find((item) => item.path === location.pathname)
     ?? (location.pathname === "/cockpit-operacional" ? navItems[0] : undefined);
 
@@ -106,6 +108,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {MOCKS_ENABLED
               ? "⚠ Modo demonstração — dados fictícios (mocks). Configure VITE_API_BASE_URL para dados reais."
               : "⚠ API não configurada e mocks desativados. Nenhum dado disponível."}
+          </div>
+        )}
+        {API_ENABLED && !filters.periodo && (
+          <div className="flex items-center justify-center gap-1.5 bg-blue-500/10 text-blue-700 dark:text-blue-300 text-center text-xs font-semibold py-1.5 px-4 shrink-0">
+            <Info className="h-3.5 w-3.5 shrink-0" />
+            Exibindo dados do mês corrente. Selecione um período no filtro para navegar no histórico.
           </div>
         )}
         <div className="flex-1 overflow-y-auto p-6 glow-soft">

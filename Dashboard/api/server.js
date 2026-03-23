@@ -18,7 +18,7 @@ const app = express();
 const port = Number(process.env.PORT || 8080);
 const projectId = process.env.BIGQUERY_PROJECT_ID || "data-aileron-482822-d0";
 const dataset = process.env.BIGQUERY_DATASET || "monitoramento_carga";
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:8080,http://localhost:8081,http://localhost:8082,http://localhost:8083,http://localhost:4173,http://localhost:5173,https://data-aileron-482822-d0.web.app,https://data-aileron-482822-d0.firebaseapp.com")
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:8080,http://localhost:8081,http://localhost:8082,http://localhost:8083,http://localhost:4173,http://localhost:5173,http://localhost:5174,https://data-aileron-482822-d0.web.app,https://data-aileron-482822-d0.firebaseapp.com")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -97,7 +97,7 @@ app.get("/api/filtros/opcoes", async (req, res) => {
     };
     const mkAlertWhere = () => {
       const params = {};
-      const where = buildCanonAlertWhere(req.query, params, { alias: "a" });
+      const where = buildCanonAlertWhere(req.query, params, { alias: "b" });
       return { where, params };
     };
 
@@ -272,7 +272,7 @@ app.get("/api/alertas", async (req, res) => {
       data: rows.map((row) => ({
         data: formatDate(row.data),
         filial: row.filial,
-        nomeFilial: normalizeEntityLabel(row.filial, row.filial),
+        nomeFilial: normalizeEntityLabel(row.nomeFilial, row.filial),
         regiao: row.regiao,
         transportador: normalizeEntityLabel(row.transportador, "Transportador não informado"),
         rota: row.rota,
@@ -281,26 +281,26 @@ app.get("/api/alertas", async (req, res) => {
         motorista: normalizeEntityLabel(row.motorista, "Motorista não informado"),
         tipoVeiculo: row.tipo_veiculo,
         status: row.status,
-        statusRota: normalizeStatus(row.status_rota),
-        cor: colorHex(row.status_rota_cor),
-        pedidos: Number(row.qtd_pedidos ?? 0),
-        volumes: Number(row.qtd_volumes ?? 0),
-        peso: null,
-        entregues: Number(row.qtd_entregues ?? 0),
-        insucessos: Number(row.qtd_insucessos ?? 0),
-        kmPlanejado: null,
-        kmRealizado: null,
-        tempoPlanejado: null,
-        tempoRealizado: Number(row.tempo_operacional_h ?? 0),
-        entregaEfetivaRota: Number(row.pct_entregas_efetivas ?? 0),
-        ocupacaoComposta: Number(row.ocupacao_peso ?? 0),
-        ocupacaoPeso: Number(row.ocupacao_peso ?? 0),
-        flagNaoPlanejada: Boolean(row.flag_nao_planejada),
-        flagSemTempo: Boolean(row.flag_sem_tempo),
-        flagOvertime: Boolean(row.flag_overtime),
-        flagMatchCritico: Boolean(row.flag_match_critico),
-        flagEntregaCritica: Boolean(row.flag_entrega_critica),
-        matchTemporal: row.match_temporal,
+        statusRota: normalizeStatus(row.statusRota),
+        cor: colorHex(row.statusRotaCor),
+        pedidos: Number(row.pedidosRota ?? 0),
+        volumes: Number(row.volumesRota ?? 0),
+        peso: Number(row.pesoReal ?? 0),
+        entregues: Number(row.entregues ?? 0),
+        insucessos: Number(row.insucessos ?? 0),
+        kmPlanejado: Number(row.kmPlanejado ?? 0),
+        kmRealizado: Number(row.kmRealizado ?? 0),
+        tempoPlanejado: Number(row.tempoPlaneadoH ?? 0),
+        tempoRealizado: Number(row.tempoRealizadoH ?? 0),
+        entregaEfetivaRota: Number(row.entregaEfetivaRota ?? 0),
+        ocupacaoComposta: Number(row.ocupacaoPeso ?? 0),
+        ocupacaoPeso: Number(row.ocupacaoPeso ?? 0),
+        flagNaoPlanejada: Boolean(row.flagNaoPlanejada),
+        flagSemTempo: Boolean(row.flagSemTempo),
+        flagOvertime: Boolean(row.flagOvertime),
+        flagMatchCritico: Boolean(row.flagMatchCritico),
+        flagEntregaCritica: Boolean(row.flagEntregaCritica),
+        matchTemporal: null,
         prioridade: row.prioridade,
       })),
       total,
@@ -340,6 +340,8 @@ app.get("/api/drill-rotas", async (req, res) => {
       transportadorField: "d.transportador",
       statusField: "d.status_tms",
       tipoVeiculoField: "d.tipo_veiculo",
+      tipoFilialField: "d.tipo_filial",
+      unitOnly: true,
     });
     if (req.query.prioridade) {
       params.prioridade = String(req.query.prioridade).toLowerCase();
@@ -351,7 +353,7 @@ app.get("/api/drill-rotas", async (req, res) => {
     }
     const orderMap = {
       data: "d.data_referencia",
-      scoreOperacional: "score_operacional",
+      scoreOperacional: "scoreOperacional",
       pedidos: "d.qtd_pedidos",
       volumes: "d.qtd_volumes",
       kmRealizado: "d.km_realizado",
@@ -368,33 +370,33 @@ app.get("/api/drill-rotas", async (req, res) => {
       data: rows.map((row) => ({
         data: formatDate(row.data),
         filial: row.filial,
-        nomeFilial: row.filial,
+        nomeFilial: normalizeEntityLabel(row.nomeFilial, row.filial),
         transportador: normalizeEntityLabel(row.transportador, "Transportador não informado"),
         rota: row.rota,
         placa: row.placa,
         motorista: normalizeEntityLabel(row.motorista, "Motorista não informado"),
         tipoVeiculo: row.tipo_veiculo,
         status: row.status,
-        pedidos: Number(row.qtd_pedidos ?? 0),
-        volumes: Number(row.qtd_volumes ?? 0),
-        peso: Number(row.peso_real_kg ?? 0),
-        entregas: Number(row.qtd_entregues ?? 0),
-        insucessos: Number(row.qtd_insucessos ?? 0),
-        kmPlanejado: Number(row.km_plan ?? 0),
-        kmRealizado: Number(row.km_real ?? 0),
-        tempoPlanejado: Number(row.tempo_plan_h ?? 0),
-        tempoRealizado: Number(row.tempo_operacional_h ?? 0),
-        entregaEfetiva: Number(row.pct_entregas_efetivas ?? 0),
-        ocupacaoPedidos: row.ocupacao_pedidos == null ? null : Number(row.ocupacao_pedidos),
-        ocupacaoVolumes: row.aderencia_volumes == null ? null : Number(row.aderencia_volumes),
-        ocupacaoComposta: Number(row.ocupacao_composta ?? 0),
-        ocupacaoPeso: Number(row.ocupacao_peso ?? 0),
-        aderenciaVolumes: row.aderencia_volumes == null ? null : Number(row.aderencia_volumes),
-        custoMedioCarga: row.valor_total == null ? null : Number(row.valor_total),
-        scoreOperacional: Number(row.score_operacional ?? 0),
-        flagOvertime: Boolean(row.flag_overtime),
-        flagEntregaCritica: Boolean(row.flag_entrega_critica),
-        alertaOperacional: row.match_temporal,
+        pedidos: Number(row.pedidosRota ?? 0),
+        volumes: Number(row.volumesRota ?? 0),
+        peso: Number(row.pesoReal ?? 0),
+        entregas: Number(row.entregues ?? 0),
+        insucessos: Number(row.insucessos ?? 0),
+        kmPlanejado: Number(row.kmPlanejado ?? 0),
+        kmRealizado: Number(row.kmRealizado ?? 0),
+        tempoPlanejado: Number(row.tempoPlaneadoH ?? 0),
+        tempoRealizado: Number(row.tempoRealizadoH ?? 0),
+        entregaEfetiva: Number(row.entregaEfetivaRota ?? 0),
+        ocupacaoPedidos: null,
+        ocupacaoVolumes: row.aderenciaVolumes == null ? null : Number(row.aderenciaVolumes),
+        ocupacaoComposta: Number(row.ocupacaoPeso ?? 0),
+        ocupacaoPeso: Number(row.ocupacaoPeso ?? 0),
+        aderenciaVolumes: row.aderenciaVolumes == null ? null : Number(row.aderenciaVolumes),
+        custoMedioCarga: row.valorTotal == null ? null : Number(row.valorTotal),
+        scoreOperacional: Number(row.scoreOperacional ?? 0),
+        flagOvertime: Boolean(row.flagOvertime),
+        flagEntregaCritica: Boolean(row.flagEntregaCritica),
+        alertaOperacional: row.statusRota,
       })),
       total,
       page,
@@ -410,14 +412,7 @@ app.get("/api/drill-rotas", async (req, res) => {
 app.get("/api/transportadores", async (req, res) => {
   try {
     const params = {};
-    const where = buildCanonWhere(req.query, params, {
-      alias: "t",
-      dateField: "t.data",
-      filialField: "t.filial",
-      transportadorField: "t.transportador",
-      statusField: "t.status",
-      tipoVeiculoField: "t.tipo_veiculo",
-    });
+    const where = buildCanonWhere(req.query, params, canonOpts());
     const rows = await runQuery(Q.transportadoresQuery(projectId, dataset, where), params);
     res.json(rows.map((row) => ({
       transportador: normalizeEntityLabel(row.transportador, "Transportador não informado"),
@@ -433,8 +428,8 @@ app.get("/api/transportadores", async (req, res) => {
       pedidos: Number(row.pedidos ?? 0),
       volumes: Number(row.volumes ?? 0),
       valorTotal: Number(row.valor_total ?? 0),
-      status: Number(row.score_operacional ?? 0) >= 80 ? "OK" : Number(row.score_operacional ?? 0) >= 60 ? "Atenção" : "Crítico",
-      statusCor: Number(row.score_operacional ?? 0) >= 80 ? "#12B76A" : Number(row.score_operacional ?? 0) >= 60 ? "#F79009" : "#F04438",
+      status: row.status_transportador ?? (Number(row.score_operacional ?? 0) >= 80 ? "OK" : Number(row.score_operacional ?? 0) >= 60 ? "Atenção" : "Crítico"),
+      statusCor: (row.status_transportador ?? "").startsWith("OK") ? "#12B76A" : (row.status_transportador ?? "").startsWith("Atencao") ? "#F79009" : "#F04438",
     })));
   } catch (error) {
     sendError(res, 500, "TRANSPORTADORES_QUERY_FAILED", "Falha ao consultar transportadores", { message: error.message });
@@ -446,16 +441,14 @@ app.get("/api/transportadores", async (req, res) => {
 app.get("/api/frota/ocupacao-tipo", async (req, res) => {
   try {
     const params = {};
-    let where = " WHERE 1 = 1";
-    where += buildDateFilter("data_referencia", req.query.periodo, params);
-    if (req.query.transportador) {
-      params.transportador = normalizeEntityKey(req.query.transportador);
-      where += ` AND ${bqNormalizeText}(transportador) = @transportador`;
-    }
-    if (req.query.tipoVeiculo) {
-      params.tipoVeiculo = String(req.query.tipoVeiculo);
-      where += " AND tipo_veiculo = @tipoVeiculo";
-    }
+    const where = buildCanonWhere(req.query, params, {
+      dateField: "data_referencia",
+      filialField: "filial",
+      transportadorField: "transportador",
+      tipoVeiculoField: "tipo_veiculo",
+      tipoFilialField: "tipo_filial",
+      unitOnly: true,
+    });
     const rows = await runQuery(Q.frotaOcupacaoQuery(projectId, dataset, where), params);
     res.json(rows.map((row) => ({
       tipoVeiculo: row.tipo_veiculo,
@@ -484,7 +477,7 @@ app.get("/api/motoristas", async (req, res) => {
     const limit = Math.min(200, Math.max(1, Number(req.query.limit || 20)));
     const offset = (page - 1) * limit;
     const params = { limit, offset };
-    const where = buildCanonWhere({ ...req.query, periodo: req.query.periodo || req.query.data }, params, { alias: "m", dateField: "m.data" });
+    const where = buildCanonWhere({ ...req.query, periodo: req.query.periodo || req.query.data }, params, canonOpts({ alias: "b", dateField: "b.data_referencia" }));
     const overtimeClause = String(req.query.overtime || "") === "true" ? " AND flag_overtime = TRUE" : "";
 
     const countRows = await runQuery(Q.motoristasCountQuery(projectId, dataset, where, overtimeClause), params);
@@ -495,7 +488,7 @@ app.get("/api/motoristas", async (req, res) => {
       data: rows.map((row) => ({
         data: formatDate(row.data),
         filial: row.filial,
-        nomeFilial: row.filial,
+        nomeFilial: normalizeEntityLabel(row.filial, row.filial),
         transportador: normalizeEntityLabel(row.transportador, "Transportador não informado"),
         motorista: normalizeEntityLabel(row.motorista, "Motorista não informado"),
         placa: null,
@@ -522,7 +515,7 @@ app.get("/api/motoristas", async (req, res) => {
 app.get("/api/motoristas/kpis", async (req, res) => {
   try {
     const params = {};
-    const where = buildCanonWhere({ ...req.query, periodo: req.query.periodo || req.query.data }, params, { alias: "m", dateField: "m.data" });
+    const where = buildCanonWhere({ ...req.query, periodo: req.query.periodo || req.query.data }, params, canonOpts({ alias: "b", dateField: "b.data_referencia" }));
     const rows = await runQuery(Q.motoristasKpisQuery(projectId, dataset, where), params);
     res.json(rows[0] || { motoristasAtivos: 0, mediaRotasDia: 0, jornadaMedia: 0, qtdOvertime: 0, dpph: 0 });
   } catch (error) {

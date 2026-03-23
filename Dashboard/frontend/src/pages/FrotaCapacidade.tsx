@@ -7,6 +7,9 @@ import SectionCard from "@/components/dashboard/SectionCard";
 import { useKpiDiario, useOcupacaoTipoVeiculo } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { formatInteger, formatPercent } from "@/lib/formatters";
+
+const vehicleOrder = ["Utilitario", "Passeio", "Van"] as const;
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
@@ -15,51 +18,46 @@ const sections: PageSectionNavItem[] = [
   { id: "leituras", label: "Leituras" },
 ];
 
-function formatInteger(value: number | null | undefined) {
-  if (value == null) return "—";
-  return Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
-}
-
-function formatPercent(value: number | null | undefined, digits = 1) {
-  if (value == null) return "—";
-  return `${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits })}%`;
-}
-
 export default function FrotaCapacidade() {
   const { filters } = useGlobalFilters();
   const { data: kpi, isLoading: loadingKpi } = useKpiDiario(filters);
   const { data: ocupacao, isLoading: loadingOcupacao } = useOcupacaoTipoVeiculo(filters);
 
+  const chartData = (ocupacao ?? [])
+    .filter((item) => vehicleOrder.includes(item.tipoVeiculo as (typeof vehicleOrder)[number]))
+    .sort((left, right) => vehicleOrder.indexOf(left.tipoVeiculo as (typeof vehicleOrder)[number]) - vehicleOrder.indexOf(right.tipoVeiculo as (typeof vehicleOrder)[number]))
+    .map((o) => ({
+      tipo: o.tipoVeiculo,
+      rotas: o.rotas,
+      ocupacaoPeso: o.ocupacaoPeso == null ? null : +(o.ocupacaoPeso * 100).toFixed(1),
+      sprVeiculo: o.sprPorVeiculo,
+      orh: o.orh,
+      capacidadeKg: o.capacidadePesoTotalKg,
+      pesoKg: o.pesoTotalKg,
+    }));
+
+  const totalCapacidadeKg = chartData.reduce((sum, item) => sum + item.capacidadeKg, 0);
+  const totalPesoKg = chartData.reduce((sum, item) => sum + item.pesoKg, 0);
+  const ocupacaoConsolidada = totalCapacidadeKg > 0 ? totalPesoKg / totalCapacidadeKg : null;
+
   const kpis = kpi ? [
     { label: "Veículos Ativos", value: kpi.veiculosAtivos, unit: "veíc.", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
     { label: "Motoristas Ativos", value: kpi.motoristasAtivos, unit: "mot.", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
-    { label: "Capacidade de Peso", value: kpi.pctOcupacaoPeso == null ? "—" : +(kpi.pctOcupacaoPeso * 100).toFixed(1), unit: kpi.pctOcupacaoPeso == null ? "" : "%", meta: (kpi.metaOcupacaoPeso ?? 0.85) * 100, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: (kpi.pctOcupacaoPeso ?? -1) >= (kpi.metaOcupacaoPeso ?? 0.85) ? "success" as const : "warning" as const },
-    { label: "Ocupação Pedidos", value: +(kpi.pctOcupacaoPedidos * 100).toFixed(1), unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
-    { label: "Ocupação Volumes", value: +(kpi.pctOcupacaoVolumes * 100).toFixed(1), unit: "%", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
+    { label: "Ocupação Peso", value: ocupacaoConsolidada == null ? "—" : +(ocupacaoConsolidada * 100).toFixed(1), unit: ocupacaoConsolidada == null ? "" : "%", meta: kpi.metaOcupacaoPeso != null ? kpi.metaOcupacaoPeso * 100 : undefined, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: (ocupacaoConsolidada ?? -1) >= (kpi.metaOcupacaoPeso ?? 0) ? "success" as const : "warning" as const },
+    { label: "Peso Movimentado", value: formatInteger(totalPesoKg), unit: "kg", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
+    { label: "Capacidade Total", value: formatInteger(totalCapacidadeKg), unit: "kg", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
   ] : [];
-
-  const chartData = (ocupacao ?? []).map((o) => ({
-    tipo: o.tipoVeiculo,
-    rotas: o.rotas,
-    ocupacaoPeso: o.ocupacaoPeso == null ? null : +(o.ocupacaoPeso * 100).toFixed(1),
-    sprVeiculo: o.sprPorVeiculo,
-    orh: o.orh,
-    capacidadeKg: o.capacidadePesoTotalKg,
-    pesoKg: o.pesoTotalKg,
-  }));
 
   const chartDataComOcupacao = chartData.filter((item) => item.ocupacaoPeso != null);
   const maiorOcupacao = [...chartDataComOcupacao].sort((left, right) => (right.ocupacaoPeso ?? 0) - (left.ocupacaoPeso ?? 0))[0];
   const menorOcupacao = [...chartDataComOcupacao].sort((left, right) => (left.ocupacaoPeso ?? 0) - (right.ocupacaoPeso ?? 0))[0];
   const maiorSpr = [...chartData].sort((left, right) => right.sprVeiculo - left.sprVeiculo)[0];
-  const totalCapacidadeKg = chartData.reduce((sum, item) => sum + item.capacidadeKg, 0);
-  const totalPesoKg = chartData.reduce((sum, item) => sum + item.pesoKg, 0);
 
   const heroHighlights = [
     {
-      label: "Capacidade de peso",
-      value: formatPercent(kpi?.pctOcupacaoPeso == null ? null : kpi.pctOcupacaoPeso * 100),
-      detail: `Meta ${formatPercent((kpi?.metaOcupacaoPeso ?? 0.85) * 100, 0)}`,
+      label: "Ocupação por peso",
+      value: formatPercent(ocupacaoConsolidada == null ? null : ocupacaoConsolidada * 100),
+      detail: kpi?.metaOcupacaoPeso != null ? `Meta ${formatPercent(kpi.metaOcupacaoPeso * 100, 0)}` : "Sem meta publicada",
       icon: <Scale className="h-4 w-4" />,
     },
     {
@@ -102,19 +100,18 @@ export default function FrotaCapacidade() {
       </section>
 
       <section id="capacidade" className="scroll-mt-24">
-        <SectionCard title="Capacidade por tipo de veículo" subtitle="Peso embarcado versus capacidade disponível" delay={350}>
+        <SectionCard title="Capacidade por tipo de veículo" subtitle="Somente Utilitario, Passeio e Van no peso embarcado versus capacidade disponível" delay={350}>
           <div className="h-64">
             {loadingOcupacao ? <LoadingSkeleton rows={4} /> : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
                   <XAxis dataKey="tipo" tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} />
-                  <YAxis tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} domain={[0, 100]} />
+                  <YAxis tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} />
                   <Tooltip contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 12, fontWeight: 600 }} />
                   <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
-                  <Bar dataKey="ocupacaoPeso" fill="#522B8F" name="Ocupação Peso %" radius={[4, 4, 0, 0]} barSize={18} />
-                  <Bar dataKey="sprVeiculo" fill="#EC5B13" name="SPR/Veículo" radius={[4, 4, 0, 0]} barSize={18} />
-                  <Bar dataKey="orh" fill="#667085" name="ORH (h)" radius={[4, 4, 0, 0]} barSize={18} />
+                  <Bar dataKey="capacidadeKg" fill="#522B8F" name="Capacidade de peso (kg)" radius={[4, 4, 0, 0]} barSize={18} />
+                  <Bar dataKey="pesoKg" fill="#EC5B13" name="Peso movimentado (kg)" radius={[4, 4, 0, 0]} barSize={18} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -204,17 +201,17 @@ export default function FrotaCapacidade() {
                 <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Peso movimentado</p>
                   <p className="mt-3 text-2xl font-black tracking-tight text-foreground">{formatInteger(totalPesoKg)} kg</p>
-                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Ocupação consolidada de {formatPercent(kpi?.pctOcupacaoPeso == null ? null : kpi.pctOcupacaoPeso * 100)}</p>
+                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Ocupação consolidada de {formatPercent(ocupacaoConsolidada == null ? null : ocupacaoConsolidada * 100)}</p>
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Ocupação pedidos</p>
-                  <p className="mt-3 text-2xl font-black tracking-tight text-foreground">{formatPercent(kpi?.pctOcupacaoPedidos == null ? null : kpi.pctOcupacaoPedidos * 100)}</p>
-                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Leitura complementar da alocação por veículo</p>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Tipos monitorados</p>
+                  <p className="mt-3 text-2xl font-black tracking-tight text-foreground">{formatInteger(chartData.length)}</p>
+                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Escopo fixo do painel: Utilitario, Passeio e Van</p>
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Ocupação volumes</p>
-                  <p className="mt-3 text-2xl font-black tracking-tight text-foreground">{formatPercent(kpi?.pctOcupacaoVolumes == null ? null : kpi.pctOcupacaoVolumes * 100)}</p>
-                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Base para priorizar redistribuição e mix</p>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Maior ocupação</p>
+                  <p className="mt-3 text-2xl font-black tracking-tight text-foreground">{maiorOcupacao ? formatPercent(maiorOcupacao.ocupacaoPeso) : "—"}</p>
+                  <p className="mt-2 text-xs font-semibold text-muted-foreground">{maiorOcupacao ? maiorOcupacao.tipo : "Sem dados no recorte"}</p>
                 </div>
               </div>
             )}

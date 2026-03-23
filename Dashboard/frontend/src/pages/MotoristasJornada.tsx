@@ -7,6 +7,7 @@ import StatusChip from "@/components/dashboard/StatusChip";
 import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
 import { useMotoristas, useMotoristasKpis } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
+import { formatInteger, formatDuration } from "@/lib/formatters";
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
@@ -15,22 +16,11 @@ const sections: PageSectionNavItem[] = [
   { id: "tabela", label: "Tabela" },
 ];
 
-function formatInteger(value: number | null | undefined) {
-  return Number(value ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
-}
-
-function formatDuration(hours: number | null | undefined) {
-  const totalHours = Number(hours ?? 0);
-  const integerHours = Math.floor(totalHours);
-  const minutes = Math.round((totalHours % 1) * 60);
-  return `${integerHours}h ${minutes}min`;
-}
-
 export default function MotoristasJornada() {
   const { filters, searchParams, setParam } = useGlobalFilters();
   const page = Number(searchParams.get("motoristasPage") || "1");
   const { data: kpis, isLoading: loadingKpis } = useMotoristasKpis(filters);
-  const { data: motoristas, isLoading: loadingList } = useMotoristas({ page, limit: 20, periodo: filters.periodo, filial: filters.filial, transportador: filters.transportador });
+  const { data: motoristas, isLoading: loadingList } = useMotoristas({ page, limit: 20, periodo: filters.periodo, filial: filters.filial, transportador: filters.transportador, tipoVeiculo: filters.tipoVeiculo });
 
   const kpiCards = kpis ? [
     { label: "Motoristas Ativos", value: kpis.motoristasAtivos, unit: "mot.", trend: "neutral" as const, trendValue: undefined, status: "success" as const },

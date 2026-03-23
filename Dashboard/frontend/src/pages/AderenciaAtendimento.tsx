@@ -10,6 +10,7 @@ import { useCockpitSerieDiaria, useKpiDiario, useFilialPerformance } from "@/hoo
 import { formatShortDate, getMetricDomain, getSeriesExtremes, getVariation, sortDailySeries, sumMetric, temporalWindows, type TemporalWindow } from "@/lib/dashboardTemporal";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip, LineChart, Line, CartesianGrid, XAxis, YAxis } from "recharts";
+import { formatInteger, formatDecimal, formatPercent, formatSigned } from "@/lib/formatters";
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
@@ -19,35 +20,13 @@ const sections: PageSectionNavItem[] = [
   { id: "leituras", label: "Leituras" },
 ];
 
-function formatInteger(value: number | null | undefined) {
-  if (value == null) return "—";
-  return Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
-}
-
-function formatDecimal(value: number | null | undefined, digits = 1) {
-  if (value == null) return "—";
-  return Number(value).toLocaleString("pt-BR", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-}
-
-function formatPercent(value: number | null | undefined, digits = 1) {
-  if (value == null) return "—";
-  return `${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits })}%`;
-}
-
-function formatSigned(value: number, formatter: (input: number) => string) {
-  const signal = value >= 0 ? "+" : "-";
-  return `${signal}${formatter(Math.abs(value))}`;
-}
-
 export default function AderenciaAtendimento() {
   const [trendWindow, setTrendWindow] = useState<TemporalWindow>("30d");
   const { filters } = useGlobalFilters();
   const { data: kpi, isLoading: loadingKpi } = useKpiDiario(filters);
   const { data: filiais, isLoading: loadingFiliais } = useFilialPerformance(filters);
   const { data: serieDiaria, isLoading: loadingSerieDiaria } = useCockpitSerieDiaria(trendWindow, {
+    periodo: filters.periodo,
     filial: filters.filial,
     transportador: filters.transportador,
     tipoVeiculo: filters.tipoVeiculo,
@@ -55,21 +34,21 @@ export default function AderenciaAtendimento() {
   });
 
   const kpis = kpi ? [
-    { label: "Aderência Pedidos", value: +(kpi.pctAderPedidos * 100).toFixed(1), unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
-    { label: "Aderência Volumes", value: +(kpi.pctAderVolumes * 100).toFixed(1), unit: "%", meta: (kpi.metaAderenciaVolumes ?? 0.9) * 100, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
-    { label: "Aderência Peso", value: +(kpi.pctAderPeso * 100).toFixed(1), unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
-    { label: "Aderência KM", value: +(kpi.pctAderKm * 100).toFixed(1), unit: "%", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
-    { label: "Aderência Tempo", value: +(kpi.pctAderTempo * 100).toFixed(1), unit: "%", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
-    { label: "Match Mesmo Dia", value: +(kpi.pctMatchMesmoDia * 100).toFixed(1), unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Aderência Pedidos", value: kpi.pctAderPedidos != null ? +(kpi.pctAderPedidos * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Aderência Volumes", value: kpi.pctAderVolumes != null ? +(kpi.pctAderVolumes * 100).toFixed(1) : "—", unit: "%", meta: kpi.metaAderenciaVolumes != null ? kpi.metaAderenciaVolumes * 100 : undefined, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
+    { label: "Aderência Peso", value: kpi.pctAderPeso != null ? +(kpi.pctAderPeso * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Aderência KM", value: kpi.pctAderKm != null ? +(kpi.pctAderKm * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
+    { label: "Aderência Tempo", value: kpi.pctAderTempo != null ? +(kpi.pctAderTempo * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
+    { label: "Match Mesmo Dia", value: kpi.pctMatchMesmoDia != null ? +(kpi.pctMatchMesmoDia * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
   ] : [];
 
   const radarData = kpi ? [
-    { dim: "Pedidos", valor: +(kpi.pctAderPedidos * 100).toFixed(1) },
-    { dim: "Volumes", valor: +(kpi.pctAderVolumes * 100).toFixed(1) },
-    { dim: "Peso", valor: +(kpi.pctAderPeso * 100).toFixed(1) },
-    { dim: "KM", valor: +(kpi.pctAderKm * 100).toFixed(1) },
-    { dim: "Tempo", valor: +(kpi.pctAderTempo * 100).toFixed(1) },
-    { dim: "Match", valor: +(kpi.pctMatchMesmoDia * 100).toFixed(1) },
+    { dim: "Pedidos", valor: kpi.pctAderPedidos != null ? +(kpi.pctAderPedidos * 100).toFixed(1) : 0 },
+    { dim: "Volumes", valor: kpi.pctAderVolumes != null ? +(kpi.pctAderVolumes * 100).toFixed(1) : 0 },
+    { dim: "Peso", valor: kpi.pctAderPeso != null ? +(kpi.pctAderPeso * 100).toFixed(1) : 0 },
+    { dim: "KM", valor: kpi.pctAderKm != null ? +(kpi.pctAderKm * 100).toFixed(1) : 0 },
+    { dim: "Tempo", valor: kpi.pctAderTempo != null ? +(kpi.pctAderTempo * 100).toFixed(1) : 0 },
+    { dim: "Match", valor: kpi.pctMatchMesmoDia != null ? +(kpi.pctMatchMesmoDia * 100).toFixed(1) : 0 },
   ] : [];
 
   const filialList = (filiais ?? []).map(f => ({
@@ -80,9 +59,12 @@ export default function AderenciaAtendimento() {
 
   const orderedSeries = sortDailySeries(serieDiaria);
   const { latest: latestSeriesPoint, previous: previousSeriesPoint } = getSeriesExtremes(orderedSeries);
+  const comparableSeries = orderedSeries.filter((item) => item.aderenciaVolumes != null || (item.scoreOperacional ?? 0) > 0 || (item.tempoMedRealizado ?? 0) > 0);
+  const latestComparablePoint = comparableSeries[comparableSeries.length - 1] ?? latestSeriesPoint;
+  const previousComparablePoint = comparableSeries.length > 1 ? comparableSeries[comparableSeries.length - 2] : previousSeriesPoint;
   const seriesChart = orderedSeries.map((item) => ({
     label: formatShortDate(item.data),
-    aderenciaPct: Number((item.aderenciaVolumes * 100).toFixed(1)),
+    aderenciaPct: item.aderenciaVolumes == null ? null : Number((item.aderenciaVolumes * 100).toFixed(1)),
     entregasPct: Number((item.entregasEfetivas * 100).toFixed(1)),
     score: Number(item.scoreOperacional.toFixed(1)),
   }));
@@ -92,12 +74,12 @@ export default function AderenciaAtendimento() {
   const melhorFilial = [...filialList].sort((left, right) => right.entregasEfetivas - left.entregasEfetivas)[0];
   const piorFilial = [...filialList].sort((left, right) => left.entregasEfetivas - right.entregasEfetivas)[0];
 
-  const aderenciaVariation = getVariation(latestSeriesPoint?.aderenciaVolumes, previousSeriesPoint?.aderenciaVolumes);
   const entregasVariation = getVariation(latestSeriesPoint?.entregasEfetivas, previousSeriesPoint?.entregasEfetivas);
-  const scoreVariation = getVariation(latestSeriesPoint?.scoreOperacional, previousSeriesPoint?.scoreOperacional);
   const rotasVariation = getVariation(latestSeriesPoint?.rotas, previousSeriesPoint?.rotas);
+  const aderenciaVariationComparable = getVariation(latestComparablePoint?.aderenciaVolumes, previousComparablePoint?.aderenciaVolumes);
+  const scoreVariationComparable = getVariation(latestComparablePoint?.scoreOperacional, previousComparablePoint?.scoreOperacional);
   const trendDomain = getMetricDomain(
-    [...seriesChart.flatMap((item) => [item.aderenciaPct, item.entregasPct]), (kpi?.metaAderenciaVolumes ?? 0.9) * 100],
+    [...seriesChart.flatMap((item) => [item.aderenciaPct, item.entregasPct]), kpi?.metaAderenciaVolumes != null ? kpi.metaAderenciaVolumes * 100 : null].filter((v): v is number => v != null),
     { min: 0, max: 100, minimumSpan: 2 },
   );
   const windowLabel = temporalWindows.find((item) => item.value === trendWindow)?.label ?? trendWindow.toUpperCase();
@@ -105,7 +87,7 @@ export default function AderenciaAtendimento() {
   const heroHighlights = [
     {
       label: "Aderência volumes",
-      value: latestSeriesPoint ? formatPercent(latestSeriesPoint.aderenciaVolumes == null ? null : latestSeriesPoint.aderenciaVolumes * 100) : formatPercent(kpi?.pctAderVolumes == null ? null : kpi.pctAderVolumes * 100),
+      value: latestComparablePoint ? formatPercent(latestComparablePoint.aderenciaVolumes == null ? null : latestComparablePoint.aderenciaVolumes * 100) : formatPercent(kpi?.pctAderVolumes == null ? null : kpi.pctAderVolumes * 100),
       detail: kpi?.metaAderenciaVolumes ? `Meta ${formatPercent(kpi.metaAderenciaVolumes * 100)}` : "Sem meta publicada no recorte",
       icon: <PackageCheck className="h-4 w-4" />,
     },
@@ -132,9 +114,9 @@ export default function AderenciaAtendimento() {
   const variationCards = [
     {
       label: "Aderência volumes vs D-1",
-      value: latestSeriesPoint ? formatPercent(latestSeriesPoint.aderenciaVolumes == null ? null : latestSeriesPoint.aderenciaVolumes * 100) : "—",
-      detail: previousSeriesPoint ? formatSigned(aderenciaVariation.delta * 100, (value) => formatPercent(value)) : "Sem D-1 disponível",
-      direction: aderenciaVariation.direction,
+      value: latestComparablePoint ? formatPercent(latestComparablePoint.aderenciaVolumes == null ? null : latestComparablePoint.aderenciaVolumes * 100) : "—",
+      detail: previousComparablePoint ? formatSigned(aderenciaVariationComparable.delta * 100, (value) => formatPercent(value)) : "Sem D-1 disponível",
+      direction: aderenciaVariationComparable.direction,
     },
     {
       label: "Entregas efetivas vs D-1",
@@ -144,9 +126,9 @@ export default function AderenciaAtendimento() {
     },
     {
       label: "Score operacional vs D-1",
-      value: latestSeriesPoint ? formatDecimal(latestSeriesPoint.scoreOperacional) : "—",
-      detail: previousSeriesPoint ? `${formatSigned(scoreVariation.delta, (value) => formatDecimal(value))} pts` : "Sem D-1 disponível",
-      direction: scoreVariation.direction,
+      value: latestComparablePoint ? formatDecimal(latestComparablePoint.scoreOperacional) : "—",
+      detail: previousComparablePoint ? `${formatSigned(scoreVariationComparable.delta, (value) => formatDecimal(value))} pts` : "Sem D-1 disponível",
+      direction: scoreVariationComparable.direction,
     },
     {
       label: "Rotas do último dia",
@@ -239,13 +221,13 @@ export default function AderenciaAtendimento() {
                 <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Último gap vs meta</p>
                   <p className="mt-4 text-2xl font-black tracking-tight text-foreground">
-                    {latestSeriesPoint?.aderenciaVolumes == null ? "—" : formatSigned((latestSeriesPoint.aderenciaVolumes - (kpi?.metaAderenciaVolumes ?? 0.9)) * 100, (value) => formatPercent(value))}
+                    {latestComparablePoint?.aderenciaVolumes == null || kpi?.metaAderenciaVolumes == null ? "—" : formatSigned((latestComparablePoint.aderenciaVolumes - kpi.metaAderenciaVolumes) * 100, (value) => formatPercent(value))}
                   </p>
                   <p className="mt-2 text-xs font-semibold text-muted-foreground">Aderência de volumes contra a meta vigente</p>
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Score do último dia</p>
-                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(latestSeriesPoint?.scoreOperacional)}</p>
+                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(latestComparablePoint?.scoreOperacional)}</p>
                   <p className="mt-2 text-xs font-semibold text-muted-foreground">Fechamento mais recente da série diária</p>
                 </div>
               </div>

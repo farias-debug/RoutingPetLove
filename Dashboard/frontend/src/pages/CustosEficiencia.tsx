@@ -7,6 +7,7 @@ import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
 import { useKpiDiario, useTransportadores } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { formatInteger, formatMoney, formatPercent } from "@/lib/formatters";
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
@@ -14,33 +15,16 @@ const sections: PageSectionNavItem[] = [
   { id: "detalhamento", label: "Detalhamento" },
 ];
 
-function formatInteger(value: number | null | undefined) {
-  return Number(value ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
-}
-
-function formatMoney(value: number | null | undefined) {
-  return Number(value ?? 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
-function formatPercent(value: number | null | undefined, digits = 1) {
-  return `${Number(value ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits })}%`;
-}
-
 export default function CustosEficiencia() {
   const { filters } = useGlobalFilters();
   const { data: kpi, isLoading: loadingKpi } = useKpiDiario(filters);
   const { data: transportadores, isLoading: loadingTransp } = useTransportadores(filters);
 
   const kpis = kpi ? [
-    { label: "Valor Pagamento Carga", value: `R$ ${kpi.valorPagamentoTotal.toLocaleString("pt-BR")}`, unit: "", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
-    { label: "Custo Médio/Carga", value: `R$ ${kpi.custoMedioCarga.toLocaleString("pt-BR")}`, unit: "/carga", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
-    { label: "Custo Médio/Volume", value: `R$ ${kpi.custoMedioVolume.toFixed(2).replace(".", ",")}`, unit: "/vol", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
-    { label: "Custo Médio/Pedido", value: `R$ ${kpi.custoMedioPedido.toFixed(2).replace(".", ",")}`, unit: "/ped", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
+    { label: "Valor Pagamento Carga", value: formatMoney(kpi.valorPagamentoTotal), unit: "", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
+    { label: "Custo Médio/Carga", value: formatMoney(kpi.custoMedioCarga), unit: "/carga", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Custo Médio/Volume", value: formatMoney(kpi.custoMedioVolume), unit: "/vol", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Custo Médio/Pedido", value: formatMoney(kpi.custoMedioPedido), unit: "/ped", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
   ] : [];
 
   const list = transportadores ?? [];
@@ -165,7 +149,7 @@ export default function CustosEficiencia() {
                         <td className="py-2.5 px-3 font-bold">{t.transportador}</td>
                         <td className="py-2.5 px-3 tabular-nums">{t.rotas}</td>
                         <td className="py-2.5 px-3 tabular-nums">{(t.share * 100).toFixed(1)}%</td>
-                        <td className="py-2.5 px-3 tabular-nums">R$ {t.custoMedioCarga.toLocaleString("pt-BR")}</td>
+                        <td className="py-2.5 px-3 tabular-nums">{formatMoney(t.custoMedioCarga)}</td>
                         <td className="py-2.5 px-3 tabular-nums">{(t.entregasEfetivas * 100).toFixed(1)}%</td>
                         <td className="py-2.5 px-3 tabular-nums font-bold">{t.scoreOperacional.toFixed(1)}</td>
                       </tr>
