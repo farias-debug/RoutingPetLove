@@ -1,11 +1,13 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { Storage } from "@google-cloud/storage";
 import { chromium } from "playwright";
 
 const ENTRY_URL = "https://petlove.tmslog.com.br/index.aspx?url=Adm_Monitoramento_cargasAtivas.aspx";
 const MONITOR_URL = "https://petlove.tmslog.com.br/Adm_Monitoramento_cargasAtivas.aspx";
 const DEFAULT_DEST_DIR =
   "C:\\Users\\lucas.batista\\Documents\\Projetos\\Dashboard\\data\\Relatorio_Monitoramento_Carga";
+const DEFAULT_GCS_PREFIX = "tms-monitoramento";
 
 const SEL_USER = [
   "#email",
@@ -83,14 +85,14 @@ Fluxo:
   1) Abre ${ENTRY_URL}
   2) Clica em "Entrar" (se tela de login aparecer)
   3) Abre Monitoramento de Rotas
-  4) Preenche Data inicial = hoje e Data final = hoje + N dias
+  4) Preenche Data inicial = hoje - N dias e Data final = hoje
   5) Clica em "Pesquisar"
   6) Clica no toggle (quando necessario)
   7) Clica em "Download"
   8) Salva CSV com timestamp no destino final
 
 Opcoes:
-  --days-ahead <int>      Dias para data final (padrao: 15)
+  --days-back <int>       Dias retroativos a partir de hoje (padrao: 7)
   --start YYYY-MM-DD      Sobrescreve data inicial
   --end YYYY-MM-DD        Sobrescreve data final
   --dest-dir <path>       Destino final do CSV
@@ -101,13 +103,17 @@ Opcoes:
 
 Credenciais:
   TMS_USER / TMS_PASS (variaveis de ambiente)
+
+Persistencia remota opcional:
+  TMS_GCS_BUCKET          Bucket GCS para armazenar os incrementais
+  TMS_GCS_PREFIX          Prefixo dentro do bucket (padrao: ${DEFAULT_GCS_PREFIX})
 `;
   process.stdout.write(msg);
 }
 
 function parseArgs(argv) {
   const out = {
-    daysAhead: 15,
+    daysBack: 7,
     start: "",
     end: "",
     destDir: DEFAULT_DEST_DIR,
@@ -122,7 +128,8 @@ function parseArgs(argv) {
     if (a === "--help" || a === "-h") out.help = true;
     else if (a === "--headed") out.headed = true;
     else if (a === "--dry-run") out.dryRun = true;
-    else if (a === "--days-ahead") out.daysAhead = Number(argv[++i]);
+    else if (a === "--days-back") out.daysBack = Number(argv[++i]);
+    else if (a === "--days-ahead") out.daysBack = -Number(argv[++i]);
     else if (a === "--start") out.start = argv[++i];
     else if (a === "--end") out.end = argv[++i];
     else if (a === "--dest-dir") out.destDir = argv[++i];
@@ -171,6 +178,48 @@ function timestampTag() {
 
 async function ensureDir(dirPath) {
   await fs.mkdir(dirPath, { recursive: true });
+}
+
+function normalizePrefix(prefix) {
+  return String(prefix || "").trim().replace(/^\/+|\/+$/g, "");
+}
+
+function resolveGcsConfig() {
+  const bucket = String(process.env.TMS_GCS_BUCKET ?? "").trim();
+  if (!bucket) {
+    return null;
+  }
+
+  return {
+    bucket,
+    prefix: normalizePrefix(process.env.TMS_GCS_PREFIX ?? DEFAULT_GCS_PREFIX),
+  };
+}
+
+function buildGcsObjectName(config, ...parts) {
+  const cleaned = [];
+  if (config.prefix) {
+    cleaned.push(config.prefix);
+  }
+  for (const part of parts) {
+    const value = String(part || "").trim().replace(/^\/+|\/+$/g, "");
+    if (value) {
+      cleaned.push(value);
+    }
+  }
+  return cleaned.join("/");
+}
+
+async function uploadToGcsIfConfigured(localPath, fileName) {
+  const config = resolveGcsConfig();
+  if (!config) {
+    return "";
+  }
+
+  const storage = new Storage();
+  const objectName = buildGcsObjectName(config, "incrementais", fileName);
+  await storage.bucket(config.bucket).upload(localPath, { destination: objectName });
+  return `gs://${config.bucket}/${objectName}`;
 }
 
 async function firstVisible(page, selectors, timeoutMs = 5000) {
@@ -293,8 +342,8 @@ async function main() {
   }
 
   const todayIso = toIsoDate(new Date());
-  const startIso = args.start || todayIso;
-  const endIso = args.end || addDays(todayIso, args.daysAhead);
+  const startIso = args.start || addDays(todayIso, -args.daysBack);
+  const endIso = args.end || todayIso;
   assertIsoDate(startIso, "start");
   assertIsoDate(endIso, "end");
 
@@ -315,6 +364,7 @@ async function main() {
   page.setDefaultTimeout(args.timeoutMs);
 
   let savedPath = "";
+  let gcsPath = "";
 
   try {
     await page.goto(ENTRY_URL, { waitUntil: "domcontentloaded" });
@@ -378,15 +428,21 @@ async function main() {
     const finalName = `Relatorio_Monitoramento_Carga_${timestampTag()}.csv`;
     savedPath = path.join(destDir, finalName);
     await download.saveAs(savedPath);
+  gcsPath = await uploadToGcsIfConfigured(savedPath, finalName);
 
     const okShot = path.join(runScreensDir, `ok_monitoramento_${timestampTag()}.png`);
-    await page.screenshot({ path: okShot, fullPage: true });
+    try {
+      await page.screenshot({ path: okShot, fullPage: true });
+    } catch {
+      await page.screenshot({ path: okShot, fullPage: false });
+    }
 
     process.stdout.write(
       JSON.stringify(
         {
           ok: true,
           file: savedPath,
+          gcsFile: gcsPath || undefined,
           screenshot: okShot,
           periodo: { inicio: startIso, fim: endIso },
           url: page.url(),

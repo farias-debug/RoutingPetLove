@@ -119,7 +119,7 @@ export function cardsQuery(projectId, dataset, where) {
         SUM(b.tempo_operacional_h) AS tempo_oper_total,
         SUM(b.pedidos_plan) AS pedidos_plan,
         SUM(b.volumes_plan) AS volumes_plan,
-        SUM(b.peso_real_kg) AS total_peso_kg,
+        SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)) AS total_peso_kg,
         SUM(b.capacidade_peso_kg) AS capacidade_peso_total,
         COUNTIF(b.flag_nao_planejada) AS qtd_nao_plan,
         COUNTIF(b.flag_rota_concluida) AS qtd_rotas_concluidas
@@ -246,7 +246,7 @@ export function tendenciaSemanalQuery(projectId, dataset, where) {
         \`${n}.adherence_ratio\`(SUM(b.qtd_volumes), SUM(b.volumes_plan)) AS ader_vol,
         \`${n}.safe_div\`(SUM(b.qtd_entregues), NULLIF(SUM(b.tempo_operacional_h), 0)) AS dpph,
         \`${n}.safe_div\`(CAST(COUNTIF(b.flag_rota_concluida) AS FLOAT64), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)) AS pct_rotas_concl,
-        \`${n}.safe_div\`(SUM(b.peso_real_kg), NULLIF(SUM(b.capacidade_peso_kg), 0)) AS ocupacao_peso
+        \`${n}.safe_div\`(SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)), NULLIF(SUM(b.capacidade_peso_kg), 0)) AS ocupacao_peso
       FROM \`${n}.base_execucao_canonica\` b
       ${where}
       GROUP BY 1, 2, 3, 4
@@ -287,6 +287,7 @@ export function filiaisPerformanceQuery(projectId, dataset, where) {
         SUM(b.qtd_volumes) AS volumesReal,
         SUM(b.volumes_plan) AS volumesPlan,
         SUM(b.peso_real_kg) AS pesoReal,
+        SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)) AS pesoRealCapacidade,
         SUM(b.peso_plan_kg) AS pesoPlan,
         SUM(b.qtd_entregues) AS entregues,
         SUM(b.qtd_insucessos) AS insucessos,
@@ -339,7 +340,7 @@ export function filiaisPerformanceQuery(projectId, dataset, where) {
              \`${n}.adherence_ratio\`(b.volumesReal, b.volumesPlan), mp.meta_ader_vol),
            'Informativo'),
         \`${n}.capacity_status\`(
-          \`${n}.safe_div\`(b.pesoReal, NULLIF(b.capacidadePesoTotal, 0)))
+          \`${n}.safe_div\`(b.pesoRealCapacidade, NULLIF(b.capacidadePesoTotal, 0)))
       ), 1) AS scoreOperacional,
       ROUND(\`${n}.safe_div\`(b.pedidosReal, NULLIF(b.pedidosPlan, 0)), 4) AS aderenciaPedidos,
       ROUND(\`${n}.safe_div\`(b.volumesReal, NULLIF(b.volumesPlan, 0)), 4) AS aderenciaVolumes,
@@ -524,7 +525,7 @@ export function transportadoresQuery(projectId, dataset, where) {
         SUM(b.tempo_operacional_h) AS tempo_oper_total,
         SUM(b.volumes_plan) AS volumes_plan,
         COUNTIF(b.flag_rota_concluida) AS rotas_concluidas,
-        SUM(b.peso_real_kg) AS peso_total,
+        SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)) AS peso_total,
         SUM(b.capacidade_peso_kg) AS capacidade_peso_total,
         SUM(b.valor_total) AS valor_total
       FROM \`${n}.base_execucao_canonica\` b
@@ -663,7 +664,7 @@ export function motoristasQuery(projectId, dataset, where, overtimeClause) {
           IF(SUM(b.volumes_plan) > 0,
              \`${n}.status_higher\`(\`${n}.adherence_ratio\`(SUM(b.qtd_volumes), SUM(b.volumes_plan)), m.meta_ader_vol),
              'Informativo'),
-          \`${n}.capacity_status\`(\`${n}.safe_div\`(SUM(b.peso_real_kg), NULLIF(SUM(b.capacidade_peso_kg), 0)))
+          \`${n}.capacity_status\`(\`${n}.safe_div\`(SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)), NULLIF(SUM(b.capacidade_peso_kg), 0)))
         ), 1) AS score_operacional
       FROM \`${n}.base_execucao_canonica\` b
       CROSS JOIN \`${n}.metas_pivot_canonico\` m
@@ -723,6 +724,7 @@ export function kpiDiarioQuery(projectId, dataset, where) {
         COUNT(DISTINCT b.motorista_key_canonico) AS motoristasAtivos,
         SUM(b.km_realizado) AS totalKmRealizado,
         SUM(b.peso_real_kg) AS totalPesoKg,
+        SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)) AS totalPesoKgCapacidade,
         SUM(b.pedidos_plan) AS pedidosPlan,
         SUM(b.volumes_plan) AS volumesPlan,
         SUM(b.peso_plan_kg) AS pesoPlanKg,
@@ -789,8 +791,8 @@ export function kpiDiarioQuery(projectId, dataset, where) {
         \`${n}.safe_div\`(CAST(o.rotasOvertime AS FLOAT64), CAST(o.rotas AS FLOAT64)) AS pctRotasOvertime,
         \`${n}.safe_div\`(o.pedidos, NULLIF(o.pedidosPlan, 0)) AS pctOcupacaoPedidos,
         \`${n}.safe_div\`(o.volumes, NULLIF(o.volumesPlan, 0)) AS pctOcupacaoVolumes,
-        \`${n}.safe_div\`(o.totalPesoKg, NULLIF(o.capacidadePesoTotalKg, 0)) AS pctOcupacaoComposta,
-        \`${n}.safe_div\`(o.totalPesoKg, NULLIF(o.capacidadePesoTotalKg, 0)) AS pctOcupacaoPeso,
+        \`${n}.safe_div\`(o.totalPesoKgCapacidade, NULLIF(o.capacidadePesoTotalKg, 0)) AS pctOcupacaoComposta,
+        \`${n}.safe_div\`(o.totalPesoKgCapacidade, NULLIF(o.capacidadePesoTotalKg, 0)) AS pctOcupacaoPeso,
         \`${n}.safe_div\`(o.pedidos, NULLIF(o.pedidosPlan, 0)) AS pctAderPedidos,
         \`${n}.safe_div\`(o.volumes, NULLIF(o.volumesPlan, 0)) AS pctAderVolumes,
         \`${n}.safe_div\`(o.totalPesoKg, NULLIF(o.pesoPlanKg, 0)) AS pctAderPeso,
@@ -860,7 +862,7 @@ export function serieDiariaQuery(projectId, dataset, where) {
         SUM(b.peso_plan_kg) AS pesoPlanejado,
         SUM(b.capacidade_peso_kg) AS capacidadePesoTotalKg,
         \`${n}.safe_div\`(
-          SUM(b.peso_real_kg),
+          SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)),
           NULLIF(SUM(b.capacidade_peso_kg), 0)
         ) AS ocupacaoPeso,
         \`${n}.safe_div\`(

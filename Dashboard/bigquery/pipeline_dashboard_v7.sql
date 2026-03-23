@@ -94,30 +94,56 @@ CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.fn_score_
 
 CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.vehicle_type_canonical`(raw_type STRING) AS (
   CASE UPPER(TRIM(IFNULL(raw_type, '')))
-    WHEN '3/4' THEN 'VUC'
-    WHEN '3-4' THEN 'VUC'
-    WHEN 'VAN' THEN 'VAN'
-    WHEN 'TOCO' THEN 'TOCO'
-    WHEN 'TRUCK' THEN 'TRUCK'
-    WHEN 'CARRETA' THEN 'CARRETA'
-    WHEN 'BITRUCK' THEN 'BITRUCK'
-    WHEN 'MOTO' THEN 'MOTO'
-    WHEN 'CARRO' THEN 'CARRO'
-    ELSE 'OUTROS'
+    WHEN 'VAN-COM-8H-DED' THEN 'Van'
+    WHEN 'VAN-ELE-8H-DED' THEN 'Van'
+    WHEN 'VAN-COM-8H-AGR' THEN 'Van'
+    WHEN 'VAN-COM-12H-AGR' THEN 'Van'
+    WHEN 'VAN-ELE-12H-DED' THEN 'Van'
+    WHEN 'VAN-ELE-8H-AGR' THEN 'Van'
+    WHEN 'EVAN PROPRIA' THEN 'Van'
+    WHEN 'VAN' THEN 'Van'
+    WHEN 'UTI-COM-8H-DED' THEN 'Utilitario'
+    WHEN 'UTI-ELE-8H-DED' THEN 'Utilitario'
+    WHEN 'UTI-COM-8H-AGR' THEN 'Utilitario'
+    WHEN 'UTILITARIOS' THEN 'Utilitario'
+    WHEN 'UTILITÁRIOS' THEN 'Utilitario'
+    WHEN 'E-UTILITARIO LAST MILE' THEN 'Utilitario'
+    WHEN 'PAS-COM-8H-AGR' THEN 'Passeio'
+    WHEN 'VEICULO DE PASSEIO' THEN 'Passeio'
+    WHEN 'VEÍCULO DE PASSEIO' THEN 'Passeio'
+    WHEN 'EPASSEIO PROPRIO' THEN 'Passeio'
+    WHEN 'CARRO' THEN 'Passeio'
+    WHEN 'MOTOCICLETA' THEN 'Motocicleta'
+    WHEN 'MOTO' THEN 'Motocicleta'
+    WHEN 'VUC-COM-8H-AGR' THEN 'VUC'
+    WHEN 'VUC-ELE-8H-AGR' THEN 'VUC'
+    WHEN 'VUC' THEN 'VUC'
+    WHEN '3/4' THEN '3/4'
+    WHEN '3-4' THEN '3/4'
+    WHEN '3/4/MEDIO' THEN '3/4'
+    WHEN '3/4/MÉDIO' THEN '3/4'
+    WHEN 'TOCO' THEN 'Toco'
+    WHEN 'TRUCK' THEN 'Truck'
+    WHEN 'CARRETA' THEN 'Carreta'
+    WHEN 'CARRETA*' THEN 'Carreta'
+    WHEN 'BITRUCK' THEN 'Bitruck'
+    WHEN 'FIORINO' THEN 'Fiorino'
+    WHEN 'HR' THEN 'HR'
+    WHEN 'TIPO NAO SELECIONADO' THEN 'Nao selecionado'
+    WHEN 'TIPO NÃO SELECIONADO' THEN 'Nao selecionado'
+    WHEN '' THEN 'Nao selecionado'
+    ELSE 'Outros'
   END
 );
 
 CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity`(vtype STRING) AS (
+  -- Apenas os tipos com capacidade de peso definida.
+  -- Outros tipos retornam NULL e ficam excluídos do cálculo de ocupação peso.
   CASE vtype
-    WHEN 'VUC' THEN 1500.0
-    WHEN 'VAN' THEN 1200.0
-    WHEN 'TOCO' THEN 6000.0
-    WHEN 'TRUCK' THEN 10000.0
-    WHEN 'CARRETA' THEN 25000.0
-    WHEN 'BITRUCK' THEN 15000.0
-    WHEN 'MOTO' THEN 50.0
-    WHEN 'CARRO' THEN 300.0
-    ELSE 1000.0
+    WHEN 'Van'        THEN 900.0
+    WHEN 'Utilitario' THEN 550.0
+    WHEN 'Passeio'    THEN 350.0
+    ELSE NULL
   END
 );
 
@@ -136,6 +162,7 @@ CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.motorista
 -- ==============================================================================
 
 CREATE OR REPLACE VIEW `data-aileron-482822-d0.monitoramento_carga.stg_monitoramento` AS
+WITH parsed AS (
 SELECT
   CAST(f.`Id Carga` AS INT64) AS id_carga,
   TRIM(f.status) AS status_tms,
@@ -148,17 +175,30 @@ SELECT
   TRIM(f.Filial) AS filial_raw,
 
   -- Timestamps (alguns campos já são TIMESTAMP na raw, outros são STRING)
-  SAFE.PARSE_TIMESTAMP('%d/%m/%Y %H:%M', TRIM(f.`Data de carregamento`)) AS ts_carregamento,
+  -- Data de carregamento pode vir como dd/mm/YYYY HH:MM ou dd/mm/YYYY HH:MM:SS
+  COALESCE(
+    SAFE.PARSE_TIMESTAMP('%d/%m/%Y %H:%M:%S', TRIM(f.`Data de carregamento`)),
+    SAFE.PARSE_TIMESTAMP('%d/%m/%Y %H:%M', TRIM(f.`Data de carregamento`))
+  ) AS ts_carregamento,
+  f.dtabertura,  -- TIMESTAMP nativo da raw, usado como fallback para data_referencia
   f.`Data Atribuição Motorista` AS ts_atribuicao_motorista,  -- já é TIMESTAMP
   f.`Data Inicio de Rota APP` AS ts_inicio_rota,  -- já é TIMESTAMP
-  SAFE.PARSE_TIMESTAMP('%d/%m/%Y %H:%M', TRIM(f.`Primeira Baixa`)) AS ts_primeira_baixa,
-  SAFE.PARSE_TIMESTAMP('%d/%m/%Y %H:%M', TRIM(f.`Última Baixa`)) AS ts_ultima_baixa,
+  COALESCE(
+    SAFE.PARSE_TIMESTAMP('%Y-%m-%d %H:%M:%S', TRIM(f.`Primeira Baixa`)),
+    SAFE.PARSE_TIMESTAMP('%d/%m/%Y %H:%M:%S', TRIM(f.`Primeira Baixa`)),
+    SAFE.PARSE_TIMESTAMP('%d/%m/%Y %H:%M', TRIM(f.`Primeira Baixa`))
+  ) AS ts_primeira_baixa,
+  COALESCE(
+    SAFE.PARSE_TIMESTAMP('%Y-%m-%d %H:%M:%S', TRIM(f.`Última Baixa`)),
+    SAFE.PARSE_TIMESTAMP('%d/%m/%Y %H:%M:%S', TRIM(f.`Última Baixa`)),
+    SAFE.PARSE_TIMESTAMP('%d/%m/%Y %H:%M', TRIM(f.`Última Baixa`))
+  ) AS ts_ultima_baixa,
 
   -- Quantidades (já são numéricos na raw, apenas CAST)
   SAFE_CAST(f.Quantidade AS FLOAT64) AS qtd_pedidos,
   SAFE_CAST(f.`Quantidade Volumes` AS FLOAT64) AS qtd_volumes,
   SAFE_CAST(f.Entregues AS FLOAT64) AS qtd_entregues,
-  SAFE_CAST(f.Insucessos AS FLOAT64) AS qtd_insucessos,
+  GREATEST(SAFE_CAST(f.Insucessos AS FLOAT64), 0) AS qtd_insucessos,
   SAFE_CAST(f.Peso AS FLOAT64) AS peso_real_kg,
   SAFE_CAST(f.baixas AS FLOAT64) AS qtd_baixas,
   SAFE_CAST(f.Paradas AS FLOAT64) AS qtd_paradas,
@@ -168,8 +208,15 @@ SELECT
   SAFE_CAST(f.`Km Planejado` AS FLOAT64) AS km_plan,
   SAFE_CAST(f.`Km Realizado` AS FLOAT64) AS km_real,
 
-  -- Tempo (já é FLOAT na raw, mas pode conter HH:MM em string - verificar tipo)
-  SAFE_CAST(f.`Tempo Realizado` AS FLOAT64) AS tempo_realizado_h,
+  -- Tempo realizado: a raw atual entrega fração de dia Excel; valores maiores já estão em horas.
+  CASE
+    WHEN SAFE_CAST(f.`Tempo Realizado` AS FLOAT64) > 0
+         AND SAFE_CAST(f.`Tempo Realizado` AS FLOAT64) <= 1.5
+      THEN SAFE_CAST(f.`Tempo Realizado` AS FLOAT64) * 24.0
+    WHEN SAFE_CAST(f.`Tempo Realizado` AS FLOAT64) > 1.5
+      THEN SAFE_CAST(f.`Tempo Realizado` AS FLOAT64)
+    ELSE 0.0
+  END AS tempo_realizado_h,
 
   0.0 AS tempo_planejado_h,  -- Tempo planejado vem de raw_planejamento, não de raw_monitoramento
 
@@ -185,9 +232,19 @@ SELECT
   TRIM(f.Alerta) AS alerta_tms,
   SAFE_CAST(REPLACE(REPLACE(TRIM(f.Perfomance), '%', ''), ',', '.') AS FLOAT64) / 100.0 AS performance_pct,
   TRIM(f.`Usuário Carregamento`) AS usuario_carregamento,
-  TRIM(f.Ajudante) AS ajudante
+  TRIM(f.Ajudante) AS ajudante,
 
-FROM `data-aileron-482822-d0.monitoramento_carga.raw_monitoramento` f;
+  -- Dedup: prioriza registro mais recente por id_carga
+  ROW_NUMBER() OVER (
+    PARTITION BY CAST(f.`Id Carga` AS INT64)
+    ORDER BY f.dtabertura DESC
+  ) AS rn
+
+FROM `data-aileron-482822-d0.monitoramento_carga.raw_monitoramento` f
+)
+SELECT * EXCEPT(rn)
+FROM parsed
+WHERE rn = 1;
 
 CREATE OR REPLACE VIEW `data-aileron-482822-d0.monitoramento_carga.stg_planejamento` AS
 WITH dedup AS (
@@ -245,12 +302,12 @@ SELECT
   67.0 AS meta,
   'higher_better' AS sentido,
   'volumes/rota' AS unidade
-UNION ALL SELECT 'spr_pedidos', 'SPR Pedidos', 55.0, 'higher_better', 'pedidos/rota'
+UNION ALL SELECT 'spr_pedidos', 'SPR Pedidos', 42.0, 'higher_better', 'pedidos/rota'
 UNION ALL SELECT 'entregas_efetivas', 'Entregas Efetivas', 0.98, 'higher_better', 'percentual'
 UNION ALL SELECT 'rotas_concluidas', 'Rotas Concluídas', 0.95, 'higher_better', 'percentual'
-UNION ALL SELECT 'orh', 'ORH Tempo', 6.0, 'target_band', 'horas'
-UNION ALL SELECT 'aderencia_volumes', 'Aderência Volumes', 0.95, 'higher_better', 'percentual'
-UNION ALL SELECT 'ocupacao_composta', 'Ocupação Composta', 0.70, 'target_band', 'percentual';
+UNION ALL SELECT 'orh', 'ORH Tempo', 7.0, 'target_band', 'horas'
+UNION ALL SELECT 'aderencia_volumes', 'Aderência Volumes', 0.90, 'higher_better', 'percentual'
+UNION ALL SELECT 'ocupacao_composta', 'Ocupação Composta', 0.85, 'target_band', 'percentual';
 
 -- ==============================================================================
 -- ALIAS E VIEWS DERIVADAS DE METAS (para compatibilidade com API)
@@ -293,7 +350,7 @@ WITH
 exec_base AS (
   SELECT
     m.*,
-    DATE(m.ts_carregamento) AS data_referencia,
+    COALESCE(DATE(m.ts_carregamento), DATE(m.dtabertura)) AS data_referencia,
     `data-aileron-482822-d0.monitoramento_carga.normalize_text`(m.filial_raw) AS filial_key,
     `data-aileron-482822-d0.monitoramento_carga.vehicle_type_canonical`(m.tipo_veiculo_raw) AS tipo_veiculo,
     `data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity`(
@@ -307,14 +364,25 @@ exec_base AS (
 
     -- Flags operacionais
     (LOWER(m.status_tms) IN ('concluido', 'concluída', 'finalizado', 'finalizada')) AS flag_rota_concluida,
-    (m.tempo_realizado_h > 8.0) AS flag_overtime,
+    (
+      CASE
+        WHEN m.ts_primeira_baixa IS NOT NULL
+             AND m.ts_ultima_baixa IS NOT NULL
+             AND m.ts_ultima_baixa > m.ts_primeira_baixa
+          THEN TIMESTAMP_DIFF(m.ts_ultima_baixa, m.ts_primeira_baixa, MINUTE) / 60.0
+        ELSE COALESCE(m.tempo_realizado_h, 0)
+      END
+    ) > 8.0 AS flag_overtime,
     (m.ts_carregamento IS NULL OR DATE(m.ts_carregamento) != DATE(m.ts_primeira_baixa)) AS flag_nao_planejada,
 
     -- Tempo operacional (primeira a última baixa)
-    IFNULL(
-      TIMESTAMP_DIFF(m.ts_ultima_baixa, m.ts_primeira_baixa, MINUTE) / 60.0,
-      m.tempo_realizado_h
-    ) AS tempo_operacional_h,
+    CASE
+      WHEN m.ts_primeira_baixa IS NOT NULL
+           AND m.ts_ultima_baixa IS NOT NULL
+           AND m.ts_ultima_baixa > m.ts_primeira_baixa
+        THEN TIMESTAMP_DIFF(m.ts_ultima_baixa, m.ts_primeira_baixa, MINUTE) / 60.0
+      ELSE COALESCE(m.tempo_realizado_h, 0)
+    END AS tempo_operacional_h,
 
     -- Valor total
     COALESCE(m.valor_carga, 0) +
@@ -376,7 +444,21 @@ SELECT
   km_real AS km_realizado,
   km_plan AS km_planejado,
   tempo_operacional_h AS tempo_realizado_h_final,
-  tempo_plan_h AS tempo_planejado_h_final
+  tempo_plan_h AS tempo_planejado_h_final,
+
+  -- KPIs row-level pré-calculados (consumidos por alertas e drill-rotas)
+  `data-aileron-482822-d0.monitoramento_carga.safe_div`(
+    qtd_entregues, qtd_entregues + qtd_insucessos
+  ) AS pct_entrega_efetiva,
+  `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(
+    qtd_volumes, NULLIF(volumes_plan, 0)
+  ) AS ocup_volumes,
+  `data-aileron-482822-d0.monitoramento_carga.safe_div`(
+    peso_real_kg, NULLIF(capacidade_peso_kg, 0)
+  ) AS ocup_peso_veiculo,
+  `data-aileron-482822-d0.monitoramento_carga.safe_div`(
+    qtd_entregues, NULLIF(tempo_operacional_h, 0)
+  ) AS dpph
 FROM com_flags_adicionais;
 
 -- ==============================================================================

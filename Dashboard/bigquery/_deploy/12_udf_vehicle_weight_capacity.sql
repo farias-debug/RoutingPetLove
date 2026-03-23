@@ -1,16 +1,11 @@
 CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity`(vtype STRING) AS (
-  CASE UPPER(TRIM(IFNULL(vtype, '')))
-    WHEN 'VEICULO UTILITARIO' THEN 550.0
-    WHEN 'VAN' THEN 900.0
-    WHEN 'VEICULO PASSEIO' THEN 350.0
-    WHEN 'HR' THEN 1500.0
-    WHEN 'TOCO' THEN 6000.0
-    WHEN 'VUC' THEN 3500.0
-    WHEN 'MOTOCICLETA' THEN 50.0
-    WHEN 'FIORINO' THEN 600.0
-    WHEN '3/4/MEDIO' THEN 4000.0
-    WHEN 'TRUCK' THEN 10000.0
-    WHEN 'CARRETA' THEN 20000.0
+  -- Recebe o nome canonico (saida de vehicle_type_canonical).
+  -- Apenas os tipos com capacidade de peso definida.
+  -- Outros tipos retornam NULL e ficam excluídos do cálculo de ocupação peso.
+  CASE vtype
+    WHEN 'Van'        THEN 900.0
+    WHEN 'Utilitario' THEN 550.0
+    WHEN 'Passeio'    THEN 350.0
     ELSE NULL
   END
 );

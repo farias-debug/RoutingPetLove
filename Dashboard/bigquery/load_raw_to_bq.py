@@ -7,7 +7,7 @@ As views se atualizam automaticamente após o load.
 Pré-requisitos:
   - Python 3.10+ com pandas instalado
   - Google Cloud SDK instalado e autenticado (gcloud auth application-default login)
-  - bq CLI disponível no PATH ou em %LOCALAPPDATA%\Google\Cloud SDK
+  - bq CLI disponível no PATH ou em %LOCALAPPDATA%\\Google\\Cloud SDK
   - Arquivos fonte em Dashboard/data/
 
 Uso:
@@ -80,11 +80,13 @@ def normalize_and_export(df: pd.DataFrame, table_name: str, cfg: dict) -> Path:
     if cfg.get("rename"):
         df.rename(columns=cfg["rename"], inplace=True)
 
-    # Converter colunas de timestamp DD/MM/YYYY HH:MM → YYYY-MM-DD HH:MM:SS
+    # Converter colunas de timestamp DD/MM/YYYY HH:MM[:SS] → YYYY-MM-DD HH:MM:SS
     ts_cols = cfg.get("timestamp_cols", [])
     for col in ts_cols:
         if col in df.columns:
-            df[col] = pd.to_datetime(df[col], format="%d/%m/%Y %H:%M", errors="coerce")
+            df[col] = pd.to_datetime(
+                df[col], format="mixed", dayfirst=True, errors="coerce"
+            )
             df[col] = df[col].dt.strftime("%Y-%m-%d %H:%M:%S").replace("NaT", "")
 
     # Trocar virgula decimal por ponto em colunas que usam decimal BR
