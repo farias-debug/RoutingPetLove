@@ -45,27 +45,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Add Lovable remote
+      - name: Clone Lovable repo
         env:
           GH_TOKEN: ${{ secrets.LOVABLE_TOKEN }}
         run: |
           gh repo clone ${{ env.LOVABLE_REPO }} /tmp/lovable-clone -- --depth 1
-          git remote add lovable /tmp/lovable-clone
-          git fetch lovable main
 
       - name: Compare repositories
         id: compare
         run: |
-          # Exportar Lovable para temp
-          mkdir -p /tmp/lovable-export
-          git archive lovable/main | tar -x -C /tmp/lovable-export
-
           # Comparar arquivos (excluindo lovable-only e local-only)
           CHANGES=0
           SUMMARY=""
 
           # Verificar arquivos modificados no Lovable
-          cd /tmp/lovable-export
+          cd /tmp/lovable-clone
           for file in $(find . -type f -not -path './.git/*' -not -name 'lovable-context.md' -not -name 'README.md' -not -path './node_modules/*'); do
             rel_path="${file#./}"
             local_path="${GITHUB_WORKSPACE}/Dashboard/frontend/${rel_path}"
