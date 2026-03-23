@@ -119,6 +119,7 @@ export function cardsQuery(projectId, dataset, where) {
         SUM(b.tempo_operacional_h) AS tempo_oper_total,
         SUM(b.pedidos_plan) AS pedidos_plan,
         SUM(b.volumes_plan) AS volumes_plan,
+        SUM(IF(b.possui_planejamento, b.qtd_volumes, NULL)) AS volumes_com_plan,
         SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)) AS total_peso_kg,
         SUM(b.capacidade_peso_kg) AS capacidade_peso_total,
         COUNTIF(b.flag_nao_planejada) AS qtd_nao_plan,
@@ -134,8 +135,8 @@ export function cardsQuery(projectId, dataset, where) {
         \`${n}.safe_div\`(d.qtd_entregas, d.qtd_entregas + d.qtd_insucessos) AS entregas_efetivas,
         \`${n}.safe_div\`(d.tempo_oper_total, CAST(d.qtd_rotas AS FLOAT64)) AS orh,
         \`${n}.safe_div\`(d.total_peso_kg, NULLIF(d.capacidade_peso_total, 0)) AS ocup_peso_veiculo,
-        \`${n}.adherence_ratio\`(d.qtd_volumes, d.volumes_plan) AS ader_vol,
-        \`${n}.safe_div\`(d.qtd_volumes, NULLIF(d.volumes_plan, 0)) AS ader_vol_exibicao,
+        \`${n}.adherence_ratio\`(d.volumes_com_plan, d.volumes_plan) AS ader_vol,
+        \`${n}.safe_div\`(d.volumes_com_plan, NULLIF(d.volumes_plan, 0)) AS ader_vol_exibicao,
         ROUND(\`${n}.safe_div\`(d.qtd_entregas, NULLIF(d.tempo_oper_total, 0)), 2) AS dpph,
         ROUND(\`${n}.fn_score_operacional\`(
           \`${n}.status_higher\`(\`${n}.safe_div\`(d.qtd_volumes, CAST(d.qtd_rotas AS FLOAT64)), m.meta_spr_vol),
@@ -143,7 +144,7 @@ export function cardsQuery(projectId, dataset, where) {
           \`${n}.status_higher\`(\`${n}.safe_div\`(CAST(d.qtd_rotas_concluidas AS FLOAT64), CAST(d.qtd_rotas AS FLOAT64)), m.meta_rotas),
           \`${n}.status_target_band\`(\`${n}.safe_div\`(d.tempo_oper_total, CAST(d.qtd_rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
           IF(d.volumes_plan > 0,
-             \`${n}.status_higher\`(\`${n}.adherence_ratio\`(d.qtd_volumes, d.volumes_plan), m.meta_ader_vol),
+             \`${n}.status_higher\`(\`${n}.adherence_ratio\`(d.volumes_com_plan, d.volumes_plan), m.meta_ader_vol),
              'Informativo'),
           \`${n}.capacity_status\`(\`${n}.safe_div\`(d.total_peso_kg, NULLIF(d.capacidade_peso_total, 0)))
         ), 1) AS score_operacional
@@ -243,7 +244,7 @@ export function tendenciaSemanalQuery(projectId, dataset, where) {
         \`${n}.safe_div\`(SUM(b.qtd_pedidos), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)) AS spr_pedidos,
         \`${n}.safe_div\`(SUM(b.qtd_volumes), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)) AS spr_volumes,
         \`${n}.safe_div\`(SUM(b.tempo_operacional_h), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)) AS orh,
-        \`${n}.adherence_ratio\`(SUM(b.qtd_volumes), SUM(b.volumes_plan)) AS ader_vol,
+        \`${n}.adherence_ratio\`(SUM(IF(b.possui_planejamento, b.qtd_volumes, NULL)), SUM(b.volumes_plan)) AS ader_vol,
         \`${n}.safe_div\`(SUM(b.qtd_entregues), NULLIF(SUM(b.tempo_operacional_h), 0)) AS dpph,
         \`${n}.safe_div\`(CAST(COUNTIF(b.flag_rota_concluida) AS FLOAT64), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)) AS pct_rotas_concl,
         \`${n}.safe_div\`(SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)), NULLIF(SUM(b.capacidade_peso_kg), 0)) AS ocupacao_peso
@@ -296,7 +297,13 @@ export function filiaisPerformanceQuery(projectId, dataset, where) {
         SUM(b.km_realizado) AS kmReal,
         SUM(b.km_planejado) AS kmPlan,
         COUNTIF(b.flag_rota_concluida) AS rotasConcluidas,
-        SUM(b.capacidade_peso_kg) AS capacidadePesoTotal
+        SUM(b.capacidade_peso_kg) AS capacidadePesoTotal,
+        -- Somente rotas com planejamento (para aderência)
+        SUM(IF(b.possui_planejamento, b.qtd_pedidos, NULL)) AS pedidosComPlan,
+        SUM(IF(b.possui_planejamento, b.qtd_volumes, NULL)) AS volumesComPlan,
+        SUM(IF(b.possui_planejamento, b.peso_real_kg, NULL)) AS pesoComPlan,
+        SUM(IF(b.possui_planejamento, b.km_realizado, NULL)) AS kmComPlan,
+        SUM(IF(b.possui_planejamento, b.tempo_operacional_h, NULL)) AS tempoComPlan
       FROM \`${n}.base_execucao_canonica\` b
       ${where}
       GROUP BY 1
@@ -337,16 +344,16 @@ export function filiaisPerformanceQuery(projectId, dataset, where) {
           \`${n}.safe_div\`(b.tempoReal, CAST(b.rotas AS FLOAT64)), mp.meta_orh, 1.0, 2.1),
         IF(b.volumesPlan > 0,
            \`${n}.status_higher\`(
-             \`${n}.adherence_ratio\`(b.volumesReal, b.volumesPlan), mp.meta_ader_vol),
+             \`${n}.adherence_ratio\`(b.volumesComPlan, b.volumesPlan), mp.meta_ader_vol),
            'Informativo'),
         \`${n}.capacity_status\`(
           \`${n}.safe_div\`(b.pesoRealCapacidade, NULLIF(b.capacidadePesoTotal, 0)))
       ), 1) AS scoreOperacional,
-      ROUND(\`${n}.safe_div\`(b.pedidosReal, NULLIF(b.pedidosPlan, 0)), 4) AS aderenciaPedidos,
-      ROUND(\`${n}.safe_div\`(b.volumesReal, NULLIF(b.volumesPlan, 0)), 4) AS aderenciaVolumes,
-      ROUND(\`${n}.safe_div\`(b.pesoReal, NULLIF(b.pesoPlan, 0)), 4) AS aderenciaPeso,
-      ROUND(\`${n}.safe_div\`(b.kmReal, NULLIF(b.kmPlan, 0)), 4) AS aderenciaKm,
-      ROUND(\`${n}.safe_div\`(b.tempoReal, NULLIF(b.tempoPlan, 0)), 4) AS aderenciaTempo
+      ROUND(\`${n}.safe_div\`(b.pedidosComPlan, NULLIF(b.pedidosPlan, 0)), 4) AS aderenciaPedidos,
+      ROUND(\`${n}.safe_div\`(b.volumesComPlan, NULLIF(b.volumesPlan, 0)), 4) AS aderenciaVolumes,
+      ROUND(\`${n}.safe_div\`(b.pesoComPlan, NULLIF(b.pesoPlan, 0)), 4) AS aderenciaPeso,
+      ROUND(\`${n}.safe_div\`(b.kmComPlan, NULLIF(b.kmPlan, 0)), 4) AS aderenciaKm,
+      ROUND(\`${n}.safe_div\`(b.tempoComPlan, NULLIF(b.tempoPlan, 0)), 4) AS aderenciaTempo
     FROM base b
     CROSS JOIN \`${n}.metas_pivot_canonico\` mp
     ORDER BY scoreOperacional DESC, filial
@@ -524,6 +531,7 @@ export function transportadoresQuery(projectId, dataset, where) {
         SUM(b.qtd_insucessos) AS insucessos,
         SUM(b.tempo_operacional_h) AS tempo_oper_total,
         SUM(b.volumes_plan) AS volumes_plan,
+        SUM(IF(b.possui_planejamento, b.qtd_volumes, NULL)) AS volumes_com_plan,
         COUNTIF(b.flag_rota_concluida) AS rotas_concluidas,
         SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)) AS peso_total,
         SUM(b.capacidade_peso_kg) AS capacidade_peso_total,
@@ -546,7 +554,7 @@ export function transportadoresQuery(projectId, dataset, where) {
         \`${n}.status_higher\`(\`${n}.safe_div\`(CAST(b.rotas_concluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), m.meta_rotas),
         \`${n}.status_target_band\`(\`${n}.safe_div\`(b.tempo_oper_total, CAST(b.rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
         IF(b.volumes_plan > 0,
-           \`${n}.status_higher\`(\`${n}.adherence_ratio\`(b.volumes, b.volumes_plan), m.meta_ader_vol),
+           \`${n}.status_higher\`(\`${n}.adherence_ratio\`(b.volumes_com_plan, b.volumes_plan), m.meta_ader_vol),
            'Informativo'),
         \`${n}.capacity_status\`(\`${n}.safe_div\`(b.peso_total, NULLIF(b.capacidade_peso_total, 0)))
       ), 1) AS score_operacional,
@@ -562,7 +570,7 @@ export function transportadoresQuery(projectId, dataset, where) {
           \`${n}.status_higher\`(\`${n}.safe_div\`(CAST(b.rotas_concluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), m.meta_rotas),
           \`${n}.status_target_band\`(\`${n}.safe_div\`(b.tempo_oper_total, CAST(b.rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
           IF(b.volumes_plan > 0,
-             \`${n}.status_higher\`(\`${n}.adherence_ratio\`(b.volumes, b.volumes_plan), m.meta_ader_vol),
+             \`${n}.status_higher\`(\`${n}.adherence_ratio\`(b.volumes_com_plan, b.volumes_plan), m.meta_ader_vol),
              'Informativo'),
           \`${n}.capacity_status\`(\`${n}.safe_div\`(b.peso_total, NULLIF(b.capacidade_peso_total, 0)))
         ), 1) >= 80 THEN 'OK'
@@ -572,7 +580,7 @@ export function transportadoresQuery(projectId, dataset, where) {
           \`${n}.status_higher\`(\`${n}.safe_div\`(CAST(b.rotas_concluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), m.meta_rotas),
           \`${n}.status_target_band\`(\`${n}.safe_div\`(b.tempo_oper_total, CAST(b.rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
           IF(b.volumes_plan > 0,
-             \`${n}.status_higher\`(\`${n}.adherence_ratio\`(b.volumes, b.volumes_plan), m.meta_ader_vol),
+             \`${n}.status_higher\`(\`${n}.adherence_ratio\`(b.volumes_com_plan, b.volumes_plan), m.meta_ader_vol),
              'Informativo'),
           \`${n}.capacity_status\`(\`${n}.safe_div\`(b.peso_total, NULLIF(b.capacidade_peso_total, 0)))
         ), 1) >= 60 THEN 'Atencao'
@@ -725,6 +733,12 @@ export function kpiDiarioQuery(projectId, dataset, where) {
         SUM(b.km_realizado) AS totalKmRealizado,
         SUM(b.peso_real_kg) AS totalPesoKg,
         SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)) AS totalPesoKgCapacidade,
+        -- Aderência: numerador restrito a rotas COM planejamento
+        SUM(IF(b.possui_planejamento, b.qtd_pedidos, NULL)) AS pedidosComPlan,
+        SUM(IF(b.possui_planejamento, b.qtd_volumes, NULL)) AS volumesComPlan,
+        SUM(IF(b.possui_planejamento, b.peso_real_kg, NULL)) AS pesoComPlan,
+        SUM(IF(b.possui_planejamento, b.tempo_operacional_h, NULL)) AS tempoComPlan,
+        SUM(IF(b.possui_planejamento, b.km_realizado, NULL)) AS kmComPlan,
         SUM(b.pedidos_plan) AS pedidosPlan,
         SUM(b.volumes_plan) AS volumesPlan,
         SUM(b.peso_plan_kg) AS pesoPlanKg,
@@ -793,11 +807,11 @@ export function kpiDiarioQuery(projectId, dataset, where) {
         \`${n}.safe_div\`(o.volumes, NULLIF(o.volumesPlan, 0)) AS pctOcupacaoVolumes,
         \`${n}.safe_div\`(o.totalPesoKgCapacidade, NULLIF(o.capacidadePesoTotalKg, 0)) AS pctOcupacaoComposta,
         \`${n}.safe_div\`(o.totalPesoKgCapacidade, NULLIF(o.capacidadePesoTotalKg, 0)) AS pctOcupacaoPeso,
-        \`${n}.safe_div\`(o.pedidos, NULLIF(o.pedidosPlan, 0)) AS pctAderPedidos,
-        \`${n}.safe_div\`(o.volumes, NULLIF(o.volumesPlan, 0)) AS pctAderVolumes,
-        \`${n}.safe_div\`(o.totalPesoKg, NULLIF(o.pesoPlanKg, 0)) AS pctAderPeso,
-        \`${n}.safe_div\`(o.totalKmRealizado, NULLIF(o.kmPlan, 0)) AS pctAderKm,
-        \`${n}.safe_div\`(o.tempoOperacionalTotal, NULLIF(o.tempoPlan, 0)) AS pctAderTempo,
+        \`${n}.safe_div\`(o.pedidosComPlan, NULLIF(o.pedidosPlan, 0)) AS pctAderPedidos,
+        \`${n}.safe_div\`(o.volumesComPlan, NULLIF(o.volumesPlan, 0)) AS pctAderVolumes,
+        \`${n}.safe_div\`(o.pesoComPlan, NULLIF(o.pesoPlanKg, 0)) AS pctAderPeso,
+        \`${n}.safe_div\`(o.kmComPlan, NULLIF(o.kmPlan, 0)) AS pctAderKm,
+        \`${n}.safe_div\`(o.tempoComPlan, NULLIF(o.tempoPlan, 0)) AS pctAderTempo,
         \`${n}.safe_div\`(CAST(o.matchMesmoDia AS FLOAT64), NULLIF(CAST(o.rotasPlanejadas AS FLOAT64), 0)) AS pctMatchMesmoDia,
         o.valorPagamentoTotal,
         ROUND(\`${n}.safe_div\`(o.valorPagamentoTotal, CAST(o.rotas AS FLOAT64)), 2) AS custoMedioCarga,
