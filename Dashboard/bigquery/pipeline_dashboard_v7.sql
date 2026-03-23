@@ -370,7 +370,14 @@ com_flags_adicionais AS (
 
   FROM com_planejamento cp
 )
-SELECT * FROM com_flags_adicionais;
+SELECT
+  *,
+  -- Aliases para compatibilidade com API (nomes legados)
+  km_real AS km_realizado,
+  km_plan AS km_planejado,
+  tempo_operacional_h AS tempo_realizado_h_final,
+  tempo_plan_h AS tempo_planejado_h_final
+FROM com_flags_adicionais;
 
 -- ==============================================================================
 -- FIM - API consome direto base_execucao_canonica via queries.js
