@@ -59,7 +59,7 @@ export interface CockpitSerieDiaria {
   sprPedidos: number;
   sprVolumes: number;
   scoreOperacional: number;
-  ocupacaoComposta: number;
+  ocupacaoPeso: number;
   aderenciaVolumes: number | null;
   tempoMedRealizado: number;
   qtdRotasNaoPlanejadas: number;
@@ -77,11 +77,11 @@ export interface FilialPerformance {
   rotas: number;
   placasDistintas: number;
   pedidosReal: number;
-  pedidosPlan: number;
+  pedidosPlan: number | null;
   volumesReal: number;
-  volumesPlan: number;
+  volumesPlan: number | null;
   pesoReal: number;
-  pesoPlan: number;
+  pesoPlan: number | null;
   entregues: number;
   insucessos: number;
   entregasEfetivas: number;
@@ -89,13 +89,18 @@ export interface FilialPerformance {
   sprPedidosReal: number;
   sprVsMeta: number;
   tempoReal: number;
-  tempoPlan: number;
-  desvioTempoH: number;
-  desvioTempoPct: number;
+  tempoPlan: number | null;
+  desvioTempoH: number | null;
+  desvioTempoPct: number | null;
   kmReal: number;
-  kmPlan: number;
+  kmPlan: number | null;
   progressoPct: number;
   scoreOperacional: number;
+  aderenciaPedidos?: number | null;
+  aderenciaVolumes?: number | null;
+  aderenciaPeso?: number | null;
+  aderenciaKm?: number | null;
+  aderenciaTempo?: number | null;
 }
 
 // ─── Alerta ────────────────────────────────────────────────────────
@@ -106,7 +111,7 @@ export interface Alerta {
   regiao: string;
   transportador: string;
   rota: string;
-  rotaPlanejada: string;
+  rotaPlanejada: string | null;
   placa: string;
   motorista: string;
   tipoVeiculo: string;
@@ -123,8 +128,7 @@ export interface Alerta {
   tempoPlanejado: number;
   tempoRealizado: number;
   entregaEfetivaRota: number;
-  ocupacaoComposta: number;
-  ocupacaoPeso?: number | null;
+  ocupacaoPeso: number;
   flagNaoPlanejada: boolean;
   flagSemTempo: boolean;
   flagOvertime: boolean;
@@ -166,8 +170,7 @@ export interface DrillRota {
   entregaEfetiva: number;
   ocupacaoPedidos: number;
   ocupacaoVolumes: number;
-  ocupacaoComposta: number;
-  ocupacaoPeso?: number | null;
+  ocupacaoPeso: number;
   aderenciaVolumes?: number | null;
   custoMedioCarga: number;
   scoreOperacional: number;
@@ -259,8 +262,7 @@ export interface KpiDiario {
   pctRotasOvertime: number;
   pctOcupacaoPedidos: number;
   pctOcupacaoVolumes: number;
-  pctOcupacaoComposta: number;
-  pctOcupacaoPeso?: number | null;
+  pctOcupacaoPeso: number;
   pctAderPedidos?: number | null;
   pctAderVolumes?: number | null;
   pctAderPeso?: number | null;
@@ -276,7 +278,6 @@ export interface KpiDiario {
   metaEntregas?: number;
   metaRotasConcluidas?: number;
   metaOcupacaoPeso?: number;
-  metaOcupacaoComposta?: number;
   metaAderenciaVolumes?: number;
   metaOrhTempo?: number;
   dpph?: number | null;

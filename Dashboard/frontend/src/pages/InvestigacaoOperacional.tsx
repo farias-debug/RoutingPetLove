@@ -182,7 +182,7 @@ export default function InvestigacaoOperacional() {
                 <option value="pedidos">Pedidos</option>
                 <option value="volumes">Volumes</option>
                 <option value="kmRealizado">KM</option>
-                <option value="ocupacaoComposta">Capacidade Peso</option>
+                <option value="ocupacaoPeso">Capacidade Peso</option>
               </select>
               <select className="border rounded-md px-2 py-1 text-sm" value={order} onChange={(event) => setParam("drillOrder", event.target.value)}>
                 <option value="desc">Desc</option>

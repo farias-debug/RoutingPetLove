@@ -293,7 +293,6 @@ app.get("/api/alertas", async (req, res) => {
         tempoPlanejado: Number(row.tempoPlaneadoH ?? 0),
         tempoRealizado: Number(row.tempoRealizadoH ?? 0),
         entregaEfetivaRota: Number(row.entregaEfetivaRota ?? 0),
-        ocupacaoComposta: Number(row.ocupacaoPeso ?? 0),
         ocupacaoPeso: Number(row.ocupacaoPeso ?? 0),
         flagNaoPlanejada: Boolean(row.flagNaoPlanejada),
         flagSemTempo: Boolean(row.flagSemTempo),
@@ -357,7 +356,7 @@ app.get("/api/drill-rotas", async (req, res) => {
       pedidos: "d.qtd_pedidos",
       volumes: "d.qtd_volumes",
       kmRealizado: "d.km_realizado",
-      ocupacaoComposta: "d.ocup_peso_veiculo",
+      ocupacaoPeso: "d.ocup_peso_veiculo",
     };
     const sortField = orderMap[req.query.sort] || "d.data_referencia";
     const orderDirection = String(req.query.order || "desc").toUpperCase() === "ASC" ? "ASC" : "DESC";
@@ -389,7 +388,6 @@ app.get("/api/drill-rotas", async (req, res) => {
         entregaEfetiva: Number(row.entregaEfetivaRota ?? 0),
         ocupacaoPedidos: null,
         ocupacaoVolumes: row.aderenciaVolumes == null ? null : Number(row.aderenciaVolumes),
-        ocupacaoComposta: Number(row.ocupacaoPeso ?? 0),
         ocupacaoPeso: Number(row.ocupacaoPeso ?? 0),
         aderenciaVolumes: row.aderenciaVolumes == null ? null : Number(row.aderenciaVolumes),
         custoMedioCarga: row.valorTotal == null ? null : Number(row.valorTotal),
@@ -561,7 +559,7 @@ app.get("/api/executivo/serie-diaria", async (req, res) => {
       sprPedidos: Number(row.sprPedidos ?? 0),
       sprVolumes: Number(row.sprVolumes ?? 0),
       scoreOperacional: Number(row.scoreOperacional ?? 0),
-      ocupacaoComposta: Number(row.ocupacaoComposta ?? 0),
+      ocupacaoPeso: Number(row.ocupacaoPeso ?? 0),
       aderenciaVolumes: toNumberOrNull(row.aderenciaVolumes),
       tempoMedRealizado: Number(row.tempoMedRealizado ?? 0),
       qtdRotasNaoPlanejadas: Number(row.qtdRotasNaoPlanejadas ?? 0),

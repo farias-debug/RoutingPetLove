@@ -171,7 +171,7 @@ export default function CockpitOperacional() {
     ...item,
     label: formatShortDate(item.data),
     entregasPct: Number(((item.entregasEfetivas ?? 0) * 100).toFixed(1)),
-    ocupacaoPct: Number(((item.ocupacaoComposta ?? 0) * 100).toFixed(1)),
+    ocupacaoPct: Number(((item.ocupacaoPeso ?? 0) * 100).toFixed(1)),
     aderenciaPct: item.aderenciaVolumes == null ? null : Number((item.aderenciaVolumes * 100).toFixed(1)),
   }));
 
@@ -830,7 +830,7 @@ export default function CockpitOperacional() {
                           />
                         </td>
                         <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.entregaEfetiva)}</td>
-                        <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.ocupacaoPeso ?? item.ocupacaoComposta)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.ocupacaoPeso)}</td>
                         <td className="px-3 py-3 text-muted-foreground">{item.alertaOperacional}</td>
                       </tr>
                     ))}
@@ -864,7 +864,7 @@ export default function CockpitOperacional() {
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Capacidade</p>
-                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(selectedRota.ocupacaoPeso ?? selectedRota.ocupacaoComposta)}</p>
+                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(selectedRota.ocupacaoPeso)}</p>
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Aderência volumes</p>
