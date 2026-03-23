@@ -46,8 +46,11 @@ jobs:
           fetch-depth: 0
 
       - name: Add Lovable remote
+        env:
+          GH_TOKEN: ${{ secrets.LOVABLE_TOKEN }}
         run: |
-          git remote add lovable https://x-access-token:${{ secrets.LOVABLE_TOKEN }}@github.com/${{ env.LOVABLE_REPO }}.git
+          gh repo clone ${{ env.LOVABLE_REPO }} /tmp/lovable-clone -- --depth 1
+          git remote add lovable /tmp/lovable-clone
           git fetch lovable main
 
       - name: Compare repositories
@@ -176,11 +179,18 @@ jobs:
           fetch-depth: 0
 
       - name: Clone git-connect
+        env:
+          GH_TOKEN: ${{ secrets.LOVABLE_TOKEN }}
         run: |
-          git clone https://x-access-token:${{ secrets.LOVABLE_TOKEN }}@github.com/${{ env.LOVABLE_REPO }}.git /tmp/lovable-repo
+          gh repo clone ${{ env.LOVABLE_REPO }} /tmp/lovable-repo
 
       - name: Sync frontend to Lovable
+        env:
+          GH_TOKEN: ${{ secrets.LOVABLE_TOKEN }}
         run: |
+          # Configurar git credentials via gh
+          gh auth setup-git
+
           # Limpar tudo exceto .git, lovable-context.md e README.md
           cd /tmp/lovable-repo
           find . -maxdepth 1 -not -name '.git' -not -name 'lovable-context.md' -not -name 'README.md' -not -name '.' | xargs rm -rf
