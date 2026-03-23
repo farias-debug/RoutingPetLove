@@ -155,7 +155,7 @@ export function cardsQuery(projectId, dataset, where) {
         CAST(k.qtd_pedidos AS FLOAT64) AS pedidos_f,
         CAST(k.qtd_volumes AS FLOAT64) AS volumes_f,
         CAST(k.total_peso_kg AS FLOAT64) AS peso_total_f,
-        k.ocup_peso_veiculo AS ocup_composta
+        k.ocup_peso_veiculo AS ocupacao_peso
       FROM kpis k
     ),
     ordered_complete AS (
@@ -211,7 +211,7 @@ export function cardsQuery(projectId, dataset, where) {
       STRUCT(4, 'SPR Volumes', l.spr_volumes, (SELECT meta_spr_vol FROM metas LIMIT 1), l.spr_volumes - (SELECT meta_spr_vol FROM metas LIMIT 1), \`${n}.status_higher\`(l.spr_volumes, (SELECT meta_spr_vol FROM metas LIMIT 1)), l.spr_volumes - COALESCE(p.spr_volumes, 0), l.spr_volumes - COALESCE(w.spr_volumes, 0), l.data, 'Rebalancear densidade de volumes por rota'),
       STRUCT(5, 'SPR Pedidos', l.spr_pedidos, (SELECT meta_spr_ped FROM metas LIMIT 1), l.spr_pedidos - (SELECT meta_spr_ped FROM metas LIMIT 1), \`${n}.status_higher\`(l.spr_pedidos, (SELECT meta_spr_ped FROM metas LIMIT 1)), l.spr_pedidos - COALESCE(p.spr_pedidos, 0), l.spr_pedidos - COALESCE(w.spr_pedidos, 0), l.data, 'Revisar consolidacao, mix e ocupacao'),
       STRUCT(6, 'Entregas Efetivas', l.entregas_efetivas, (SELECT meta_entregas FROM metas LIMIT 1), l.entregas_efetivas - (SELECT meta_entregas FROM metas LIMIT 1), \`${n}.status_higher\`(l.entregas_efetivas, (SELECT meta_entregas FROM metas LIMIT 1)), l.entregas_efetivas - COALESCE(p.entregas_efetivas, 0), l.entregas_efetivas - COALESCE(w.entregas_efetivas, 0), l.data, 'Atacar insucessos e janelas criticas'),
-      STRUCT(7, 'Capacidade Utilizada', l.ocup_composta, (SELECT meta_ocup FROM metas LIMIT 1), l.ocup_composta - (SELECT meta_ocup FROM metas LIMIT 1), \`${n}.capacity_status\`(l.ocup_composta), l.ocup_composta - COALESCE(p.ocup_composta, 0), l.ocup_composta - COALESCE(w.ocup_composta, 0), l.data, 'Ajustar mix e capacidade por tipo de veiculo'),
+      STRUCT(7, 'Capacidade Utilizada', l.ocupacao_peso, (SELECT meta_ocup FROM metas LIMIT 1), l.ocupacao_peso - (SELECT meta_ocup FROM metas LIMIT 1), \`${n}.capacity_status\`(l.ocupacao_peso), l.ocupacao_peso - COALESCE(p.ocupacao_peso, 0), l.ocupacao_peso - COALESCE(w.ocupacao_peso, 0), l.data, 'Ajustar mix e capacidade por tipo de veiculo'),
       STRUCT(8, 'ORH', l.orh, (SELECT meta_orh FROM metas LIMIT 1), l.orh - (SELECT meta_orh FROM metas LIMIT 1), \`${n}.status_target_band\`(l.orh, (SELECT meta_orh FROM metas LIMIT 1), 1.0, 2.1), l.orh - COALESCE(p.orh, 0), l.orh - COALESCE(w.orh, 0), l.data, 'Rebalancear jornadas e overtime'),
       STRUCT(9, 'Aderencia Volumes', l.ader_vol_exibicao, (SELECT meta_ader_vol FROM metas LIMIT 1), l.ader_vol_exibicao - (SELECT meta_ader_vol FROM metas LIMIT 1), CASE WHEN l.ader_vol_exibicao > 1.05 THEN 'Crítico' ELSE \`${n}.status_higher\`(l.ader_vol_exibicao, (SELECT meta_ader_vol FROM metas LIMIT 1)) END, l.ader_vol_exibicao - COALESCE(p.ader_vol_exibicao, 0), l.ader_vol_exibicao - COALESCE(w.ader_vol_exibicao, 0), l.data, 'Revisar cobertura do planejamento publicado'),
       STRUCT(10, 'DPPH', l.dpph, (SELECT meta_dpph FROM metas LIMIT 1), l.dpph - (SELECT meta_dpph FROM metas LIMIT 1), \`${n}.status_higher\`(l.dpph, (SELECT meta_dpph FROM metas LIMIT 1)), l.dpph - COALESCE(p.dpph, 0), l.dpph - COALESCE(w.dpph, 0), l.data, 'Revisar produtividade por hora trabalhada')
@@ -246,7 +246,7 @@ export function tendenciaSemanalQuery(projectId, dataset, where) {
         \`${n}.adherence_ratio\`(SUM(b.qtd_volumes), SUM(b.volumes_plan)) AS ader_vol,
         \`${n}.safe_div\`(SUM(b.qtd_entregues), NULLIF(SUM(b.tempo_operacional_h), 0)) AS dpph,
         \`${n}.safe_div\`(CAST(COUNTIF(b.flag_rota_concluida) AS FLOAT64), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)) AS pct_rotas_concl,
-        \`${n}.safe_div\`(SUM(b.peso_real_kg), NULLIF(SUM(b.capacidade_peso_kg), 0)) AS ocup_composta
+        \`${n}.safe_div\`(SUM(b.peso_real_kg), NULLIF(SUM(b.capacidade_peso_kg), 0)) AS ocupacao_peso
       FROM \`${n}.base_execucao_canonica\` b
       ${where}
       GROUP BY 1, 2, 3, 4
@@ -260,7 +260,7 @@ export function tendenciaSemanalQuery(projectId, dataset, where) {
         IF(w.ader_vol IS NOT NULL,
            \`${n}.status_higher\`(w.ader_vol, m.meta_ader_vol),
            'Informativo'),
-        \`${n}.capacity_status\`(w.ocup_composta)
+        \`${n}.capacity_status\`(w.ocupacao_peso)
       ), 1) AS score_operacional
     FROM weekly w
     CROSS JOIN metas m
@@ -862,7 +862,7 @@ export function serieDiariaQuery(projectId, dataset, where) {
         \`${n}.safe_div\`(
           SUM(b.peso_real_kg),
           NULLIF(SUM(b.capacidade_peso_kg), 0)
-        ) AS ocupacaoComposta,
+        ) AS ocupacaoPeso,
         \`${n}.safe_div\`(
           CAST(COUNTIF(b.flag_rota_concluida) AS FLOAT64), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)) AS pctRotasConcl
       FROM \`${n}.base_execucao_canonica\` b
@@ -909,9 +909,9 @@ export function serieDiariaQuery(projectId, dataset, where) {
            \`${n}.status_higher\`(
              \`${n}.adherence_ratio\`(d.volumes, d.volumesPlanejados), m.meta_ader_vol),
            'Informativo'),
-        \`${n}.capacity_status\`(d.ocupacaoComposta)
+        \`${n}.capacity_status\`(d.ocupacaoPeso)
       ), 1) AS scoreOperacional,
-      ROUND(d.ocupacaoComposta, 4) AS ocupacaoComposta,
+      ROUND(d.ocupacaoPeso, 4) AS ocupacaoPeso,
       ROUND(\`${n}.adherence_ratio\`(d.volumes, d.volumesPlanejados), 4) AS aderenciaVolumes,
       ROUND(\`${n}.safe_div\`(d.tempoOperacionalTotal, CAST(d.rotas AS FLOAT64)), 2) AS tempoMedRealizado,
       d.qtdRotasNaoPlanejadas,

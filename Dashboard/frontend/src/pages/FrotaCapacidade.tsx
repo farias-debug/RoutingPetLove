@@ -43,7 +43,7 @@ export default function FrotaCapacidade() {
   const kpis = kpi ? [
     { label: "Veículos Ativos", value: kpi.veiculosAtivos, unit: "veíc.", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
     { label: "Motoristas Ativos", value: kpi.motoristasAtivos, unit: "mot.", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
-    { label: "Ocupação Peso", value: ocupacaoConsolidada == null ? "—" : +(ocupacaoConsolidada * 100).toFixed(1), unit: ocupacaoConsolidada == null ? "" : "%", meta: kpi.metaOcupacaoPeso != null ? kpi.metaOcupacaoPeso * 100 : undefined, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: (ocupacaoConsolidada ?? -1) >= (kpi.metaOcupacaoPeso ?? 0) ? "success" as const : "warning" as const },
+    { label: "Ocupação Peso", value: ocupacaoConsolidada == null ? "—" : +(ocupacaoConsolidada * 100).toFixed(1), unit: ocupacaoConsolidada == null ? "" : "%", meta: kpi.metaOcupacaoPeso != null ? kpi.metaOcupacaoPeso * 100 : undefined, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: (ocupacaoConsolidada != null && kpi.metaOcupacaoPeso != null && ocupacaoConsolidada >= kpi.metaOcupacaoPeso) ? "success" as const : "warning" as const },
     { label: "Peso Movimentado", value: formatInteger(totalPesoKg), unit: "kg", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
     { label: "Capacidade Total", value: formatInteger(totalCapacidadeKg), unit: "kg", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
   ] : [];

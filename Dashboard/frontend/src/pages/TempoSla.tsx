@@ -10,6 +10,7 @@ import { useCockpitSerieDiaria, useKpiDiario, useMetas } from "@/hooks/useApiDat
 import { formatShortDate, getMetricDomain, getSeriesExtremes, getVariation, sortDailySeries, sumMetric, temporalWindows, type TemporalWindow } from "@/lib/dashboardTemporal";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from "recharts";
+import { formatInteger, formatPercent, formatDuration, formatDecimal, formatSigned } from "@/lib/formatters";
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
@@ -18,62 +19,29 @@ const sections: PageSectionNavItem[] = [
   { id: "leituras", label: "Leituras" },
 ];
 
-function formatInteger(value: number | null | undefined) {
-  if (value == null) return "—";
-  return Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
-}
-
-function formatPercent(value: number | null | undefined, digits = 1) {
-  if (value == null) return "—";
-  return `${Number(value).toLocaleString("pt-BR", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  })}%`;
-}
-
-function formatDuration(hours: number | null | undefined) {
-  if (hours == null) return "—";
-  const totalHours = Number(hours);
-  const integerHours = Math.floor(totalHours);
-  const minutes = Math.round((totalHours % 1) * 60);
-  return `${integerHours}h ${minutes}min`;
-}
-
-function formatDecimal(value: number | null | undefined, digits = 1) {
-  if (value == null) return "—";
-  return Number(value).toLocaleString("pt-BR", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-}
-
-function formatSigned(value: number, formatter: (input: number) => string) {
-  const signal = value >= 0 ? "+" : "-";
-  return `${signal}${formatter(Math.abs(value))}`;
-}
-
 export default function TempoSla() {
   const [trendWindow, setTrendWindow] = useState<TemporalWindow>("30d");
   const { filters } = useGlobalFilters();
   const { data: kpi, isLoading: loadingKpi } = useKpiDiario(filters);
   const { data: metas } = useMetas();
   const { data: serieDiaria, isLoading: loadingSerieDiaria } = useCockpitSerieDiaria(trendWindow, {
+    periodo: filters.periodo,
     filial: filters.filial,
     transportador: filters.transportador,
     tipoVeiculo: filters.tipoVeiculo,
     status: filters.status,
   });
 
-  const metaEntregas = (metas ?? []).find(m => m.kpiId === "entregas_efetivas")?.meta ?? kpi?.metaEntregas ?? 0;
-  const metaSpr = (metas ?? []).find(m => m.kpiId === "spr_pedidos")?.meta ?? 0;
-  const metaRotasConcluidas = kpi?.metaRotasConcluidas ?? 0;
+  const metaEntregas = (metas ?? []).find(m => m.kpiId === "entregas_efetivas")?.meta ?? kpi?.metaEntregas;
+  const metaSpr = (metas ?? []).find(m => m.kpiId === "spr_pedidos")?.meta;
+  const metaRotasConcluidas = kpi?.metaRotasConcluidas;
   const overtimeRotas = kpi ? Math.round(kpi.rotas * kpi.pctRotasOvertime) : 0;
 
   const kpis = kpi ? [
     { label: "Tempo Médio Realizado", value: `${Math.floor(kpi.tempoMedRealizado)}h ${Math.round((kpi.tempoMedRealizado % 1) * 60)}min`, unit: "", meta: kpi.metaOrhTempo, metaLabel: "Meta h", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
     { label: "Rotas Concluídas", value: +(kpi.pctRotasConcluidas * 100).toFixed(1), unit: "%", meta: metaRotasConcluidas * 100, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
     { label: "Ociosidade", value: +(kpi.pctOciosidadeJornada * 100).toFixed(1), unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
-    { label: "Overtime", value: Math.round(kpi.rotas * kpi.pctRotasOvertime), unit: "rotas", trend: "neutral" as const, trendValue: undefined, status: "danger" as const },
+    { label: "Overtime", value: Math.round(kpi.rotas * kpi.pctRotasOvertime), unit: "rotas", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
   ] : [];
 
   const orderedSeries = sortDailySeries(serieDiaria);
