@@ -177,7 +177,7 @@ jobs:
 
       - name: Clone git-connect
         run: |
-          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ env.LOVABLE_REPO }}.git /tmp/lovable-repo
+          git clone https://x-access-token:${{ secrets.LOVABLE_TOKEN }}@github.com/${{ env.LOVABLE_REPO }}.git /tmp/lovable-repo
 
       - name: Sync frontend to Lovable
         run: |
