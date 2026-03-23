@@ -47,7 +47,7 @@ jobs:
 
       - name: Add Lovable remote
         run: |
-          git remote add lovable https://github.com/${{ env.LOVABLE_REPO }}.git
+          git remote add lovable https://x-access-token:${{ secrets.LOVABLE_TOKEN }}@github.com/${{ env.LOVABLE_REPO }}.git
           git fetch lovable main
 
       - name: Compare repositories
