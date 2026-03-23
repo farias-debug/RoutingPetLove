@@ -165,9 +165,9 @@ jobs:
               });
             }
 
-  # Quando push no frontend local, atualizar o Lovable automaticamente
+  # Quando push no frontend local ou dispatch com action=push, atualizar o Lovable automaticamente
   auto-push-to-lovable:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'push')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout RoutingPetLove
