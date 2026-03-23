@@ -164,7 +164,6 @@ export function cardsQuery(projectId, dataset, where) {
       FROM metrics
       WHERE qtd_entregas > 0
         AND tempo_oper_total > 0
-        AND volumes_plan > 0
     ),
     ordered_fallback AS (
       SELECT *, ROW_NUMBER() OVER (ORDER BY data DESC) AS rn
@@ -761,7 +760,6 @@ export function kpiDiarioQuery(projectId, dataset, where) {
       FROM daily
       WHERE entregas > 0
         AND tempoOperacionalTotal > 0
-        AND volumesPlan > 0
     ),
     ordered_fallback AS (
       SELECT *, ROW_NUMBER() OVER (ORDER BY data DESC) AS rn
@@ -872,6 +870,7 @@ export function serieDiariaQuery(projectId, dataset, where) {
         COUNTIF(b.flag_sem_tempo) AS qtdRotasSemTempo,
         SUM(b.pedidos_plan) AS pedidosPlanejados,
         SUM(b.volumes_plan) AS volumesPlanejados,
+        SUM(IF(b.possui_planejamento, b.qtd_volumes, NULL)) AS volumesComPlan,
         SUM(b.peso_real_kg) AS pesoRealizado,
         SUM(b.peso_plan_kg) AS pesoPlanejado,
         SUM(b.capacidade_peso_kg) AS capacidadePesoTotalKg,
@@ -923,12 +922,12 @@ export function serieDiariaQuery(projectId, dataset, where) {
           \`${n}.safe_div\`(d.tempoOperacionalTotal, CAST(d.rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
         IF(d.volumesPlanejados > 0,
            \`${n}.status_higher\`(
-             \`${n}.adherence_ratio\`(d.volumes, d.volumesPlanejados), m.meta_ader_vol),
+             \`${n}.adherence_ratio\`(d.volumesComPlan, d.volumesPlanejados), m.meta_ader_vol),
            'Informativo'),
         \`${n}.capacity_status\`(d.ocupacaoPeso)
       ), 1) AS scoreOperacional,
       ROUND(d.ocupacaoPeso, 4) AS ocupacaoPeso,
-      ROUND(\`${n}.adherence_ratio\`(d.volumes, d.volumesPlanejados), 4) AS aderenciaVolumes,
+      ROUND(\`${n}.adherence_ratio\`(d.volumesComPlan, d.volumesPlanejados), 4) AS aderenciaVolumes,
       ROUND(\`${n}.safe_div\`(d.tempoOperacionalTotal, CAST(d.rotas AS FLOAT64)), 2) AS tempoMedRealizado,
       d.qtdRotasNaoPlanejadas,
       d.qtdRotasSemTempo,
