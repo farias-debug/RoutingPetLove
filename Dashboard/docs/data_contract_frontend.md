@@ -8,6 +8,8 @@
 
 Este documento fecha formalmente a Fase 2 do dashboard.
 
+Para qualquer divergência sobre fórmula, grão, naming ou fronteira entre camada analítica, API e frontend, a referência principal passa a ser o documento docs/PLANO_ESTRUTURAL_DADOS_CANONICO.md.
+
 Seu papel é padronizar:
 
 - convenções de payload entre API e frontend
@@ -196,6 +198,8 @@ Parâmetros opcionais:
 - periodo
 - filial
 - transportador
+- tipoVeiculo
+- status
 
 ### GET /api/alertas
 
@@ -229,6 +233,15 @@ Fonte BigQuery: alertas_rotas.
 
 Contagem agregada de alertas para os cards da página de investigação operacional.
 
+Parâmetros opcionais:
+
+- periodo
+- filial
+- transportador
+- tipoVeiculo
+- status
+- prioridade
+
 ### GET /api/drill-rotas
 
 Drill paginado de rotas com filtros server-side.
@@ -253,9 +266,10 @@ Resumo por transportador para ranking, custo médio e share.
 Parâmetros opcionais:
 
 - periodo
+- filial
 - transportador
-
-Observação: filtragem por filial não é totalmente suportada pela fonte agregada atual.
+- tipoVeiculo
+- status
 
 ### GET /api/frota/ocupacao-tipo
 
@@ -264,8 +278,10 @@ Ocupação por tipo de veículo.
 Parâmetros opcionais:
 
 - periodo
+- filial
 - transportador
 - tipoVeiculo
+- status
 
 ### GET /api/motoristas
 
@@ -355,3 +371,128 @@ Parâmetros opcionais:
 - Views v6 corrigidas e publicadas no BigQuery.
 - Frontend publicado consumindo a URL pública do Cloud Run.
 - Mock mantido apenas como fallback local controlado e explícito.
+
+---
+
+## 11. Mapeamento Naming snake_case → camelCase
+
+### 11.1 Convenção de Naming entre Camadas
+
+**BigQuery → API → Frontend:**
+- BigQuery usa `snake_case` (padrão SQL)
+- API JSON usa `camelCase` (padrão JavaScript/JSON)
+- Frontend TypeScript usa `camelCase` (padrão JavaScript)
+
+**Transformação:** O mapeamento acontece em `Dashboard/api/server.js` ao serializar respostas BigQuery para JSON.
+
+### 11.2 Medidas Atômicas
+
+| BigQuery (snake_case) | API/Frontend (camelCase) | Observação |
+|---|---|---|
+| qtd_rotas | rotas | Simplificado |
+| qtd_pedidos | pedidos | Simplificado |
+| qtd_volumes | volumes | Simplificado |
+| qtd_entregues | entregas | Simplificado + renomeado |
+| qtd_insucessos | insucessos | Simplificado |
+| qtd_baixas | baixas | Simplificado |
+| peso_real_kg | pesoReal | Sem unidade no nome |
+| km_real | kmReal | — |
+| tempo_operacional_h | tempoOperacional | Sem unidade no nome |
+| tempo_real_h | tempoReal | Sem unidade no nome |
+| tempo_plan_h | tempoPlanejado | Sem unidade no nome |
+| pedidos_plan | pedidosPlanejados | — |
+| volumes_plan | volumesPlanejados | — |
+| peso_plan_kg | pesoPlanejado | Sem unidade no nome |
+| valor_total | valorTotal | — |
+| capacidade_peso_kg | capacidadePeso | Sem unidade no nome |
+
+### 11.3 KPIs Derivados
+
+| BigQuery (snake_case) | API/Frontend (camelCase) | Observação |
+|---|---|---|
+| spr_pedidos | sprPedidos | — |
+| spr_volumes | sprVolumes | — |
+| pct_entregas_efetivas | entregasEfetivas | Simplificado, sem "pct_" |
+| pct_rotas_concluidas | rotasConcluidas | Simplificado, sem "pct_" |
+| orh | orh | Mantém sigla |
+| ader_pedidos | aderenciaPedidos | Expandido |
+| ader_volumes | aderenciaVolumes | Expandido |
+| ader_peso | aderenciaPeso | Expandido |
+| ader_km | aderenciaKm | Expandido |
+| ader_tempo | aderenciaTempo | Expandido |
+| ocup_peso_veiculo | ocupacaoPeso | Simplificado |
+| ocupacao_composta | ocupacaoComposta | Legado - mesmo que ocupacaoPeso |
+| custo_medio_carga | custoMedioCarga | — |
+| custo_medio_pedido | custoMedioPedido | — |
+| custo_medio_volume | custoMedioVolume | — |
+| dpph | dpph | Mantém sigla |
+| score_operacional | scoreOperacional | — |
+
+### 11.4 Campos de Dimensão
+
+| BigQuery (snake_case) | API/Frontend (camelCase) | Observação |
+|---|---|---|
+| data_referencia | dataReferencia | — |
+| filial | filial | Mantém (palavra simples) |
+| tipo_filial | tipoFilial | — |
+| regiao | regiao | Mantém (palavra simples) |
+| transportador | transportador | Mantém (palavra simples) |
+| motorista | motorista | Mantém (palavra simples) |
+| cpf_motorista | cpfMotorista | — |
+| placa | placa | Mantém (palavra simples) |
+| tipo_veiculo | tipoVeiculo | — |
+| status_tms | status | Simplificado |
+| meta_spr_filial | metaSpr | Simplificado |
+| capacidade_volume_dia | capacidadeVolumeDia | — |
+
+### 11.5 Flags Operacionais
+
+| BigQuery (snake_case) | API/Frontend (camelCase) | Observação |
+|---|---|---|
+| flag_rota_concluida | flagRotaConcluida | — |
+| flag_nao_planejada | flagNaoPlanejada | — |
+| flag_sem_tempo | flagSemTempo | — |
+| flag_overtime | flagOvertime | — |
+| flag_entrega_critica | flagEntregaCritica | — |
+| flag_match_critico | flagMatchCritico | — |
+| possui_planejamento | possuiPlanejamento | — |
+
+### 11.6 Valores Especiais
+
+**Percentuais:**
+- BigQuery: fração 0-1 (ex: 0.98 para 98%)
+- API: fração 0-1 (mantém)
+- Frontend: converte para 0-100 apenas na exibição
+
+**Moeda:**
+- BigQuery: decimal bruto (ex: 1234.56)
+- API: decimal bruto (mantém)
+- Frontend: formata com `formatMoney()` pt-BR (R$ 1.234,56)
+
+**Datas:**
+- BigQuery: DATE tipo nativo (YYYY-MM-DD)
+- API: string ISO (YYYY-MM-DD)
+- Frontend: Date object ou string ISO
+
+**NULL values:**
+- BigQuery: NULL
+- API: `null` (JSON)
+- Frontend: `null` ou `undefined` (TypeScript)
+
+### 11.7 Convenções de Status
+
+| BigQuery | API/Frontend | Observação |
+|---|---|---|
+| 'OK' | 'OK' | Mantém |
+| 'Atencao' | 'Atenção' | Acentuação corrigida |
+| 'Critico' | 'Crítico' | Acentuação corrigida |
+| 'Informativo' | 'Informativo' | Mantém |
+| 'Saturado' | 'Saturado' | Mantém |
+| 'Sem dados' | 'Sem dados' | Mantém |
+
+**Cores de status (hex):**
+- OK: `#10b981` (verde)
+- Atenção: `#f59e0b` (amarelo)
+- Crítico: `#ef4444` (vermelho)
+- Informativo: `#6b7280` (cinza)
+- Saturado: `#dc2626` (vermelho escuro)

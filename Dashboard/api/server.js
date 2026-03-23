@@ -27,11 +27,12 @@ const bigquery = new BigQuery({ projectId });
 const firebasePreviewPattern = /^https:\/\/data-aileron-482822-d0--[a-z0-9-]+\.web\.app$/i;
 const lovablePattern = /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/i;
 const lovableAppPattern = /^https:\/\/[a-z0-9-]+\.lovable\.app$/i;
+const localhostPattern = /^http:\/\/localhost:\d+$/;
 
 app.use(express.json({ limit: "1mb" }));
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || firebasePreviewPattern.test(origin) || lovablePattern.test(origin) || lovableAppPattern.test(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || firebasePreviewPattern.test(origin) || lovablePattern.test(origin) || lovableAppPattern.test(origin) || localhostPattern.test(origin)) {
       callback(null, true);
       return;
     }
@@ -316,7 +317,15 @@ app.get("/api/alertas", async (req, res) => {
 app.get("/api/alertas/contagem", async (req, res) => {
   try {
     const params = {};
-    const where = buildCanonAlertWhere(req.query, params);
+    let where = buildCanonAlertWhere(req.query, params);
+    if (req.query.prioridade) {
+      params.prioridade = String(req.query.prioridade).toLowerCase();
+      where += ` AND CASE
+        WHEN flag_entrega_critica OR flag_match_critico THEN 'critico'
+        WHEN flag_overtime OR flag_nao_planejada OR flag_sem_tempo THEN 'atencao'
+        ELSE 'ok'
+      END = @prioridade`;
+    }
     const rows = await runQuery(Q.alertasContagemQuery(projectId, dataset, where), params);
     res.json(rows[0] || { naoPlanejada: 0, semTempo: 0, overtime: 0, entregaCritica: 0, matchCritico: 0, total: 0 });
   } catch (error) {
@@ -443,6 +452,7 @@ app.get("/api/frota/ocupacao-tipo", async (req, res) => {
       dateField: "data_referencia",
       filialField: "filial",
       transportadorField: "transportador",
+      statusField: "status_tms",
       tipoVeiculoField: "tipo_veiculo",
       tipoFilialField: "tipo_filial",
       unitOnly: true,

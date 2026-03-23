@@ -242,7 +242,7 @@ export function buildCanonAlertWhere(query, params = {}, options = {}) {
   }
   if (query.status) {
     params.status = String(query.status);
-    where += ` AND ${alias}status = @status`;
+    where += ` AND ${alias}status_tms = @status`;
   }
   if (query.tipoVeiculo) {
     params.tipoVeiculo = String(query.tipoVeiculo);

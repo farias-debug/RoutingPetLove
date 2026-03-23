@@ -23,7 +23,8 @@ class ApiError extends Error {
 }
 
 function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(path, API_BASE_URL);
+  const base = API_BASE_URL || window.location.origin;
+  const url = new URL(path, base);
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       if (value !== undefined && value !== "") {
@@ -91,28 +92,28 @@ export const api = {
   getCockpitSerieDiaria: (janela = "30d", params?: import("@/types/api").GlobalFilters) =>
     requestValidated<import("@/types/api").CockpitSerieDiaria[]>("/api/executivo/serie-diaria", apiSchemas.cockpitSerieDiaria, { janela, ...params }),
 
-  getFilialPerformance: (params?: { periodo?: string; filial?: string }) =>
+  getFilialPerformance: (params?: { periodo?: string; filial?: string; transportador?: string; tipoVeiculo?: string; status?: string }) =>
     requestValidated<import("@/types/api").FilialPerformance[]>("/api/filiais/performance", apiSchemas.filialPerformance, params),
 
   getAlertas: (params?: { page?: number; limit?: number; tipo?: string; filial?: string; periodo?: string; transportador?: string; status?: string; prioridade?: string; tipoVeiculo?: string }) =>
     requestValidated<PaginatedResponse<import("@/types/api").Alerta>>("/api/alertas", apiSchemas.alertas, params as Record<string, string | number>),
 
-  getAlertasContagem: (params?: { periodo?: string; filial?: string; transportador?: string }) =>
+  getAlertasContagem: (params?: { periodo?: string; filial?: string; transportador?: string; tipoVeiculo?: string; status?: string; prioridade?: string }) =>
     requestValidated<import("@/types/api").AlertaContagem>("/api/alertas/contagem", apiSchemas.alertasContagem, params as Record<string, string>),
 
   getDrillRotas: (params?: { page?: number; limit?: number; filial?: string; status?: string; transportador?: string; periodo?: string; sort?: string; order?: string; prioridade?: string; tipoVeiculo?: string }) =>
     requestValidated<PaginatedResponse<import("@/types/api").DrillRota>>("/api/drill-rotas", apiSchemas.drillRotas, params as Record<string, string | number>),
 
-  getTransportadores: (params?: { periodo?: string; filial?: string; transportador?: string }) =>
+  getTransportadores: (params?: { periodo?: string; filial?: string; transportador?: string; tipoVeiculo?: string; status?: string }) =>
     requestValidated<import("@/types/api").TransportadorResumo[]>("/api/transportadores", apiSchemas.transportadores, params as Record<string, string>),
 
-  getOcupacaoTipoVeiculo: (params?: { periodo?: string; transportador?: string; tipoVeiculo?: string }) =>
+  getOcupacaoTipoVeiculo: (params?: { periodo?: string; filial?: string; transportador?: string; tipoVeiculo?: string; status?: string }) =>
     requestValidated<import("@/types/api").OcupacaoTipoVeiculo[]>("/api/frota/ocupacao-tipo", apiSchemas.ocupacaoTipoVeiculo, params as Record<string, string>),
 
-  getMotoristas: (params?: { page?: number; limit?: number; periodo?: string; filial?: string; transportador?: string; overtime?: boolean }) =>
+  getMotoristas: (params?: { page?: number; limit?: number; periodo?: string; filial?: string; transportador?: string; tipoVeiculo?: string; overtime?: boolean }) =>
     requestValidated<PaginatedResponse<import("@/types/api").MotoristaJornada>>("/api/motoristas", apiSchemas.motoristas, params as Record<string, string | number | boolean>),
 
-  getMotoristasKpis: (params?: { periodo?: string; filial?: string; transportador?: string }) =>
+  getMotoristasKpis: (params?: { periodo?: string; filial?: string; transportador?: string; tipoVeiculo?: string; status?: string }) =>
     requestValidated<import("@/types/api").MotoristaKpis>("/api/motoristas/kpis", apiSchemas.motoristasKpis, params as Record<string, string>),
 
   getKpiDiario: (params?: { data?: string; periodo?: string; filial?: string; transportador?: string; tipoVeiculo?: string; status?: string }) =>

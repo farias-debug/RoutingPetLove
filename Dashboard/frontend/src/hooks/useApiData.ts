@@ -85,8 +85,8 @@ export function useCockpitSerieDiaria(janela = "30d", filters?: GlobalFilters) {
 
 export function useFilialPerformance(filters?: GlobalFilters) {
   return useDashboardQuery(
-    ["filiais", "performance", filters?.periodo, filters?.filial],
-    () => api.getFilialPerformance({ periodo: filters?.periodo, filial: filters?.filial }),
+    ["filiais", "performance", filters?.periodo, filters?.filial, filters?.transportador, filters?.tipoVeiculo, filters?.status],
+    () => api.getFilialPerformance({ periodo: filters?.periodo, filial: filters?.filial, transportador: filters?.transportador, tipoVeiculo: filters?.tipoVeiculo, status: filters?.status }),
     mock.getMockFilialPerformance,
   );
 }
@@ -101,8 +101,8 @@ export function useAlertas(params?: { page?: number; limit?: number; tipo?: stri
 
 export function useAlertasContagem(filters?: GlobalFilters) {
   return useDashboardQuery(
-    ["alertas", "contagem", filters?.periodo, filters?.filial, filters?.transportador],
-    () => api.getAlertasContagem({ periodo: filters?.periodo, filial: filters?.filial, transportador: filters?.transportador }),
+    ["alertas", "contagem", filters?.periodo, filters?.filial, filters?.transportador, filters?.tipoVeiculo, filters?.status, filters?.prioridade],
+    () => api.getAlertasContagem({ periodo: filters?.periodo, filial: filters?.filial, transportador: filters?.transportador, tipoVeiculo: filters?.tipoVeiculo, status: filters?.status, prioridade: filters?.prioridade }),
     mock.getMockAlertasContagem,
   );
 }
@@ -117,21 +117,21 @@ export function useDrillRotas(params?: { page?: number; limit?: number; filial?:
 
 export function useTransportadores(filters?: GlobalFilters) {
   return useDashboardQuery(
-    ["transportadores", filters?.periodo, filters?.filial, filters?.transportador],
-    () => api.getTransportadores({ periodo: filters?.periodo, filial: filters?.filial, transportador: filters?.transportador }),
+    ["transportadores", filters?.periodo, filters?.filial, filters?.transportador, filters?.tipoVeiculo, filters?.status],
+    () => api.getTransportadores({ periodo: filters?.periodo, filial: filters?.filial, transportador: filters?.transportador, tipoVeiculo: filters?.tipoVeiculo, status: filters?.status }),
     mock.getMockTransportadores,
   );
 }
 
 export function useOcupacaoTipoVeiculo(filters?: GlobalFilters) {
   return useDashboardQuery(
-    ["frota", "ocupacao-tipo", filters?.periodo, filters?.transportador, filters?.tipoVeiculo],
-    () => api.getOcupacaoTipoVeiculo({ periodo: filters?.periodo, transportador: filters?.transportador, tipoVeiculo: filters?.tipoVeiculo }),
+    ["frota", "ocupacao-tipo", filters?.periodo, filters?.filial, filters?.transportador, filters?.tipoVeiculo, filters?.status],
+    () => api.getOcupacaoTipoVeiculo({ periodo: filters?.periodo, filial: filters?.filial, transportador: filters?.transportador, tipoVeiculo: filters?.tipoVeiculo, status: filters?.status }),
     mock.getMockOcupacaoTipoVeiculo,
   );
 }
 
-export function useMotoristas(params?: { page?: number; limit?: number; periodo?: string; filial?: string; transportador?: string; overtime?: boolean }) {
+export function useMotoristas(params?: { page?: number; limit?: number; periodo?: string; filial?: string; transportador?: string; tipoVeiculo?: string; overtime?: boolean }) {
   return useDashboardQuery(
     ["motoristas", params],
     () => api.getMotoristas(params),
@@ -141,8 +141,8 @@ export function useMotoristas(params?: { page?: number; limit?: number; periodo?
 
 export function useMotoristasKpis(filters?: GlobalFilters) {
   return useDashboardQuery(
-    ["motoristas", "kpis", filters?.periodo, filters?.filial, filters?.transportador],
-    () => api.getMotoristasKpis({ periodo: filters?.periodo, filial: filters?.filial, transportador: filters?.transportador }),
+    ["motoristas", "kpis", filters?.periodo, filters?.filial, filters?.transportador, filters?.tipoVeiculo, filters?.status],
+    () => api.getMotoristasKpis({ periodo: filters?.periodo, filial: filters?.filial, transportador: filters?.transportador, tipoVeiculo: filters?.tipoVeiculo, status: filters?.status }),
     mock.getMockMotoristasKpis,
   );
 }
