@@ -11,6 +11,18 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    proxy: {
+      "/api": {
+        target: "https://dashboard-logistico-api-745676656148.us-central1.run.app",
+        changeOrigin: true,
+        secure: true,
+      },
+      "/health": {
+        target: "https://dashboard-logistico-api-745676656148.us-central1.run.app",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

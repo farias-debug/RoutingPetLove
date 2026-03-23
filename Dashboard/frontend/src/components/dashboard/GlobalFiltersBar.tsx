@@ -1,13 +1,82 @@
-import { Calendar, Building2, Truck, RotateCcw, AlertTriangle, Package } from "lucide-react";
+import { useState } from "react";
+import { Calendar, Building2, Truck, RotateCcw, AlertTriangle, Package, ChevronDown } from "lucide-react";
+import { format, parse, isValid } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { useFilterOptions } from "@/hooks/useApiData";
+
+// ── helpers de conversão período ↔ DateRange ────────────────────────────────
+
+function periodoToRange(periodo: string | undefined): DateRange | undefined {
+  if (!periodo) return undefined;
+  if (periodo.includes(",")) {
+    const [s, e] = periodo.split(",");
+    const from = parse(s, "yyyy-MM-dd", new Date());
+    const to = parse(e, "yyyy-MM-dd", new Date());
+    return isValid(from) && isValid(to) ? { from, to } : undefined;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(periodo)) {
+    const from = parse(periodo, "yyyy-MM-dd", new Date());
+    return isValid(from) ? { from, to: from } : undefined;
+  }
+  if (/^\d{4}-\d{2}$/.test(periodo)) {
+    const from = parse(`${periodo}-01`, "yyyy-MM-dd", new Date());
+    if (!isValid(from)) return undefined;
+    const lastDay = new Date(from.getFullYear(), from.getMonth() + 1, 0);
+    return { from, to: lastDay };
+  }
+  return undefined;
+}
+
+function rangeToperiodo(range: DateRange | undefined): string | undefined {
+  if (!range?.from) return undefined;
+  const f = format(range.from, "yyyy-MM-dd");
+  if (!range.to || format(range.to, "yyyy-MM-dd") === f) return f;
+  return `${f},${format(range.to, "yyyy-MM-dd")}`;
+}
+
+function periodoLabel(periodo: string | undefined): string {
+  if (!periodo) return "Período";
+  if (periodo.includes(",")) {
+    const [s, e] = periodo.split(",");
+    try {
+      const from = parse(s, "yyyy-MM-dd", new Date());
+      const to = parse(e, "yyyy-MM-dd", new Date());
+      if (isValid(from) && isValid(to)) {
+        if (from.getMonth() === to.getMonth() && from.getFullYear() === to.getFullYear()) {
+          return `${format(from, "dd")}–${format(to, "dd/MM/yyyy")}`;
+        }
+        return `${format(from, "dd/MM")}–${format(to, "dd/MM/yyyy")}`;
+      }
+    } catch { /* fall through */ }
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(periodo)) {
+    try {
+      const d = parse(periodo, "yyyy-MM-dd", new Date());
+      if (isValid(d)) return format(d, "dd/MM/yyyy");
+    } catch { /* fall through */ }
+  }
+  if (/^\d{4}-\d{2}$/.test(periodo)) {
+    try {
+      const d = parse(`${periodo}-01`, "yyyy-MM-dd", new Date());
+      if (isValid(d)) return format(d, "MMM yyyy", { locale: ptBR });
+    } catch { /* fall through */ }
+  }
+  return periodo;
+}
+
+// ── componente principal ─────────────────────────────────────────────────────
 
 export default function GlobalFiltersBar() {
   const { filters, setFilter, resetFilters } = useGlobalFilters();
   const { data: options } = useFilterOptions(filters);
+  const [calOpen, setCalOpen] = useState(false);
 
   const periodos = options?.periodos ?? [];
   const filialOptions = options?.filiais ?? [];
@@ -18,24 +87,72 @@ export default function GlobalFiltersBar() {
 
   const hasFilters = filters.periodo || filters.filial || filters.transportador || filters.status || filters.prioridade || filters.tipoVeiculo;
 
+  const selectedRange = periodoToRange(filters.periodo);
+
+  function handleRangeChange(range: DateRange | undefined) {
+    const valor = rangeToperiodo(range);
+    setFilter("periodo", valor);
+    // fecha apenas quando range completo ou limpou
+    if (!range?.from || (range?.from && range?.to)) {
+      setCalOpen(false);
+    }
+  }
+
+  function handleMonthShortcut(value: string) {
+    setFilter("periodo", value);
+    setCalOpen(false);
+  }
+
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {/* Período */}
-      <Select
-        value={filters.periodo ?? "__all__"}
-        onValueChange={(v) => setFilter("periodo", v === "__all__" ? undefined : v)}
-      >
-        <SelectTrigger className="h-8 w-[180px] bg-white/10 border-white/20 text-white text-xs font-semibold">
-          <Calendar className="h-3.5 w-3.5 mr-1.5 shrink-0 opacity-70" />
-          <SelectValue placeholder="Período" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__all__">Todos os períodos</SelectItem>
-          {periodos.map((p) => (
-            <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {/* Período — DatePicker com atalhos de mês */}
+      <Popover open={calOpen} onOpenChange={setCalOpen}>
+        <PopoverTrigger asChild>
+          <button className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-white/10 border border-white/20 text-white text-xs font-semibold hover:bg-white/20 transition-colors min-w-[160px]">
+            <Calendar className="h-3.5 w-3.5 shrink-0 opacity-70" />
+            <span className="truncate">{periodoLabel(filters.periodo)}</span>
+            <ChevronDown className="h-3 w-3 ml-auto shrink-0 opacity-60" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <div className="flex flex-col sm:flex-row">
+            {/* Atalhos rápidos de mês */}
+            {periodos.length > 0 && (
+              <div className="border-b sm:border-b-0 sm:border-r border-border/40 p-2 flex flex-col gap-0.5 min-w-[130px]">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide px-2 py-1">Meses</p>
+                {periodos.map((p) => (
+                  <button
+                    key={p.value}
+                    onClick={() => handleMonthShortcut(p.value)}
+                    className={`text-left text-xs px-2 py-1.5 rounded hover:bg-accent hover:text-accent-foreground transition-colors ${filters.periodo === p.value ? "bg-accent text-accent-foreground font-semibold" : ""}`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+                {filters.periodo && (
+                  <button
+                    onClick={() => { setFilter("periodo", undefined); setCalOpen(false); }}
+                    className="text-left text-xs px-2 py-1.5 rounded text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors mt-1"
+                  >
+                    Limpar período
+                  </button>
+                )}
+              </div>
+            )}
+            {/* Calendário dia a dia */}
+            <div>
+              <CalendarUI
+                mode="range"
+                selected={selectedRange}
+                onSelect={handleRangeChange}
+                locale={ptBR}
+                numberOfMonths={1}
+                initialFocus
+              />
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
 
       {/* Filial */}
       <Select

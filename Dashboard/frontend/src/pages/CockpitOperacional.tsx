@@ -52,6 +52,8 @@ import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { mapStatusBQtoUI, type DrillRota, type KPIData } from "@/types/api";
 import { formatInteger, formatDecimal, formatMoney, formatPercentFrac as formatPercent } from "@/lib/formatters";
 import { formatShortDate, getVariation } from "@/lib/dashboardTemporal";
+import { TOOLTIP_STYLE, TICK_STYLE, TICK_STYLE_SM, GRID_STROKE, CHART_COLORS, LEGEND_STYLE } from "@/lib/chartConfig";
+import VariationCards from "@/components/dashboard/VariationCards";
 
 const sections = [
   { id: "visao-geral", label: "Visão geral" },
@@ -406,26 +408,7 @@ export default function CockpitOperacional() {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {variationCards.length === 0 || loadingSerieDiaria ? <LoadingSkeleton rows={2} /> : variationCards.map((item) => {
-              const Icon = item.direction === "up" ? ArrowUpRight : item.direction === "down" ? ArrowDownRight : Route;
-              const tone = item.direction === "up"
-                ? "text-success"
-                : item.direction === "down"
-                  ? "text-destructive"
-                  : "text-muted-foreground";
-              return (
-                <div key={item.label} className="rounded-2xl border border-border/70 bg-card p-4 card-shadow-soft">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{item.label}</p>
-                    <Icon className={`h-4 w-4 ${tone}`} />
-                  </div>
-                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{item.value}</p>
-                  <p className={`mt-2 text-xs font-semibold ${tone}`}>{item.detail}</p>
-                </div>
-              );
-            })}
-          </div>
+          <VariationCards items={variationCards} isLoading={variationCards.length === 0 || loadingSerieDiaria} />
 
           <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
             <SectionCard title="Fluxo diário" subtitle="Rotas, pedidos e volume no período selecionado" delay={80}>
@@ -443,11 +426,11 @@ export default function CockpitOperacional() {
                           <stop offset="95%" stopColor="#F79009" stopOpacity={0.02} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} angle={-45} textAnchor="end" height={56} />
-                      <YAxis width={44} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 8px 16px rgba(2,6,23,0.08)", fontSize: 11 }} />
-                      <Legend align="center" wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                      <XAxis dataKey="label" tick={{ ...TICK_STYLE_SM, fill: "#667085" }} angle={-45} textAnchor="end" height={56} />
+                      <YAxis width={44} tick={TICK_STYLE} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
+                      <Legend align="center" wrapperStyle={LEGEND_STYLE} />
                       <Area type="monotone" dataKey="rotas" stroke="#0D7C86" fill="url(#rotasFill)" strokeWidth={2.5} name="Rotas" />
                       <Area type="monotone" dataKey="pedidos" stroke="#F79009" fill="url(#pedidosFill)" strokeWidth={2.5} name="Pedidos" />
                     </AreaChart>
@@ -461,11 +444,11 @@ export default function CockpitOperacional() {
                 {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={qualityTrendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} angle={-45} textAnchor="end" height={56} />
-                      <YAxis width={48} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} domain={[0, 100]} allowDataOverflow unit="%" />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 8px 16px rgba(2,6,23,0.08)", fontSize: 11 }} formatter={(value: number) => `${value.toFixed(1)}%`} />
-                      <Legend align="center" wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                      <XAxis dataKey="label" tick={{ ...TICK_STYLE_SM, fill: "#667085" }} angle={-45} textAnchor="end" height={56} />
+                      <YAxis width={48} tick={TICK_STYLE} domain={[0, 100]} allowDataOverflow unit="%" />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number) => `${value.toFixed(1)}%`} />
+                      <Legend align="center" wrapperStyle={LEGEND_STYLE} />
                       <Line type="monotone" dataKey="entregasPct" stroke="#0D7C86" strokeWidth={2.5} dot={false} name="Entrega efetiva" />
                       <Line type="monotone" dataKey="aderenciaPct" stroke="#F04438" strokeWidth={2.5} dot={false} name="Aderência volumes" />
                       <Line type="monotone" dataKey="ocupacaoPct" stroke="#F79009" strokeWidth={2.5} dot={false} name="Ocupação peso" />
@@ -484,13 +467,13 @@ export default function CockpitOperacional() {
                 {loadingFiliais ? <LoadingSkeleton rows={5} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={topFiliais.map((item) => ({ nome: item.nomeFilial || item.filial, score: item.scoreOperacional, entrega: Number((item.entregasEfetivas * 100).toFixed(1)) }))} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                      <XAxis type="number" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} domain={[0, 100]} />
-                      <YAxis dataKey="nome" type="category" width={120} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 8px 16px rgba(2,6,23,0.08)", fontSize: 11 }} />
-                      <Legend align="center" wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
-                      <Bar dataKey="score" fill="#092234" radius={[0, 6, 6, 0]} name="Score" />
-                      <Bar dataKey="entrega" fill="#0D7C86" radius={[0, 6, 6, 0]} name="Entrega %" />
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                      <XAxis type="number" tick={TICK_STYLE} domain={[0, 100]} />
+                      <YAxis dataKey="nome" type="category" width={120} tick={TICK_STYLE} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
+                      <Legend align="center" wrapperStyle={LEGEND_STYLE} />
+                      <Bar dataKey="score" fill={CHART_COLORS.dark} radius={[0, 6, 6, 0]} name="Score" />
+                      <Bar dataKey="entrega" fill={CHART_COLORS.teal} radius={[0, 6, 6, 0]} name="Entrega %" />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -568,13 +551,13 @@ export default function CockpitOperacional() {
                 {loadingOcupacao ? <LoadingSkeleton rows={5} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={frotaRanking}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                      <XAxis dataKey="tipoVeiculo" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} interval={0} angle={-14} textAnchor="end" height={60} />
-                      <YAxis width={44} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 8px 16px rgba(2,6,23,0.08)", fontSize: 11 }} />
-                      <Legend align="center" wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
-                      <Bar dataKey="rotas" fill="#092234" radius={[6, 6, 0, 0]} name="Rotas" />
-                      <Bar dataKey="ocupacaoPercent" fill="#F79009" radius={[6, 6, 0, 0]} name="Ocupação peso %" />
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                      <XAxis dataKey="tipoVeiculo" tick={TICK_STYLE} interval={0} angle={-14} textAnchor="end" height={60} />
+                      <YAxis width={44} tick={TICK_STYLE} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
+                      <Legend align="center" wrapperStyle={LEGEND_STYLE} />
+                      <Bar dataKey="rotas" fill={CHART_COLORS.dark} radius={[6, 6, 0, 0]} name="Rotas" />
+                      <Bar dataKey="ocupacaoPercent" fill={CHART_COLORS.gold} radius={[6, 6, 0, 0]} name="Ocupação peso %" />
                     </BarChart>
                   </ResponsiveContainer>
                 )}

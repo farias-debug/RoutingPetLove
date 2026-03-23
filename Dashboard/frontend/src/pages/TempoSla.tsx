@@ -11,6 +11,8 @@ import { formatShortDate, getMetricDomain, getSeriesExtremes, getVariation, sort
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from "recharts";
 import { formatInteger, formatPercent, formatDuration, formatDecimal, formatSigned } from "@/lib/formatters";
+import { TOOLTIP_STYLE, TICK_STYLE, TICK_STYLE_SM, GRID_STROKE, CHART_COLORS } from "@/lib/chartConfig";
+import VariationCards from "@/components/dashboard/VariationCards";
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
@@ -153,26 +155,7 @@ export default function TempoSla() {
           <TemporalWindowTabs value={trendWindow} onChange={setTrendWindow} />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {loadingSerieDiaria ? <LoadingSkeleton rows={2} /> : variationCards.map((item) => {
-            const Icon = item.direction === "up" ? ArrowUpRight : item.direction === "down" ? ArrowDownRight : Route;
-            const tone = item.direction === "up"
-              ? "text-success"
-              : item.direction === "down"
-                ? "text-destructive"
-                : "text-muted-foreground";
-            return (
-              <div key={item.label} className="rounded-2xl border border-border/70 bg-card p-4 card-shadow-soft">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{item.label}</p>
-                  <Icon className={`h-4 w-4 ${tone}`} />
-                </div>
-                <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{item.value}</p>
-                <p className={`mt-2 text-xs font-semibold ${tone}`}>{item.detail}</p>
-              </div>
-            );
-          })}
-        </div>
+        <VariationCards items={variationCards} isLoading={loadingSerieDiaria} />
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {loadingKpi ? <LoadingSkeleton rows={2} /> : kpis.map((kpi, i) => (
@@ -188,12 +171,12 @@ export default function TempoSla() {
               {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                    <XAxis dataKey="label" tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} />
-                    <YAxis tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} domain={entregasDomain} />
-                    <Tooltip contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 12, fontWeight: 600 }} />
-                    <ReferenceLine y={metaEntregas * 100} stroke="#EC5B13" strokeDasharray="6 3" label={{ value: `Meta ${(metaEntregas * 100).toFixed(0)}%`, fontSize: 10, fill: "#EC5B13", fontWeight: 700 }} />
-                    <Line type="monotone" dataKey="entregasPct" stroke="#522B8F" strokeWidth={2.5} dot={{ r: 4, fill: "#522B8F" }} name="Entregas %" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                    <XAxis dataKey="label" tick={TICK_STYLE} />
+                    <YAxis tick={TICK_STYLE} domain={entregasDomain} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <ReferenceLine y={metaEntregas * 100} stroke={CHART_COLORS.secondary} strokeDasharray="6 3" label={{ value: `Meta ${(metaEntregas * 100).toFixed(0)}%`, fontSize: 10, fill: CHART_COLORS.secondary, fontWeight: 700 }} />
+                    <Line type="monotone" dataKey="entregasPct" stroke={CHART_COLORS.primary} strokeWidth={2.5} dot={{ r: 4, fill: CHART_COLORS.primary }} name="Entregas %" />
                   </LineChart>
                 </ResponsiveContainer>
               )}
@@ -236,12 +219,12 @@ export default function TempoSla() {
               {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                    <XAxis dataKey="label" tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} />
-                    <YAxis tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} domain={sprDomain} />
-                    <Tooltip contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 12, fontWeight: 600 }} />
-                    <ReferenceLine y={metaSpr} stroke="#EC5B13" strokeDasharray="6 3" label={{ value: `Meta ${formatDecimal(metaSpr)}`, fontSize: 10, fill: "#EC5B13", fontWeight: 700 }} />
-                    <Line type="monotone" dataKey="sprPedidos" stroke="#522B8F" strokeWidth={2.5} dot={{ r: 4, fill: "#522B8F" }} name="SPR Ped." />
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                    <XAxis dataKey="label" tick={TICK_STYLE} />
+                    <YAxis tick={TICK_STYLE} domain={sprDomain} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <ReferenceLine y={metaSpr} stroke={CHART_COLORS.secondary} strokeDasharray="6 3" label={{ value: `Meta ${formatDecimal(metaSpr)}`, fontSize: 10, fill: CHART_COLORS.secondary, fontWeight: 700 }} />
+                    <Line type="monotone" dataKey="sprPedidos" stroke={CHART_COLORS.primary} strokeWidth={2.5} dot={{ r: 4, fill: CHART_COLORS.primary }} name="SPR Ped." />
                   </LineChart>
                 </ResponsiveContainer>
               )}
@@ -253,14 +236,14 @@ export default function TempoSla() {
               {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                    <XAxis dataKey="label" tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} />
-                    <YAxis tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} domain={tempoDomain} />
-                    <Tooltip contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 12, fontWeight: 600 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                    <XAxis dataKey="label" tick={TICK_STYLE} />
+                    <YAxis tick={TICK_STYLE} domain={tempoDomain} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
                     {!!kpi?.metaOrhTempo && (
-                      <ReferenceLine y={kpi.metaOrhTempo} stroke="#EC5B13" strokeDasharray="6 3" label={{ value: `Meta ${formatDecimal(kpi.metaOrhTempo)}h`, fontSize: 10, fill: "#EC5B13", fontWeight: 700 }} />
+                      <ReferenceLine y={kpi.metaOrhTempo} stroke={CHART_COLORS.secondary} strokeDasharray="6 3" label={{ value: `Meta ${formatDecimal(kpi.metaOrhTempo)}h`, fontSize: 10, fill: CHART_COLORS.secondary, fontWeight: 700 }} />
                     )}
-                    <Line type="monotone" dataKey="tempoMedRealizado" stroke="#0B7285" strokeWidth={2.5} dot={{ r: 4, fill: "#0B7285" }} name="Tempo h" />
+                    <Line type="monotone" dataKey="tempoMedRealizado" stroke={CHART_COLORS.teal} strokeWidth={2.5} dot={{ r: 4, fill: CHART_COLORS.teal }} name="Tempo h" />
                   </LineChart>
                 </ResponsiveContainer>
               )}

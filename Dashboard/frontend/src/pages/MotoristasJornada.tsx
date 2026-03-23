@@ -1,4 +1,5 @@
 import { Clock3, Route, TrendingUp, UserRound } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ReferenceLine } from "recharts";
 import KPICard from "@/components/dashboard/KPICard";
 import PageHeroAnalitico from "@/components/dashboard/PageHeroAnalitico";
 import PageSectionNav, { type PageSectionNavItem } from "@/components/dashboard/PageSectionNav";
@@ -7,7 +8,8 @@ import StatusChip from "@/components/dashboard/StatusChip";
 import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
 import { useMotoristas, useMotoristasKpis } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
-import { formatInteger, formatDuration } from "@/lib/formatters";
+import { formatInteger, formatDuration, formatDecimal } from "@/lib/formatters";
+import { TOOLTIP_STYLE, TICK_STYLE, GRID_STROKE, CHART_COLORS } from "@/lib/chartConfig";
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
@@ -85,8 +87,45 @@ export default function MotoristasJornada() {
       </section>
 
       <section id="jornada" className="scroll-mt-24">
-        <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-          <SectionCard title="Leituras de jornada" subtitle="Sinais rápidos da operação corrente" delay={300}>
+        <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+          <SectionCard title="Jornada por motorista" subtitle="Top 10 motoristas por horas de jornada na página atual" delay={300}>
+            {loadingList ? <LoadingSkeleton rows={5} /> : (() => {
+              const barData = orderedByJornada.slice(0, 10).map((item) => ({
+                motorista: item.motorista.length > 18 ? item.motorista.slice(0, 16) + "…" : item.motorista,
+                horas: +item.horasJornada.toFixed(1),
+                rotas: item.qtdRotas,
+                overtime: item.flagOvertime,
+              }));
+              const mediaJornada = kpis?.jornadaMedia ?? 0;
+              return barData.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">Sem motoristas na página atual.</p>
+              ) : (
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={barData} layout="vertical" margin={{ left: 8, right: 24 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
+                      <XAxis type="number" tick={TICK_STYLE} unit="h" />
+                      <YAxis type="category" dataKey="motorista" width={110} tick={{ fontSize: 10, fontWeight: 600, fill: "#667085" }} />
+                      <Tooltip
+                        contentStyle={TOOLTIP_STYLE}
+                        formatter={(v: number) => [`${v.toFixed(1)}h`, "Jornada"]}
+                      />
+                      {mediaJornada > 0 && (
+                        <ReferenceLine x={mediaJornada} stroke={CHART_COLORS.warning} strokeDasharray="5 3" strokeWidth={1.5} label={{ value: `Média ${formatDecimal(mediaJornada)}h`, fontSize: 10, fill: CHART_COLORS.warning, fontWeight: 700 }} />
+                      )}
+                      <Bar dataKey="horas" name="Jornada (h)" radius={[0, 4, 4, 0]} barSize={16}>
+                        {barData.map((entry) => (
+                          <Cell key={entry.motorista} fill={entry.overtime ? CHART_COLORS.danger : CHART_COLORS.primary} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              );
+            })()}
+          </SectionCard>
+
+          <SectionCard title="Leituras de jornada" subtitle="Sinais rápidos da operação corrente" delay={340}>
             <div className="space-y-3">
               {[
                 {
@@ -112,27 +151,6 @@ export default function MotoristasJornada() {
                 </div>
               ))}
             </div>
-          </SectionCard>
-
-          <SectionCard title="Jornada por motorista" subtitle="Comparação rápida entre jornada e volume de rotas na página atual" delay={340}>
-            {loadingList ? <LoadingSkeleton rows={5} /> : (
-              <div className="space-y-3">
-                {orderedByJornada.slice(0, 6).map((item) => {
-                  const width = Math.min(100, (item.horasJornada / Math.max(topJornada?.horasJornada ?? 1, 1)) * 100);
-                  return (
-                    <div key={`${item.motorista}-${item.filial}-${item.transportador}`} className="space-y-1">
-                      <div className="flex items-center justify-between gap-3 text-sm font-semibold text-foreground">
-                        <span>{item.motorista}</span>
-                        <span className="text-muted-foreground">{item.horasJornada.toFixed(1)}h • {item.qtdRotas} rotas</span>
-                      </div>
-                      <div className="h-3 overflow-hidden rounded-full bg-muted">
-                        <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${width}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </SectionCard>
         </div>
       </section>

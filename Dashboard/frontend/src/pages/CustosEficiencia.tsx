@@ -6,12 +6,14 @@ import SectionCard from "@/components/dashboard/SectionCard";
 import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
 import { useKpiDiario, useTransportadores } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ScatterChart, Scatter, Cell, ZAxis, ReferenceLine } from "recharts";
 import { formatInteger, formatMoney, formatPercent } from "@/lib/formatters";
+import { TOOLTIP_STYLE, TICK_STYLE, TICK_STYLE_SM, GRID_STROKE, CHART_COLORS } from "@/lib/chartConfig";
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
   { id: "concentracao", label: "Concentração" },
+  { id: "eficiencia", label: "Custo × Score" },
   { id: "detalhamento", label: "Detalhamento" },
 ];
 
@@ -84,15 +86,86 @@ export default function CustosEficiencia() {
             {loadingTransp ? <LoadingSkeleton rows={4} /> : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={list}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                  <XAxis dataKey="transportador" tick={{ fontSize: 10, fontWeight: 600, fill: "#667085" }} />
-                  <YAxis tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} />
-                  <Tooltip contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 12, fontWeight: 600 }} />
-                  <Bar dataKey="custoMedioCarga" fill="#522B8F" name="R$/Carga" radius={[4, 4, 0, 0]} barSize={32} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis dataKey="transportador" tick={TICK_STYLE_SM} />
+                  <YAxis tick={TICK_STYLE} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Bar dataKey="custoMedioCarga" fill={CHART_COLORS.primary} name="R$/Carga" radius={[4, 4, 0, 0]} barSize={32} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
+        </SectionCard>
+      </section>
+
+      <section id="eficiencia" className="scroll-mt-24">
+        <SectionCard title="Mapa custo × performance" subtitle="Quadrantes por mediana — custo por carga vs score operacional" delay={320}>
+          {loadingTransp ? <LoadingSkeleton rows={5} /> : (() => {
+            const scatterData = list.map(t => ({
+              nome: t.transportador,
+              custo: +t.custoMedioCarga.toFixed(2),
+              score: +t.scoreOperacional.toFixed(1),
+              rotas: t.rotas,
+              entregas: +(t.entregasEfetivas * 100).toFixed(1),
+            }));
+            const custoMediano = list.length > 0
+              ? [...list].sort((a, b) => a.custoMedioCarga - b.custoMedioCarga)[Math.floor(list.length / 2)]?.custoMedioCarga ?? 0
+              : 0;
+            const scoreMediano = list.length > 0
+              ? [...list].sort((a, b) => a.scoreOperacional - b.scoreOperacional)[Math.floor(list.length / 2)]?.scoreOperacional ?? 0
+              : 0;
+            function qColor(custo: number, score: number): string {
+              if (score >= scoreMediano && custo <= custoMediano) return CHART_COLORS.success;
+              if (score >= scoreMediano) return CHART_COLORS.primary;
+              if (custo <= custoMediano) return CHART_COLORS.warning;
+              return CHART_COLORS.danger;
+            }
+            return scatterData.length < 2 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Mínimo 2 transportadores necessários.</p>
+            ) : (
+              <>
+                <div className="mb-3 flex flex-wrap gap-3 text-[11px] font-bold">
+                  <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS.success }} /> Estratégico</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS.primary }} /> Premium</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS.warning }} /> Atenção</span>
+                  <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS.danger }} /> Revisão</span>
+                </div>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart margin={{ left: 8, right: 16, top: 8, bottom: 4 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                      <XAxis type="number" dataKey="custo" name="Custo/carga" tickFormatter={(v) => `R$${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} tick={TICK_STYLE_SM} />
+                      <YAxis type="number" dataKey="score" name="Score" tick={TICK_STYLE_SM} />
+                      <ZAxis type="number" dataKey="rotas" range={[40, 220]} name="Rotas" />
+                      <Tooltip
+                        contentStyle={TOOLTIP_STYLE}
+                        cursor={{ strokeDasharray: "3 3" }}
+                        content={({ payload }) => {
+                          if (!payload?.length) return null;
+                          const d = payload[0]?.payload;
+                          if (!d) return null;
+                          return (
+                            <div className="rounded-xl border bg-card p-3 shadow-lg text-xs font-semibold space-y-1">
+                              <p className="font-bold text-sm text-foreground">{d.nome}</p>
+                              <p>Score: {d.score} | Custo: R$ {d.custo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                              <p>Entregas: {d.entregas}% | Rotas: {d.rotas}</p>
+                            </div>
+                          );
+                        }}
+                      />
+                      {custoMediano > 0 && <ReferenceLine x={custoMediano} stroke={CHART_COLORS.muted} strokeDasharray="5 3" strokeWidth={1} />}
+                      {scoreMediano > 0 && <ReferenceLine y={scoreMediano} stroke={CHART_COLORS.muted} strokeDasharray="5 3" strokeWidth={1} />}
+                      <Scatter data={scatterData} name="Transportadores">
+                        {scatterData.map((entry, i) => (
+                          <Cell key={i} fill={qColor(entry.custo, entry.score)} />
+                        ))}
+                      </Scatter>
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+              </>
+            );
+          })()}
         </SectionCard>
       </section>
 

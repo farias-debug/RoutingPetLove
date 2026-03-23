@@ -9,15 +9,16 @@ import TemporalWindowTabs from "@/components/dashboard/TemporalWindowTabs";
 import { useCockpitSerieDiaria, useKpiDiario, useFilialPerformance } from "@/hooks/useApiData";
 import { formatShortDate, getMetricDomain, getSeriesExtremes, getVariation, sortDailySeries, sumMetric, temporalWindows, type TemporalWindow } from "@/lib/dashboardTemporal";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
-import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip, LineChart, Line, CartesianGrid, XAxis, YAxis, ReferenceLine, Legend } from "recharts";
+import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip, LineChart, Line, CartesianGrid, XAxis, YAxis, ReferenceLine, Legend, BarChart, Bar, Cell } from "recharts";
 import { formatInteger, formatDecimal, formatPercent, formatSigned } from "@/lib/formatters";
+import { TOOLTIP_STYLE, TICK_STYLE, TICK_STYLE_SM, GRID_STROKE, CHART_COLORS, LEGEND_STYLE } from "@/lib/chartConfig";
+import VariationCards from "@/components/dashboard/VariationCards";
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
   { id: "evolucao", label: "Evolução" },
   { id: "dimensoes", label: "Dimensões" },
   { id: "filiais", label: "Filiais" },
-  { id: "leituras", label: "Leituras" },
 ];
 
 export default function AderenciaAtendimento() {
@@ -34,12 +35,12 @@ export default function AderenciaAtendimento() {
   });
 
   const kpis = kpi ? [
-    { label: "Aderência Pedidos", value: kpi.pctAderPedidos != null ? +(kpi.pctAderPedidos * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
-    { label: "Aderência Volumes", value: kpi.pctAderVolumes != null ? +(kpi.pctAderVolumes * 100).toFixed(1) : "—", unit: "%", meta: kpi.metaAderenciaVolumes != null ? kpi.metaAderenciaVolumes * 100 : undefined, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
-    { label: "Aderência Peso", value: kpi.pctAderPeso != null ? +(kpi.pctAderPeso * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
-    { label: "Aderência KM", value: kpi.pctAderKm != null ? +(kpi.pctAderKm * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
-    { label: "Aderência Tempo", value: kpi.pctAderTempo != null ? +(kpi.pctAderTempo * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
-    { label: "Match Mesmo Dia", value: kpi.pctMatchMesmoDia != null ? +(kpi.pctMatchMesmoDia * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Aderência pedidos", value: kpi.pctAderPedidos != null ? +(kpi.pctAderPedidos * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Aderência volumes", value: kpi.pctAderVolumes != null ? +(kpi.pctAderVolumes * 100).toFixed(1) : "—", unit: "%", meta: kpi.metaAderenciaVolumes != null ? kpi.metaAderenciaVolumes * 100 : undefined, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
+    { label: "Aderência peso", value: kpi.pctAderPeso != null ? +(kpi.pctAderPeso * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Aderência km", value: kpi.pctAderKm != null ? +(kpi.pctAderKm * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
+    { label: "Aderência tempo", value: kpi.pctAderTempo != null ? +(kpi.pctAderTempo * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
+    { label: "Match mesmo dia", value: kpi.pctMatchMesmoDia != null ? +(kpi.pctMatchMesmoDia * 100).toFixed(1) : "—", unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
   ] : [];
 
   const radarData = kpi ? [
@@ -55,7 +56,7 @@ export default function AderenciaAtendimento() {
     filial: f.nomeFilial || f.filial,
     entregasEfetivas: +(f.entregasEfetivas * 100).toFixed(1),
     score: f.scoreOperacional,
-  }));
+  })).sort((a, b) => b.entregasEfetivas - a.entregasEfetivas);
 
   const orderedSeries = sortDailySeries(serieDiaria);
   const { latest: latestSeriesPoint, previous: previousSeriesPoint } = getSeriesExtremes(orderedSeries);
@@ -66,18 +67,15 @@ export default function AderenciaAtendimento() {
     label: formatShortDate(item.data),
     aderenciaPct: item.aderenciaVolumes == null ? null : Number((item.aderenciaVolumes * 100).toFixed(1)),
     entregasPct: Number((item.entregasEfetivas * 100).toFixed(1)),
-    score: Number(item.scoreOperacional.toFixed(1)),
   }));
 
-  const piorDimensao = [...radarData].sort((left, right) => left.valor - right.valor)[0];
-  const melhorDimensao = [...radarData].sort((left, right) => right.valor - left.valor)[0];
-  const melhorFilial = [...filialList].sort((left, right) => right.entregasEfetivas - left.entregasEfetivas)[0];
-  const piorFilial = [...filialList].sort((left, right) => left.entregasEfetivas - right.entregasEfetivas)[0];
+  const piorDimensao = [...radarData].sort((a, b) => a.valor - b.valor)[0];
+  const melhorDimensao = [...radarData].sort((a, b) => b.valor - a.valor)[0];
+  const melhorFilial = filialList[0];
+  const piorFilial = filialList[filialList.length - 1];
 
   const entregasVariation = getVariation(latestSeriesPoint?.entregasEfetivas, previousSeriesPoint?.entregasEfetivas);
-  const rotasVariation = getVariation(latestSeriesPoint?.rotas, previousSeriesPoint?.rotas);
-  const aderenciaVariationComparable = getVariation(latestComparablePoint?.aderenciaVolumes, previousComparablePoint?.aderenciaVolumes);
-  const scoreVariationComparable = getVariation(latestComparablePoint?.scoreOperacional, previousComparablePoint?.scoreOperacional);
+  const aderenciaVariation = getVariation(latestComparablePoint?.aderenciaVolumes, previousComparablePoint?.aderenciaVolumes);
   const trendDomain = getMetricDomain(
     [...seriesChart.flatMap((item) => [item.aderenciaPct, item.entregasPct]), kpi?.metaAderenciaVolumes != null ? kpi.metaAderenciaVolumes * 100 : null].filter((v): v is number => v != null),
     { min: 0, max: 100, minimumSpan: 2 },
@@ -88,19 +86,19 @@ export default function AderenciaAtendimento() {
     {
       label: "Aderência volumes",
       value: latestComparablePoint ? formatPercent(latestComparablePoint.aderenciaVolumes == null ? null : latestComparablePoint.aderenciaVolumes * 100) : formatPercent(kpi?.pctAderVolumes == null ? null : kpi.pctAderVolumes * 100),
-      detail: kpi?.metaAderenciaVolumes ? `Meta ${formatPercent(kpi.metaAderenciaVolumes * 100)}` : "Sem meta publicada no recorte",
+      detail: kpi?.metaAderenciaVolumes ? `Meta ${formatPercent(kpi.metaAderenciaVolumes * 100)}` : "Sem meta publicada",
       icon: <PackageCheck className="h-4 w-4" />,
     },
     {
       label: "Aderência tempo",
       value: formatPercent(kpi?.pctAderTempo == null ? null : kpi.pctAderTempo * 100),
-      detail: "Leitura de disciplina operacional do recorte atual",
+      detail: "Disciplina operacional do recorte",
       icon: <TimerReset className="h-4 w-4" />,
     },
     {
       label: "Match mesmo dia",
       value: formatPercent(kpi?.pctMatchMesmoDia == null ? null : kpi.pctMatchMesmoDia * 100),
-      detail: "Aderência do atendimento no mesmo dia planejado",
+      detail: "Atendimento no dia planejado",
       icon: <CheckCircle2 className="h-4 w-4" />,
     },
     {
@@ -113,28 +111,28 @@ export default function AderenciaAtendimento() {
 
   const variationCards = [
     {
-      label: "Aderência volumes vs D-1",
+      label: "Aderência vol. vs D-1",
       value: latestComparablePoint ? formatPercent(latestComparablePoint.aderenciaVolumes == null ? null : latestComparablePoint.aderenciaVolumes * 100) : "—",
-      detail: previousComparablePoint ? formatSigned(aderenciaVariationComparable.delta * 100, (value) => formatPercent(value)) : "Sem D-1 disponível",
-      direction: aderenciaVariationComparable.direction,
+      detail: previousComparablePoint ? formatSigned(aderenciaVariation.delta * 100, (v) => formatPercent(v)) : "Sem D-1",
+      direction: aderenciaVariation.direction,
     },
     {
       label: "Entregas efetivas vs D-1",
       value: latestSeriesPoint ? formatPercent(latestSeriesPoint.entregasEfetivas * 100) : "—",
-      detail: previousSeriesPoint ? formatSigned(entregasVariation.delta * 100, (value) => formatPercent(value)) : "Sem D-1 disponível",
+      detail: previousSeriesPoint ? formatSigned(entregasVariation.delta * 100, (v) => formatPercent(v)) : "Sem D-1",
       direction: entregasVariation.direction,
     },
     {
-      label: "Score operacional vs D-1",
-      value: latestComparablePoint ? formatDecimal(latestComparablePoint.scoreOperacional) : "—",
-      detail: previousComparablePoint ? `${formatSigned(scoreVariationComparable.delta, (value) => formatDecimal(value))} pts` : "Sem D-1 disponível",
-      direction: scoreVariationComparable.direction,
+      label: "Rotas na janela",
+      value: formatInteger(sumMetric(orderedSeries, (item) => item.rotas)),
+      detail: `Acumulado ${windowLabel}`,
+      direction: "neutral" as const,
     },
     {
-      label: "Rotas do último dia",
+      label: "Último dia",
       value: latestSeriesPoint ? formatInteger(latestSeriesPoint.rotas) : "—",
-      detail: previousSeriesPoint ? `${formatSigned(rotasVariation.delta, (value) => formatInteger(value))} vs D-1` : "Sem D-1 disponível",
-      direction: rotasVariation.direction,
+      detail: latestSeriesPoint ? `${formatShortDate(latestSeriesPoint.data)}` : "Sem dados",
+      direction: "neutral" as const,
     },
   ];
 
@@ -143,8 +141,8 @@ export default function AderenciaAtendimento() {
       <section id="visao-geral" className="scroll-mt-24 space-y-6">
         <PageHeroAnalitico
           eyebrow="Aderência e atendimento"
-          title="Leia aderência por dimensão e acompanhe a evolução diária do atendimento no mesmo fluxo."
-          description="A Onda 2 inicial conecta radar dimensional, filiais e série diária do recorte, adicionando janela temporal e comparativos contra D-1 para tornar a leitura realmente operacional."
+          title="Aderência por dimensão e evolução diária do atendimento."
+          description="Radar dimensional, filiais e série diária com janela temporal e comparação D-1."
           highlights={heroHighlights}
         />
 
@@ -153,144 +151,87 @@ export default function AderenciaAtendimento() {
         <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Janela temporal</p>
-            <h2 className="text-2xl font-black tracking-tight text-foreground">Aderência diária, D-1 e acumulado da janela selecionada</h2>
+            <h2 className="text-2xl font-black tracking-tight text-foreground">Aderência diária e variações D-1</h2>
           </div>
           <TemporalWindowTabs value={trendWindow} onChange={setTrendWindow} />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {loadingSerieDiaria ? <LoadingSkeleton rows={2} /> : variationCards.map((item) => {
-            const Icon = item.direction === "up" ? ArrowUpRight : item.direction === "down" ? ArrowDownRight : PackageCheck;
-            const tone = item.direction === "up"
-              ? "text-success"
-              : item.direction === "down"
-                ? "text-destructive"
-                : "text-muted-foreground";
-            return (
-              <div key={item.label} className="rounded-2xl border border-border/70 bg-card p-4 card-shadow-soft">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{item.label}</p>
-                  <Icon className={`h-4 w-4 ${tone}`} />
-                </div>
-                <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{item.value}</p>
-                <p className={`mt-2 text-xs font-semibold ${tone}`}>{item.detail}</p>
-              </div>
-            );
-          })}
-        </div>
+        <VariationCards items={variationCards} isLoading={loadingSerieDiaria} />
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
-          {loadingKpi ? <LoadingSkeleton rows={2} /> : kpis.map((kpi, i) => (
-            <KPICard key={kpi.label} data={kpi} delay={i * 60} />
+          {loadingKpi ? <LoadingSkeleton rows={2} /> : kpis.map((k, i) => (
+            <KPICard key={k.label} data={k} delay={i * 60} />
           ))}
         </div>
       </section>
 
       <section id="evolucao" className="scroll-mt-24">
-        <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
-          <SectionCard title="Evolução diária do atendimento" subtitle={`Janela ${windowLabel} com aderência de volumes e entregas efetivas`} delay={400}>
-            <div className="h-64 flex items-center justify-center">
-              {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={seriesChart}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                    <XAxis dataKey="label" tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} />
-                    <YAxis tick={{ fontSize: 11, fontWeight: 600, fill: "#667085" }} domain={trendDomain} />
-                    <Tooltip contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 12, fontWeight: 600 }} />
-                    <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
-                    {kpi?.metaAderenciaVolumes != null && (
-                      <ReferenceLine
-                        y={kpi.metaAderenciaVolumes * 100}
-                        stroke="#10b981"
-                        strokeWidth={1.5}
-                        strokeDasharray="5 3"
-                        label={{ value: `Meta vol. ${(kpi.metaAderenciaVolumes * 100).toFixed(0)}%`, position: "insideTopLeft", fill: "#10b981", fontSize: 10, fontWeight: 700 }}
-                      />
-                    )}
-                    {kpi?.metaEntregas != null && (
-                      <ReferenceLine
-                        y={kpi.metaEntregas * 100}
-                        stroke="#667085"
-                        strokeWidth={1.5}
-                        strokeDasharray="5 3"
-                        label={{ value: `Meta entr. ${(kpi.metaEntregas * 100).toFixed(0)}%`, position: "insideBottomLeft", fill: "#667085", fontSize: 10, fontWeight: 700 }}
-                      />
-                    )}
-                    <Line type="monotone" dataKey="aderenciaPct" stroke="#522B8F" strokeWidth={2.5} dot={{ r: 3, fill: "#522B8F" }} name="Aderência vol. %" />
-                    <Line type="monotone" dataKey="entregasPct" stroke="#EC5B13" strokeWidth={2.5} dot={{ r: 3, fill: "#EC5B13" }} name="Entregas %" />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Resumo da janela" subtitle="Acumulados e último fechamento do recorte selecionado" delay={440}>
+        <SectionCard title="Evolução diária" subtitle={`Janela ${windowLabel} — aderência volumes e entregas efetivas`} delay={400}>
+          <div className="h-56">
             {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Rotas na janela</p>
-                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatInteger(sumMetric(orderedSeries, (item) => item.rotas))}</p>
-                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Acumulado diário do período {windowLabel}</p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Pedidos na janela</p>
-                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatInteger(sumMetric(orderedSeries, (item) => item.pedidos))}</p>
-                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Base usada para leitura do atendimento</p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Último gap vs meta</p>
-                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">
-                    {latestComparablePoint?.aderenciaVolumes == null || kpi?.metaAderenciaVolumes == null ? "—" : formatSigned((latestComparablePoint.aderenciaVolumes - kpi.metaAderenciaVolumes) * 100, (value) => formatPercent(value))}
-                  </p>
-                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Aderência de volumes contra a meta vigente</p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Score do último dia</p>
-                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(latestComparablePoint?.scoreOperacional)}</p>
-                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Fechamento mais recente da série diária</p>
-                </div>
-              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={seriesChart}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis dataKey="label" tick={TICK_STYLE_SM} />
+                  <YAxis tick={TICK_STYLE_SM} domain={trendDomain} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Legend wrapperStyle={LEGEND_STYLE} />
+                  {kpi?.metaAderenciaVolumes != null && (
+                    <ReferenceLine y={kpi.metaAderenciaVolumes * 100} stroke="#10b981" strokeWidth={1.5} strokeDasharray="5 3" label={{ value: `Meta ${(kpi.metaAderenciaVolumes * 100).toFixed(0)}%`, position: "insideTopLeft", fill: "#10b981", fontSize: 10, fontWeight: 700 }} />
+                  )}
+                  <Line type="monotone" dataKey="aderenciaPct" stroke={CHART_COLORS.primary} strokeWidth={2.5} dot={{ r: 2.5, fill: CHART_COLORS.primary }} name="Aderência vol. %" />
+                  <Line type="monotone" dataKey="entregasPct" stroke={CHART_COLORS.secondary} strokeWidth={2.5} dot={{ r: 2.5, fill: CHART_COLORS.secondary }} name="Entregas %" />
+                </LineChart>
+              </ResponsiveContainer>
             )}
-          </SectionCard>
-        </div>
+          </div>
+        </SectionCard>
       </section>
 
       <section id="dimensoes" className="scroll-mt-24">
-        <div className="grid gap-6 lg:grid-cols-2">
-          <SectionCard title="Radar de aderência" subtitle="Visão consolidada de todas as dimensões" delay={400}>
-            <div className="h-64 flex items-center justify-center">
+        <div className="grid gap-6 lg:grid-cols-3">
+          <SectionCard title="Radar de aderência" subtitle="Visão de todas as dimensões" delay={440}>
+            <div className="h-56">
               {loadingKpi ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData} outerRadius="75%">
-                    <PolarGrid stroke="hsl(220 13% 91%)" />
-                    <PolarAngleAxis dataKey="dim" tick={{ fontSize: 11, fontWeight: 700, fill: "#667085" }} />
-                    <PolarRadiusAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#98A2B3" }} />
-                    <Tooltip contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 12, fontWeight: 600 }} />
-                    <Radar dataKey="valor" stroke="#522B8F" fill="#522B8F" fillOpacity={0.18} strokeWidth={2} name="Aderência %" />
+                    <PolarGrid stroke={GRID_STROKE} />
+                    <PolarAngleAxis dataKey="dim" tick={TICK_STYLE} />
+                    <PolarRadiusAxis domain={[0, 100]} tick={TICK_STYLE_SM} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <Radar dataKey="valor" stroke={CHART_COLORS.primary} fill={CHART_COLORS.primary} fillOpacity={0.18} strokeWidth={2} name="Aderência %" />
                   </RadarChart>
                 </ResponsiveContainer>
               )}
             </div>
           </SectionCard>
 
-          <SectionCard title="Leituras dimensionais" subtitle="Melhor e pior aderência para priorização do recorte" delay={440}>
+          <SectionCard title="Barras dimensionais" subtitle="Comparação precisa de cada dimensão" delay={460}>
+            <div className="h-56">
+              {loadingKpi ? <LoadingSkeleton rows={4} /> : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[...radarData].sort((a, b) => b.valor - a.valor)} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
+                    <XAxis type="number" domain={[0, 100]} tick={TICK_STYLE_SM} tickFormatter={(v) => `${v}%`} />
+                    <YAxis type="category" dataKey="dim" tick={TICK_STYLE} width={58} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v}%`, "Aderência"]} />
+                    <Bar dataKey="valor" radius={[0, 6, 6, 0]} barSize={18}>
+                      {[...radarData].sort((a, b) => b.valor - a.valor).map((entry, i) => (
+                        <Cell key={i} fill={entry.valor >= 95 ? CHART_COLORS.success : entry.valor >= 90 ? CHART_COLORS.warning : CHART_COLORS.danger} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Leituras dimensionais" subtitle="Maior e menor aderência do recorte" delay={480}>
             <div className="space-y-3">
               {[
-                {
-                  label: "Dimensão mais forte",
-                  value: melhorDimensao ? formatPercent(melhorDimensao.valor) : "0,0%",
-                  detail: melhorDimensao ? melhorDimensao.dim : "Sem dados no recorte",
-                },
-                {
-                  label: "Dimensão mais crítica",
-                  value: piorDimensao ? formatPercent(piorDimensao.valor) : "0,0%",
-                  detail: piorDimensao ? piorDimensao.dim : "Sem dados no recorte",
-                },
-                {
-                  label: "Gap atendimento mesmo dia",
-                  value: formatPercent(100 - ((kpi?.pctMatchMesmoDia ?? 0) * 100)),
-                  detail: "Diferença entre o atendimento ideal e o match realizado no mesmo dia",
-                },
+                { label: "Dimensão mais forte", value: melhorDimensao ? formatPercent(melhorDimensao.valor) : "—", detail: melhorDimensao?.dim ?? "Sem dados" },
+                { label: "Dimensão mais crítica", value: piorDimensao ? formatPercent(piorDimensao.valor) : "—", detail: piorDimensao?.dim ?? "Sem dados" },
+                { label: "Gap atendimento", value: formatPercent(100 - ((kpi?.pctMatchMesmoDia ?? 0) * 100)), detail: "Diferença entre meta e match no mesmo dia" },
               ].map((item) => (
                 <div key={item.label} className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{item.label}</p>
@@ -304,13 +245,13 @@ export default function AderenciaAtendimento() {
       </section>
 
       <section id="filiais" className="scroll-mt-24">
-        <SectionCard title="Entregas efetivas por filial" subtitle="Percentual de entrega efetiva no recorte aplicado" delay={480}>
+        <SectionCard title="Entregas efetivas por filial" subtitle="% de entrega efetiva no recorte" delay={520}>
           {loadingFiliais ? <LoadingSkeleton rows={6} /> : (
             <div className="space-y-2">
-              {filialList.map(f => (
+              {filialList.slice(0, 12).map(f => (
                 <div key={f.filial} className="flex items-center gap-3">
-                  <span className="text-[13px] font-semibold w-28 shrink-0">{f.filial}</span>
-                  <div className="flex-1 h-5 bg-muted rounded-full overflow-hidden">
+                  <span className="text-[13px] font-semibold w-28 shrink-0 truncate">{f.filial}</span>
+                  <div className="flex-1 h-4 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -325,45 +266,6 @@ export default function AderenciaAtendimento() {
             </div>
           )}
         </SectionCard>
-      </section>
-
-      <section id="leituras" className="scroll-mt-24">
-        <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-          <SectionCard title="Filiais em destaque" subtitle="Melhor e pior atendimento efetivo do período" delay={520}>
-            <div className="space-y-3">
-              {[
-                {
-                  label: "Melhor filial",
-                  value: melhorFilial ? formatPercent(melhorFilial.entregasEfetivas) : "0,0%",
-                  detail: melhorFilial ? `${melhorFilial.filial} • score ${melhorFilial.score.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}` : "Sem dados no recorte",
-                },
-                {
-                  label: "Filial mais pressionada",
-                  value: piorFilial ? formatPercent(piorFilial.entregasEfetivas) : "0,0%",
-                  detail: piorFilial ? `${piorFilial.filial} • score ${piorFilial.score.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}` : "Sem dados no recorte",
-                },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{item.label}</p>
-                  <p className="mt-3 text-2xl font-black tracking-tight text-foreground">{item.value}</p>
-                  <p className="mt-2 text-xs font-semibold text-muted-foreground">{item.detail}</p>
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Resumo executivo do recorte" subtitle="Leitura rápida para tomada de decisão antes do drill" delay={560}>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {radarData.map((item) => (
-                <div key={item.dim} className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{item.dim}</p>
-                  <p className="mt-3 text-2xl font-black tracking-tight text-foreground">{formatPercent(item.valor)}</p>
-                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Dimensão comparada no radar consolidado</p>
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-        </div>
       </section>
     </div>
   );

@@ -1,4 +1,5 @@
 import { AlertTriangle, Map, Route, ShieldAlert } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from "recharts";
 import KPICard from "@/components/dashboard/KPICard";
 import SectionCard from "@/components/dashboard/SectionCard";
 import StatusChip from "@/components/dashboard/StatusChip";
@@ -7,16 +8,15 @@ import PageHeroAnalitico from "@/components/dashboard/PageHeroAnalitico";
 import PageSectionNav, { type PageSectionNavItem } from "@/components/dashboard/PageSectionNav";
 import { useAlertasContagem, useAlertas, useDrillRotas } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
+import { formatInteger } from "@/lib/formatters";
+import { TOOLTIP_STYLE, TICK_STYLE, GRID_STROKE, CHART_COLORS } from "@/lib/chartConfig";
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
+  { id: "severidade", label: "Severidade" },
   { id: "alertas", label: "Alertas" },
   { id: "drill", label: "Drill" },
 ];
-
-function formatInteger(value: number | null | undefined) {
-  return Number(value ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
-}
 
 const STATUS_COLORS: Record<string, string> = {
   "Em Rota": "bg-primary/15 text-primary",
@@ -101,6 +101,39 @@ export default function InvestigacaoOperacional() {
             <KPICard key={a.label} data={a} delay={i * 60} />
           ))}
         </div>
+      </section>
+
+      <section id="severidade" className="scroll-mt-24">
+        <SectionCard title="Distribuição por tipo de alerta" subtitle="Severidade dos alertas ativos no recorte" delay={300}>
+          {loadingContagem ? <LoadingSkeleton rows={4} /> : (() => {
+            const severityData = contagem ? [
+              { tipo: "Overtime", valor: contagem.overtime, cor: CHART_COLORS.danger },
+              { tipo: "Entrega Crítica", valor: contagem.entregaCritica, cor: CHART_COLORS.danger },
+              { tipo: "Não Planejada", valor: contagem.naoPlanejada, cor: CHART_COLORS.warning },
+              { tipo: "Match Crítico", valor: contagem.matchCritico, cor: CHART_COLORS.warning },
+              { tipo: "Sem Tempo", valor: contagem.semTempo, cor: CHART_COLORS.muted },
+            ].filter(d => d.valor > 0).sort((a, b) => b.valor - a.valor) : [];
+            return severityData.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Nenhum alerta no recorte.</p>
+            ) : (
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={severityData} layout="vertical" margin={{ left: 8, right: 24 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
+                    <XAxis type="number" tick={TICK_STYLE} />
+                    <YAxis type="category" dataKey="tipo" width={110} tick={TICK_STYLE} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <Bar dataKey="valor" name="Alertas" radius={[0, 4, 4, 0]} barSize={20}>
+                      {severityData.map((entry) => (
+                        <Cell key={entry.tipo} fill={entry.cor} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            );
+          })()}
+        </SectionCard>
       </section>
 
       <section id="alertas" className="scroll-mt-24">
