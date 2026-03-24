@@ -54,7 +54,7 @@ export default function AderenciaAtendimento() {
 
   const filialList = (filiais ?? []).map(f => ({
     filial: f.nomeFilial || f.filial,
-    entregasEfetivas: +(f.entregasEfetivas * 100).toFixed(1),
+    entregasEfetivas: +(((f.entregasEfetivas ?? 0) * 100).toFixed(1)),
     score: f.scoreOperacional,
   })).sort((a, b) => b.entregasEfetivas - a.entregasEfetivas);
 
@@ -177,7 +177,7 @@ export default function AderenciaAtendimento() {
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
                   <Legend wrapperStyle={LEGEND_STYLE} />
                   {kpi?.metaAderenciaVolumes != null && (
-                    <ReferenceLine y={kpi.metaAderenciaVolumes * 100} stroke="#10b981" strokeWidth={1.5} strokeDasharray="5 3" label={{ value: `Meta ${(kpi.metaAderenciaVolumes * 100).toFixed(0)}%`, position: "insideTopLeft", fill: "#10b981", fontSize: 10, fontWeight: 700 }} />
+                    <ReferenceLine y={kpi.metaAderenciaVolumes * 100} stroke={CHART_COLORS.success} strokeWidth={1.5} strokeDasharray="5 3" label={{ value: `Meta ${(kpi.metaAderenciaVolumes * 100).toFixed(0)}%`, position: "insideTopLeft", fill: CHART_COLORS.success, fontSize: 10, fontWeight: 700 }} />
                   )}
                   <Line type="monotone" dataKey="aderenciaPct" stroke={CHART_COLORS.primary} strokeWidth={2.5} dot={{ r: 2.5, fill: CHART_COLORS.primary }} name="Aderência vol. %" />
                   <Line type="monotone" dataKey="entregasPct" stroke={CHART_COLORS.secondary} strokeWidth={2.5} dot={{ r: 2.5, fill: CHART_COLORS.secondary }} name="Entregas %" />
@@ -256,7 +256,7 @@ export default function AderenciaAtendimento() {
                       className="h-full rounded-full transition-all duration-500"
                       style={{
                         width: `${f.entregasEfetivas}%`,
-                        background: f.entregasEfetivas >= 95 ? "hsl(152 60% 40%)" : f.entregasEfetivas >= 93 ? "hsl(38 92% 50%)" : "hsl(0 72% 51%)",
+                        background: f.entregasEfetivas >= 95 ? CHART_COLORS.success : f.entregasEfetivas >= 93 ? CHART_COLORS.warning : CHART_COLORS.danger,
                       }}
                     />
                   </div>

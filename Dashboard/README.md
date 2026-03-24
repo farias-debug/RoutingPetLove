@@ -10,7 +10,7 @@ TMS -> CSV consolidado -> BigQuery canônico -> API Express -> Frontend React
 
 1. Extração e consolidação dos dados em [extraction/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/extraction) e [data/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/data)
 2. Carga raw no BigQuery com [bigquery/load_raw_to_bq.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/load_raw_to_bq.py)
-3. Publicação da camada canônica com [bigquery/pipeline_dashboard_v7.sql](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/pipeline_dashboard_v7.sql), [bigquery/pipeline_sheets_v8.sql](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/pipeline_sheets_v8.sql) e módulos em [bigquery/_deploy/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/_deploy)
+3. Publicação da camada canônica com [bigquery/pipeline_dashboard_v7.sql](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/pipeline_dashboard_v7.sql) (fonte única — UDFs + staging + base_execucao_canonica)
 4. API publicada a partir de [api/server.js](c:/Users/lucas.batista/Documents/Projetos/Dashboard/api/server.js), [api/queries.js](c:/Users/lucas.batista/Documents/Projetos/Dashboard/api/queries.js) e [api/helpers.js](c:/Users/lucas.batista/Documents/Projetos/Dashboard/api/helpers.js)
 5. Dashboard React em [frontend/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/frontend)
 
@@ -28,17 +28,16 @@ TMS -> CSV consolidado -> BigQuery canônico -> API Express -> Frontend React
 
 ## BigQuery ativo
 
-Arquivos mantidos como fonte de verdade:
+Arquivo único de deploy:
 
-- [bigquery/pipeline_dashboard_v7.sql](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/pipeline_dashboard_v7.sql)
-- [bigquery/pipeline_sheets_v8.sql](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/pipeline_sheets_v8.sql)
-- [bigquery/deploy_v7_dashboard.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/deploy_v7_dashboard.py)
+- [bigquery/pipeline_dashboard_v7.sql](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/pipeline_dashboard_v7.sql) — **fonte única de medidas** (UDFs + staging + dim_filial + base_execucao_canonica + pub_metas + metas_pivot_canonico)
+- [bigquery/deploy_v7_dashboard.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/deploy_v7_dashboard.py) — script de deploy
 - [bigquery/validate_pipeline.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/validate_pipeline.py)
-- [bigquery/validate_data_contract.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/validate_data_contract.py)
+- [bigquery/validate_data_contract.py](c:/Users/lucas.batista\Documents/Projetos/Dashboard/bigquery/validate_data_contract.py)
 - [bigquery/score_parity_test.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/score_parity_test.py)
 - [bigquery/regression_test.py](c:/Users/lucas.batista/Documents/Projetos/Dashboard/bigquery/regression_test.py)
 
-Os arquivos v4, v5 e v6 foram movidos para [_archive/](c:/Users/lucas.batista/Documents/Projetos/Dashboard/_archive).
+Arquivos `pipeline_sheets_v8.sql`, `sync_bq_to_sheets.py`, `README_DEPLOY_V7_V8.md` e as views `_deploy/20-40` foram movidos para `bigquery/_archive/` — fluxo Google Sheets descontinuado.
 
 ## Documentação ativa
 

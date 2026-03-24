@@ -12,7 +12,7 @@ Scripts que constroem dashboards visuais (PAINEL_GERENCIAL, PAINEL_OPERACIONAL, 
 ## Arquitetura
 
 ```
-13 abas de dados (via sync_bq_to_sheets.py)
+[ARQUIVADO] sync_bq_to_sheets.py (fluxo Sheets descontinuado)
         ↓
 main.gs → dashboard_builder.gs → panel_cache.gs
         ↓

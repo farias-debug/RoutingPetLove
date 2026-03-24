@@ -1,15 +1,13 @@
 # Deploy Pipeline BigQuery
 
-Execute o deploy completo do pipeline BigQuery (v4 + v5 + v6) no dataset `monitoramento_carga`.
+Execute o deploy completo do pipeline BigQuery v7 no dataset `monitoramento_carga`.
 
 ## Passos
 
 1. Ativar o venv: `Dashboard\.venv\Scripts\activate`
 2. Garantir autenticação: `gcloud auth application-default login --scopes=https://www.googleapis.com/auth/bigquery,https://www.googleapis.com/auth/cloud-platform`
-3. Deploy v4 (analítica): `python Dashboard/bigquery/deploy_v4.py`
-4. Deploy v5 (publicação): `python Dashboard/bigquery/deploy_v5_publicacao.py`
-5. Deploy v6 (API views): `python Dashboard/bigquery/deploy_v6_api_views.py`
-6. Validar contagem de objetos no dataset (esperado: 3 raw + 14 UDFs + ~41 views)
+3. Deploy v7 (pipeline único): `python Dashboard/bigquery/deploy_v7_dashboard.py`
+4. Validar contagem de objetos (esperado: 3 raw + 11 UDFs + 7 views)
 
 ## Regras
 

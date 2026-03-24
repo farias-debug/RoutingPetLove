@@ -32,7 +32,7 @@ Toda metrica publicada deve ter:
 
 1. A fonte semantica principal do projeto e a view base_execucao_canonica.
 2. O grao canonico operacional continua sendo 1 linha por id_carga.
-3. KPIs publicados devem ser calculados prioritariamente nos marts canonicos, nao no frontend.
+3. KPIs publicados sao calculados via queries.js (agregacao inline sobre base_execucao_canonica).
 4. Percentuais publicados pela API continuam em fracao 0-1.
 5. O score operacional oficial usa exatamente 6 componentes e nao deve ser recalculado fora da regra central.
 6. Comparacoes por filial podem depender de atributos de dim_filial, especialmente meta_spr e capacidade_volume_dia.
@@ -55,39 +55,29 @@ Responsabilidade:
 - estabilizar naming tecnico
 - concentrar reconciliacao operacional, planejamento, capacidade fisica e flags
 
-### 3.2 Marts canonicos
+### 3.2 Agregacao dinamica (API — substitui marts)
 
-Objetos principais:
+Na arquitetura v7, a camada de marts foi eliminada. A API (queries.js) executa agregacao inline sob demanda.
 
-- mart_diario_canonico
-- mart_filial_dia_canonico
-- mart_transportador_dia_canonico
-- mart_motorista_dia_canonico
-- metas_pivot_canonico
-- dim_metas_canonica
+Objetos de suporte:
+
+- metas_pivot_canonico (view unica de metas pivotadas)
 
 Responsabilidade:
 
-- calcular KPIs oficiais e status
-- materializar metas globais
-- anexar atributos de dim_filial quando a comparacao exigir meta por filial ou capacidade diaria de volumes
+- calcular KPIs oficiais e status via queries.js
+- aplicar metas globais via CROSS JOIN com metas_pivot_canonico
+- suportar graos: diario, filial, transportador, motorista, tipo veiculo
 
-### 3.3 Publicacao operacional e compatibilidade
+### 3.3 Publicacao operacional (descontinuada)
 
-Objetos ainda relevantes:
+Os seguintes objetos foram descontinuados e arquivados na v7:
 
-- kpi_resumo_diario
-- kpi_filial_dia
-- kpi_transportador_dia
-- Resumo_Filial
-- Resumo_Semana_Filial_Diario
-- Resumo_Semana_Filial_Matriz
+- kpi_resumo_diario, kpi_filial_dia, kpi_transportador_dia
+- Resumo_Filial, Resumo_Semana_Filial_Diario, Resumo_Semana_Filial_Matriz
 - dim_filial_tratada
 
-Responsabilidade:
-
-- publicar nomes visuais e colunas usadas por Google Sheets, Apps Script e consumidores legados
-- manter comparacoes como SPR vs Meta e Aderencia Cap Vol Dia, que continuam relevantes para operacao e leitura executiva
+O frontend consome exclusivamente via API REST.
 
 ---
 
@@ -126,8 +116,8 @@ Estas colunas nao nascem na base canonica, mas sao oficialmente usadas por joins
 
 | Nome tecnico | Nome visual principal | Unidade | Origem oficial | Observacao |
 | --- | --- | --- | --- | --- |
-| meta_spr_filial | Meta SPR Filial | vol/rota | dim_filial via mart_filial_dia_canonico | meta operacional especifica por filial |
-| capacidade_volume_dia | Capacidade Volume Dia | volumes/dia | dim_filial via mart_filial_dia_canonico e publicacao | capacidade diaria de volumes da filial |
+| meta_spr_filial | Meta SPR Filial | vol/rota | dim_filial | meta operacional especifica por filial |
+| capacidade_volume_dia | Capacidade Volume Dia | volumes/dia | dim_filial | capacidade diaria de volumes da filial |
 | regiao | Regiao | texto | dim_filial / base_execucao_canonica | atributo de corte |
 | tipo_filial | Tipo Filial | texto | dim_filial / base_execucao_canonica | usado para filtro Unidade |
 
@@ -152,34 +142,32 @@ Estas colunas nao nascem na base canonica, mas sao oficialmente usadas por joins
 
 | Nome tecnico | Nome visual principal | Formula oficial | Unidade | Sentido | Grao minimo | Camada oficial |
 | --- | --- | --- | --- | --- | --- | --- |
-| spr_pedidos | SPR Pedidos | qtd_pedidos / qtd_rotas | ped/rota | maior=melhor | mart | mart canonico |
-| spr_volumes | SPR Volumes | qtd_volumes / qtd_rotas | vol/rota | maior=melhor | mart | mart canonico |
-| pct_entregas_efetivas | Entregas Efetivas | qtd_entregues / (qtd_entregues + qtd_insucessos) | fracao 0-1 | maior=melhor | mart | mart canonico |
-| pct_rotas_concluidas | Rotas Concluidas | qtd_rotas_concluidas / qtd_rotas | fracao 0-1 | maior=melhor | mart | mart canonico |
-| orh | ORH | tempo_operacional_h / qtd_rotas | h/rota | alvo | mart | mart canonico |
-| ader_pedidos | Aderencia Pedidos | min(qtd_pedidos / pedidos_plan, 1.0) quando houver plano | fracao 0-1 | maior=melhor | mart com planejamento | mart canonico |
-| ader_volumes | Aderencia Volumes | min(qtd_volumes / volumes_plan, 1.0) quando houver plano | fracao 0-1 | maior=melhor | mart com planejamento | mart canonico |
-| ader_peso | Aderencia Peso | min(peso_real_kg / peso_plan_kg, 1.0) quando houver plano | fracao 0-1 | maior=melhor | mart com planejamento | mart canonico |
-| ader_km | Aderencia KM | min(km_real / km_plan, 1.0) quando houver plano | fracao 0-1 | maior=melhor | mart com planejamento | mart canonico |
-| ader_tempo | Aderencia Tempo | min(tempo_operacional_h / tempo_plan_h, 1.0) quando houver plano | fracao 0-1 | maior=melhor | mart com planejamento | mart canonico |
-| ocup_peso_veiculo | Capacidade Utilizada | peso_real_kg / capacidade_peso_kg | fracao 0-1 | faixa alvo | mart com capacidade | mart canonico |
-| custo_medio_carga | Custo Medio por Carga | valor_total / qtd_rotas | R$/carga | menor=melhor | mart | mart canonico |
-| custo_medio_pedido | Custo Medio por Pedido | valor_total / qtd_pedidos | R$/pedido | menor=melhor | base canonica ou derivacao contratada | base_execucao_canonica |
-| custo_medio_volume | Custo Medio por Volume | valor_total / qtd_volumes | R$/volume | menor=melhor | base canonica ou derivacao contratada | base_execucao_canonica |
-| dpph | DPPH | qtd_entregues / tempo_operacional_h | ent/h | maior=melhor | mart | mart canonico |
-| pct_share | Share | qtd_rotas_entidade / qtd_rotas_total_mesmo_grao | fracao 0-1 | informativo | mart transportador | mart canonico |
-| score_operacional | Score Operacional | avg(status_score(componentes oficiais)) * 100 | 0-100 | maior=melhor | mart | mart canonico |
+| spr_pedidos | SPR Pedidos | qtd_pedidos / qtd_rotas | ped/rota | maior=melhor | agregacao | queries.js |
+| spr_volumes | SPR Volumes | qtd_volumes / qtd_rotas | vol/rota | maior=melhor | agregacao | queries.js |
+| pct_entregas_efetivas | Entregas Efetivas | qtd_entregues / (qtd_entregues + qtd_insucessos) | fracao 0-1 | maior=melhor | agregacao | queries.js |
+| pct_rotas_concluidas | Rotas Concluidas | qtd_rotas_concluidas / qtd_rotas | fracao 0-1 | maior=melhor | agregacao | queries.js |
+| orh | ORH | tempo_operacional_h / qtd_rotas | h/rota | alvo | agregacao | queries.js |
+| ader_pedidos | Aderencia Pedidos | min(qtd_pedidos / pedidos_plan, 1.0) quando houver plano | fracao 0-1 | maior=melhor | agregacao com planejamento | queries.js |
+| ader_volumes | Aderencia Volumes | min(qtd_volumes / volumes_plan, 1.0) quando houver plano | fracao 0-1 | maior=melhor | agregacao com planejamento | queries.js |
+| ader_peso | Aderencia Peso | min(peso_real_kg / peso_plan_kg, 1.0) quando houver plano | fracao 0-1 | maior=melhor | agregacao com planejamento | queries.js |
+| ader_km | Aderencia KM | min(km_real / km_plan, 1.0) quando houver plano | fracao 0-1 | maior=melhor | agregacao com planejamento | queries.js |
+| ader_tempo | Aderencia Tempo | min(tempo_operacional_h / tempo_plan_h, 1.0) quando houver plano | fracao 0-1 | maior=melhor | agregacao com planejamento | queries.js |
+| ocup_peso_veiculo | Capacidade Utilizada | peso_real_kg / capacidade_peso_kg | fracao 0-1 | faixa alvo | base_execucao_canonica + agregacao | queries.js |
+| custo_medio_carga | Custo Medio por Carga | valor_total / qtd_rotas | R$/carga | menor=melhor | agregacao | queries.js |
+| custo_medio_pedido | Custo Medio por Pedido | valor_total / qtd_pedidos | R$/pedido | menor=melhor | agregacao | queries.js |
+| custo_medio_volume | Custo Medio por Volume | valor_total / qtd_volumes | R$/volume | menor=melhor | agregacao | queries.js |
+| dpph | DPPH | qtd_entregues / tempo_operacional_h | ent/h | maior=melhor | agregacao | queries.js |
+| pct_share | Share | qtd_rotas_entidade / qtd_rotas_total_mesmo_grao | fracao 0-1 | informativo | agregacao transportador | queries.js |
+| score_operacional | Score Operacional | avg(status_score(componentes oficiais)) * 100 | 0-100 | maior=melhor | agregacao | queries.js (scoreExpr) |
 
 ### 5.2 KPIs oficiais especificos de filial
 
-Estas medidas faltavam no catalogo anterior e passam a constar formalmente porque ja existem no projeto, especialmente em mart_filial_dia_canonico, Resumo_Filial, Resumo_Semana_Filial_Diario e Resumo_Semana_Filial_Matriz.
+Estas medidas sao calculadas via filiaisPerformanceQuery em queries.js.
 
 | Nome tecnico | Nome visual principal | Formula oficial | Unidade | Sentido | Grao minimo | Camada oficial |
 | --- | --- | --- | --- | --- | --- | --- |
-| spr_volumes_vs_meta_filial | SPR Volumes vs Meta Filial | spr_volumes - meta_spr_filial; quando meta_spr_filial for nula, usar spr_volumes - meta_spr_vol global | vol/rota | maior=melhor | mart filial dia | mart_filial_dia_canonico e publicacao |
-| status_spr_volumes_filial | Status SPR Volumes Filial | status_higher(spr_volumes, coalesce(meta_spr_filial, meta_spr_vol)) | status textual | maior=melhor | mart filial dia | mart_filial_dia_canonico |
-| ader_capacidade_volume | Aderencia Capacidade Volume | qtd_volumes / capacidade_volume_dia | fracao 0-1+ | faixa alvo operacional | mart filial dia | mart_filial_dia_canonico |
-| ader_cap_vol_dia | Aderencia Cap Vol Dia | alias legado de ader_capacidade_volume | fracao 0-1+ | faixa alvo operacional | publicacao filial dia | pipeline_v5_publicacao |
+| spr_volumes_vs_meta_filial | SPR Volumes vs Meta Filial | spr_volumes - meta_spr_filial; quando meta_spr_filial for nula, usar spr_volumes - meta_spr_vol global | vol/rota | maior=melhor | agregacao filial | queries.js |
+| status_spr_volumes_filial | Status SPR Volumes Filial | status_higher(spr_volumes, coalesce(meta_spr_filial, meta_spr_vol)) | status textual | maior=melhor | agregacao filial | queries.js |
 
 Regra interpretativa obrigatoria:
 
@@ -193,11 +181,12 @@ Regra interpretativa obrigatoria:
 Quando meta_spr_filial IS NULL em dim_filial, TODAS as comparacoes de SPR por filial devem usar fallback para meta_spr_vol global (67.0).
 
 **Implementacao obrigatoria:**
-- Marts: `COALESCE(meta_spr_filial, meta_spr_vol)`
-- Views API v6: DEVEM usar COALESCE, nao meta global direta
+
+- queries.js: usa `meta_spr_ped` de `metas_pivot_canonico`
 - Frontend: NAO deve assumir meta especifica, consumir da API
 
 **Validacao operacional:**
+
 - Script validate_pipeline.py alerta quando > 30% filiais sem meta_spr
 - Script atualizar_capacidade_volume_dia.sql calcula capacidade quando NULL (media ultimas 3 semanas, P95)
 
@@ -209,28 +198,29 @@ ader_capacidade_volume retorna NULL quando capacidade_volume_dia nao esta preenc
 
 | Nome tecnico | Nome visual principal | Formula oficial | Unidade | Camada oficial | Observacao |
 | --- | --- | --- | --- | --- | --- |
-| gap_orh_vs_meta_h | Gap ORH vs Meta | orh - meta_orh | h/rota | publicacao | muito usado em kpi_resumo_diario e kpi_filial_dia |
-| var_d1_rotas | Var D-1 Rotas | qtd_rotas atual - qtd_rotas D-1 valida | contagem | publicacao | comparativo temporal |
-| var_d1_pedidos | Var D-1 Pedidos | qtd_pedidos atual - qtd_pedidos D-1 valida | contagem | publicacao | comparativo temporal |
-| var_d1_spr_ped | Var D-1 SPR Ped | spr_ped atual - spr_ped D-1 valida | ped/rota | publicacao | comparativo temporal |
-| var_d1_orh | Var D-1 ORH | orh atual - orh D-1 valida | h/rota | publicacao | comparativo temporal |
-| pct_util_jornada | Pct Utilizacao Jornada 8h | tempo_operacional_h / (qtd_rotas * 8) | fracao 0-1 | marts legados/publicacao | indicador operacional auxiliar |
-| pct_ociosidade_jornada | Pct Ociosidade Jornada 8h | 1 - pct_util_jornada | fracao 0-1 | publicacao | indicador operacional auxiliar |
-| horas_ociosas_total | Horas Ociosas Totais | soma de tempo_ocioso_jornada_h | horas | marts legados/publicacao | indicador operacional auxiliar |
-| pct_match_mesmo_dia | Pct Match Mesmo Dia | qtd_match_mesmo_dia / qtd_rotas_com_plan ou regra equivalente do mart | fracao 0-1 | marts legados/publicacao | compatibilidade operacional |
+| gap_orh_vs_meta_h | Gap ORH vs Meta | orh - meta_orh | h/rota | queries.js (kpiDiarioQuery) | calculado em kpiDiarioQuery |
+| var_d1_rotas | Var D-1 Rotas | qtd_rotas atual - qtd_rotas D-1 valida | contagem | descontinuado | comparativo temporal (nao implementado na v7) |
+| var_d1_pedidos | Var D-1 Pedidos | qtd_pedidos atual - qtd_pedidos D-1 valida | contagem | descontinuado | comparativo temporal (nao implementado na v7) |
+| var_d1_spr_ped | Var D-1 SPR Ped | spr_ped atual - spr_ped D-1 valida | ped/rota | descontinuado | comparativo temporal (nao implementado na v7) |
+| var_d1_orh | Var D-1 ORH | orh atual - orh D-1 valida | h/rota | descontinuado | comparativo temporal (nao implementado na v7) |
+| pct_util_jornada | Pct Utilizacao Jornada 8h | tempo_operacional_h / (qtd_rotas * 8) | fracao 0-1 | queries.js (kpiDiarioQuery) | indicador operacional auxiliar |
+| pct_ociosidade_jornada | Pct Ociosidade Jornada 8h | 1 - pct_util_jornada | fracao 0-1 | queries.js (kpiDiarioQuery) | indicador operacional auxiliar |
+| horas_ociosas_total | Horas Ociosas Totais | soma de tempo_ocioso_jornada_h | horas | descontinuado | nao implementado na v7 |
+| pct_match_mesmo_dia | Pct Match Mesmo Dia | qtd_match_mesmo_dia / qtd_rotas_com_plan | fracao 0-1 | queries.js (kpiDiarioQuery) | reconciliacao temporal |
 
 ### 5.4 Medidas auxiliares de aderencia (NAO no score operacional)
 
-Estas medidas sao calculadas nos marts mas NAO fazem parte do score operacional principal. Sao usadas para analise de planejamento e podem ser promovidas a KPIs principais mediante revisao.
+Estas medidas NAO fazem parte do score operacional principal. Sao calculadas inline em queries.js para telas de analise.
 
 | Nome tecnico | Nome visual | Formula oficial | Unidade | No Score? | Camada oficial | Observacao |
 | --- | --- | --- | --- | --- | --- | --- |
-| ader_peso | Aderencia Peso | LEAST(1.0, peso_real_kg / peso_plan_kg) | fracao 0-1 | NAO | base_execucao_canonica, marts | auxiliar planejamento |
-| ader_km | Aderencia KM | LEAST(1.0, km_real / km_plan) | fracao 0-1 | NAO | base_execucao_canonica, marts | auxiliar planejamento |
-| ader_tempo | Aderencia Tempo | LEAST(1.0, tempo_operacional_h / tempo_plan_h) | fracao 0-1 | NAO | base_execucao_canonica, marts | auxiliar planejamento |
+| ader_peso | Aderencia Peso | LEAST(1.0, peso_real_kg / peso_plan_kg) | fracao 0-1 | NAO | queries.js | auxiliar planejamento |
+| ader_km | Aderencia KM | LEAST(1.0, km_real / km_plan) | fracao 0-1 | NAO | queries.js | auxiliar planejamento |
+| ader_tempo | Aderencia Tempo | LEAST(1.0, tempo_operacional_h / tempo_plan_h) | fracao 0-1 | NAO | queries.js | auxiliar planejamento |
 
 **Decisao arquitetural:**
-- Calculadas nos marts mas NAO fazem parte do score operacional (que usa apenas 6 componentes: spr_volumes, entregas_efetivas, rotas_concluidas, orh, ader_volumes, ocup_peso)
+
+- NAO fazem parte do score operacional (que usa apenas 6 componentes: spr_volumes, entregas_efetivas, rotas_concluidas, orh, ader_volumes, ocup_peso)
 - Frontend pode exibi-las como informacao complementar em telas de analise de planejamento
 - ader_pedidos e uma medida oficial (secao 5.1), nao auxiliar
 
@@ -238,7 +228,7 @@ Estas medidas sao calculadas nos marts mas NAO fazem parte do score operacional 
 
 | Nome tecnico | Formula oficial | Componentes | Camada oficial | Observacao |
 | --- | --- | --- | --- | --- |
-| score_operacional_motorista | fn_score_operacional(6 comp) | Mesmos 6 componentes do score global | mart_motorista_dia_canonico | Implementado mas nao documentado anteriormente |
+| score_operacional_motorista | fn_score_operacional(6 comp) | Mesmos 6 componentes do score global | queries.js (motoristasQuery) | Usa scoreExpr() canonico |
 
 **Regra:** Score por motorista usa a MESMA formula do score global (6 componentes obrigatorios), agregado por motorista.
 
@@ -344,7 +334,7 @@ Observacoes:
 1. API publica percentuais em fracao 0-1.
 2. Frontend formata valores, mas nao redefine formulas.
 3. Views de publicacao podem traduzir nomes, ordenar colunas e carregar atributos de calendario e dim_filial.
-4. Nenhum endpoint deve recalcular score quando ele ja vier do mart canonico.
+4. Score operacional e calculado via scoreExpr() em queries.js — funcao DRY que centraliza a formula.
 5. Endpoints e views podem continuar expondo medidas de apoio como gap, variacoes D-1 e colunas auxiliares de status.
 6. Comparacoes de capacidade de volume por filial devem usar capacidade_volume_dia da dim_filial, nao capacidade_peso_kg do veiculo.
 7. Comparacoes de ocupacao fisica do score devem usar ocup_peso_veiculo, nao ader_capacidade_volume.

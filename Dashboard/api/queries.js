@@ -1,39 +1,101 @@
 // queries.js — SQL templates para todos os endpoints da API
 // Cada função retorna uma string SQL pronta para execução via BigQuery.
 // `ns` = namespace completo `project.dataset` para tabelas e UDFs.
-
-// ARQUITETURA DE AGREGAÇÃO DINÂMICA:
 //
-// As queries neste arquivo agregam DIRETAMENTE de base_execucao_canonica (camada atômica)
-// ao invés de consumir marts pré-agregados (mart_kpi_diario, mart_kpi_filial_dia, etc.).
+// ARQUITETURA: Agregação dinâmica sobre base_execucao_canonica (camada atômica).
+// Filtros são aplicados ANTES da agregação — por isso KPIs são recalculados em cada query.
+// BigQuery cache mitiga o custo de recomputação.
 //
-// JUSTIFICATIVA:
-// - A API suporta filtros dinâmicos arbitrários (periodo, filial, transportador, tipo_veiculo, status)
-// - Filtros são aplicados ANTES da agregação (WHERE na base atômica)
-// - Marts pré-agregados JÁ estão agregados e não suportam filtros no meio do GROUP BY
-// - Portanto: recálculo de KPIs (SPR, score, ocupação) é NECESSÁRIO e CORRETO
+// PADRÃO CANÔNICO:
+// - Score operacional é calculado via `scoreExpr()` — função única, nunca duplicada
+// - Metas vêm de `metas_globais` (view canônica), pivotadas via `metas_pivot_canonico`
+// - Nomenclatura: snake_case no SQL, server.js converte para camelCase no response
 //
-// TRADE-OFF CONSCIENTE:
-// - Vantagem: Flexibilidade total de filtros para o usuário
-// - Custo: Recálculo de métricas em cada query (mas com cache BigQuery)
-//
-// OTIMIZAÇÃO FUTURA:
-// - Queries SEM filtros poderiam consumir marts diretamente
-// - Requer refatoração para detectar ausência de filtros em server.js
-//
-// Última atualização: 2026-03-22
+// Última atualização: 2026-03-23
 
 function ns(projectId, dataset) {
   return `${projectId}.${dataset}`;
+}
+
+// ── Score Operacional — Fragmento SQL canônico (DRY) ────────────────────────
+// Gera a expressão SQL para fn_score_operacional a partir de argumentos nomeados.
+// Elimina duplicação: antes era copiado 8+ vezes; agora é gerado por esta função.
+//
+// Parâmetros: expressões SQL em strings puras (sem escaping de backtick).
+//   sprVol      — expressão que retorna SPR volumes
+//   entregasEf  — expressão que retorna entregas efetivas (fração 0-1)
+//   rotasConcl  — expressão que retorna rotas concluídas (fração 0-1)
+//   orh         — expressão que retorna ORH tempo médio (horas)
+//   aderVol     — expressão que retorna aderência volumes (fração 0-1 ou NULL)
+//   volPlan     — expressão para volume planejado (determina se aderência é aplicável)
+//   ocupPeso    — expressão que retorna ocupação peso (fração 0-1)
+
+function scoreExpr(n, { sprVol, entregasEf, rotasConcl, orh, aderVol, volPlan, ocupPeso }, metasAlias) {
+  const bq = (fn) => "`" + n + "." + fn + "`";
+  const ma = metasAlias || "m";
+  // Inline score: NULL-aware averaging that excludes 'Informativo' dimensions.
+  // Fixes: fn_score_operacional UDF returns NULL when any status_score is NULL
+  // (Informativo/Saturado), which propagates NULL through the SUM.
+  const sc = (s) => "CASE " + s
+    + " WHEN 'OK' THEN 1.0 WHEN 'Atencao' THEN 0.5 WHEN 'Critico' THEN 0.0"
+    + " WHEN 'Saturado' THEN 0.0 ELSE CAST(NULL AS FLOAT64) END";
+  const dims = [
+    sc(bq("status_higher") + "(" + sprVol + ", " + ma + ".meta_spr_vol)"),
+    sc(bq("status_higher") + "(" + entregasEf + ", " + ma + ".meta_entregas)"),
+    sc(bq("status_higher") + "(" + rotasConcl + ", " + ma + ".meta_rotas)"),
+    sc(bq("status_target_band") + "(" + orh + ", " + ma + ".meta_orh, 1.0, 2.1)"),
+    sc("IF(" + volPlan + " > 0, " + bq("status_higher") + "(" + aderVol + ", " + ma + ".meta_ader_vol), 'Informativo')"),
+    sc(bq("capacity_status") + "(" + ocupPeso + ")"),
+  ];
+  const sumExpr = dims.map((d) => "COALESCE(" + d + ", 0)").join(" + ");
+  const cntExpr = dims.map((d) => "IF((" + d + ") IS NOT NULL, 1, 0)").join(" + ");
+  return "ROUND((" + sumExpr + ") / NULLIF(" + cntExpr + ", 0) * 100.0, 1)";
+}
+
+// Helper: safe_div SQL expression
+function sd(n, num, den) {
+  return "`" + n + ".safe_div`(" + num + ", " + den + ")";
+}
+
+// Helper: adherence_ratio SQL expression
+function ar(n, real, plan) {
+  return "`" + n + ".adherence_ratio`(" + real + ", " + plan + ")";
+}
+
+// Alias curto para `metas_pivot_canonico` CTE
+function metasCTE(n) {
+  return "metas AS (SELECT * FROM `" + n + ".metas_pivot_canonico`)";
+}
+
+// Helper: standard aggregation base columns used by multiple queries
+function stdAggCols(n, alias) {
+  const b = alias;
+  return `
+        COUNT(DISTINCT ${b}.id_carga) AS qtd_rotas,
+        SUM(${b}.qtd_pedidos) AS qtd_pedidos,
+        SUM(${b}.qtd_volumes) AS qtd_volumes,
+        SUM(${b}.qtd_entregues) AS qtd_entregas,
+        SUM(${b}.qtd_insucessos) AS qtd_insucessos,
+        SUM(${b}.tempo_operacional_h) AS tempo_oper_total,
+        SUM(${b}.volumes_plan) AS volumes_plan,
+        SUM(IF(${b}.possui_planejamento, ${b}.qtd_volumes, NULL)) AS volumes_com_plan,
+        SUM(IF(${b}.capacidade_peso_kg IS NOT NULL, ${b}.peso_real_kg, NULL)) AS total_peso_kg,
+        SUM(${b}.capacidade_peso_kg) AS capacidade_peso_total,
+        COUNTIF(${b}.flag_rota_concluida) AS qtd_rotas_concluidas`;
 }
 
 // ── Metas ───────────────────────────────────────────────────────────────────
 
 export function metasQuery(projectId, dataset) {
   return `
-    SELECT *
-    FROM \`${ns(projectId, dataset)}.pub_metas\`
-    ORDER BY KPI
+    SELECT
+      kpi_id,
+      kpi_nome,
+      meta,
+      sentido,
+      unidade
+    FROM \`${ns(projectId, dataset)}.metas_globais\`
+    ORDER BY kpi_id
   `;
 }
 
@@ -106,8 +168,17 @@ export function filterPrioridadesQuery(projectId, dataset, where) {
 
 export function cardsQuery(projectId, dataset, where) {
   const n = ns(projectId, dataset);
+  const score = scoreExpr(n, {
+    sprVol: sd(n, 'd.qtd_volumes', 'CAST(d.qtd_rotas AS FLOAT64)'),
+    entregasEf: sd(n, 'd.qtd_entregas', 'd.qtd_entregas + d.qtd_insucessos'),
+    rotasConcl: sd(n, 'CAST(d.qtd_rotas_concluidas AS FLOAT64)', 'CAST(d.qtd_rotas AS FLOAT64)'),
+    orh: sd(n, 'd.tempo_oper_total', 'CAST(d.qtd_rotas AS FLOAT64)'),
+    aderVol: ar(n, 'd.volumes_com_plan', 'd.volumes_plan'),
+    volPlan: 'd.volumes_plan',
+    ocupPeso: sd(n, 'd.total_peso_kg', 'NULLIF(d.capacidade_peso_total, 0)'),
+  });
   return `
-    WITH metas AS (SELECT * FROM \`${n}.metas_pivot_canonico\`),
+    WITH ${metasCTE(n)},
     daily AS (
       SELECT
         b.data_referencia AS data,
@@ -138,16 +209,7 @@ export function cardsQuery(projectId, dataset, where) {
         \`${n}.adherence_ratio\`(d.volumes_com_plan, d.volumes_plan) AS ader_vol,
         \`${n}.safe_div\`(d.volumes_com_plan, NULLIF(d.volumes_plan, 0)) AS ader_vol_exibicao,
         ROUND(\`${n}.safe_div\`(d.qtd_entregas, NULLIF(d.tempo_oper_total, 0)), 2) AS dpph,
-        ROUND(\`${n}.fn_score_operacional\`(
-          \`${n}.status_higher\`(\`${n}.safe_div\`(d.qtd_volumes, CAST(d.qtd_rotas AS FLOAT64)), m.meta_spr_vol),
-          \`${n}.status_higher\`(\`${n}.safe_div\`(d.qtd_entregas, d.qtd_entregas + d.qtd_insucessos), m.meta_entregas),
-          \`${n}.status_higher\`(\`${n}.safe_div\`(CAST(d.qtd_rotas_concluidas AS FLOAT64), CAST(d.qtd_rotas AS FLOAT64)), m.meta_rotas),
-          \`${n}.status_target_band\`(\`${n}.safe_div\`(d.tempo_oper_total, CAST(d.qtd_rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
-          IF(d.volumes_plan > 0,
-             \`${n}.status_higher\`(\`${n}.adherence_ratio\`(d.volumes_com_plan, d.volumes_plan), m.meta_ader_vol),
-             'Informativo'),
-          \`${n}.capacity_status\`(\`${n}.safe_div\`(d.total_peso_kg, NULLIF(d.capacidade_peso_total, 0)))
-        ), 1) AS score_operacional
+        ${score} AS score_operacional
       FROM daily d
       CROSS JOIN metas m
     ),
@@ -224,6 +286,15 @@ export function cardsQuery(projectId, dataset, where) {
 
 export function tendenciaSemanalQuery(projectId, dataset, where) {
   const n = ns(projectId, dataset);
+  const score = scoreExpr(n, {
+    sprVol: 'w.spr_volumes',
+    entregasEf: 'w.pct_entregas_efetivas',
+    rotasConcl: 'w.pct_rotas_concl',
+    orh: 'w.orh',
+    aderVol: 'w.ader_vol',
+    volPlan: 'w.volumes_plan',
+    ocupPeso: 'w.ocupacao_peso',
+  });
   return `
     WITH metas AS (
       SELECT * FROM \`${n}.metas_pivot_canonico\`
@@ -246,22 +317,14 @@ export function tendenciaSemanalQuery(projectId, dataset, where) {
         \`${n}.adherence_ratio\`(SUM(IF(b.possui_planejamento, b.qtd_volumes, NULL)), SUM(b.volumes_plan)) AS ader_vol,
         \`${n}.safe_div\`(SUM(b.qtd_entregues), NULLIF(SUM(b.tempo_operacional_h), 0)) AS dpph,
         \`${n}.safe_div\`(CAST(COUNTIF(b.flag_rota_concluida) AS FLOAT64), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)) AS pct_rotas_concl,
-        \`${n}.safe_div\`(SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)), NULLIF(SUM(b.capacidade_peso_kg), 0)) AS ocupacao_peso
+        \`${n}.safe_div\`(SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)), NULLIF(SUM(b.capacidade_peso_kg), 0)) AS ocupacao_peso,
+        SUM(b.volumes_plan) AS volumes_plan
       FROM \`${n}.base_execucao_canonica\` b
       ${where}
       GROUP BY 1, 2, 3, 4
     )
     SELECT w.*,
-      ROUND(\`${n}.fn_score_operacional\`(
-        \`${n}.status_higher\`(w.spr_volumes, m.meta_spr_vol),
-        \`${n}.status_higher\`(w.pct_entregas_efetivas, m.meta_entregas),
-        \`${n}.status_higher\`(w.pct_rotas_concl, m.meta_rotas),
-        \`${n}.status_target_band\`(w.orh, m.meta_orh, 1.0, 2.1),
-        IF(w.ader_vol IS NOT NULL,
-           \`${n}.status_higher\`(w.ader_vol, m.meta_ader_vol),
-           'Informativo'),
-        \`${n}.capacity_status\`(w.ocupacao_peso)
-      ), 1) AS score_operacional
+      ${score} AS score_operacional
     FROM weekly w
     CROSS JOIN metas m
     ORDER BY semana_inicio DESC
@@ -273,12 +336,22 @@ export function tendenciaSemanalQuery(projectId, dataset, where) {
 
 export function filiaisPerformanceQuery(projectId, dataset, where) {
   const n = ns(projectId, dataset);
+  const score = scoreExpr(n, {
+    sprVol: sd(n, 'b.volumesReal', 'CAST(b.rotas AS FLOAT64)'),
+    entregasEf: sd(n, 'b.entregues', 'b.entregues + b.insucessos'),
+    rotasConcl: sd(n, 'CAST(b.rotasConcluidas AS FLOAT64)', 'CAST(b.rotas AS FLOAT64)'),
+    orh: sd(n, 'b.tempoReal', 'CAST(b.rotas AS FLOAT64)'),
+    aderVol: ar(n, 'b.volumesComPlan', 'b.volumesPlan'),
+    volPlan: 'b.volumesPlan',
+    ocupPeso: sd(n, 'b.pesoRealCapacidade', 'NULLIF(b.capacidadePesoTotal, 0)'),
+  }, 'mp');
   return `
     WITH base AS (
       SELECT
         b.filial AS filial,
         ANY_VALUE(b.tipo_filial) AS tipoFilial,
         ANY_VALUE(b.regiao) AS regiao,
+        ANY_VALUE(b.meta_spr_filial) AS metaSprFilial,
         COUNT(DISTINCT b.data_referencia) AS diasCobertos,
         COUNT(DISTINCT b.id_carga) AS rotas,
         COUNT(DISTINCT CASE WHEN b.placa IS NOT NULL AND b.placa != '' THEN UPPER(b.placa) END) AS placasDistintas,
@@ -293,15 +366,15 @@ export function filiaisPerformanceQuery(projectId, dataset, where) {
         SUM(b.qtd_insucessos) AS insucessos,
         SUM(b.tempo_operacional_h) AS tempoReal,
         SUM(b.tempo_plan_h) AS tempoPlan,
-        SUM(b.km_realizado) AS kmReal,
-        SUM(b.km_planejado) AS kmPlan,
+        SUM(b.km_real) AS kmReal,
+        SUM(b.km_plan) AS kmPlan,
         COUNTIF(b.flag_rota_concluida) AS rotasConcluidas,
         SUM(b.capacidade_peso_kg) AS capacidadePesoTotal,
         -- Somente rotas com planejamento (para aderência)
         SUM(IF(b.possui_planejamento, b.qtd_pedidos, NULL)) AS pedidosComPlan,
         SUM(IF(b.possui_planejamento, b.qtd_volumes, NULL)) AS volumesComPlan,
         SUM(IF(b.possui_planejamento, b.peso_real_kg, NULL)) AS pesoComPlan,
-        SUM(IF(b.possui_planejamento, b.km_realizado, NULL)) AS kmComPlan,
+        SUM(IF(b.possui_planejamento, b.km_real, NULL)) AS kmComPlan,
         SUM(IF(b.possui_planejamento, b.tempo_operacional_h, NULL)) AS tempoComPlan
       FROM \`${n}.base_execucao_canonica\` b
       ${where}
@@ -312,7 +385,8 @@ export function filiaisPerformanceQuery(projectId, dataset, where) {
       b.filial AS nomeFilial,
       b.tipoFilial AS tipoFilial,
       b.regiao AS regiao,
-      mp.meta_spr_ped AS metaSpr,
+      COALESCE(b.metaSprFilial, mp.meta_spr_ped) AS metaSpr,
+      mp.meta_spr_vol AS metaSprVolumes,
       b.diasCobertos AS diasCobertos,
       b.rotas AS rotas,
       b.placasDistintas AS placasDistintas,
@@ -327,7 +401,7 @@ export function filiaisPerformanceQuery(projectId, dataset, where) {
       ROUND(\`${n}.safe_div\`(b.entregues, b.entregues + b.insucessos), 4) AS entregasEfetivas,
       ROUND(\`${n}.safe_div\`(b.volumesReal, CAST(b.rotas AS FLOAT64)), 2) AS sprVolumesReal,
       ROUND(\`${n}.safe_div\`(b.pedidosReal, CAST(b.rotas AS FLOAT64)), 2) AS sprPedidosReal,
-      ROUND(\`${n}.safe_div\`(b.pedidosReal, CAST(b.rotas AS FLOAT64)) - mp.meta_spr_ped, 2) AS sprVsMeta,
+      ROUND(\`${n}.safe_div\`(b.pedidosReal, CAST(b.rotas AS FLOAT64)) - COALESCE(b.metaSprFilial, mp.meta_spr_ped), 2) AS sprVsMeta,
       ROUND(b.tempoReal, 2) AS tempoReal,
       ROUND(b.tempoPlan, 2) AS tempoPlan,
       ROUND(b.tempoReal - b.tempoPlan, 2) AS desvioTempoH,
@@ -335,19 +409,7 @@ export function filiaisPerformanceQuery(projectId, dataset, where) {
       ROUND(b.kmReal, 2) AS kmReal,
       ROUND(b.kmPlan, 2) AS kmPlan,
       ROUND(\`${n}.safe_div\`(CAST(b.rotasConcluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), 4) AS progressoPct,
-      ROUND(\`${n}.fn_score_operacional\`(
-        \`${n}.status_higher\`(\`${n}.safe_div\`(b.volumesReal, CAST(b.rotas AS FLOAT64)), mp.meta_spr_vol),
-        \`${n}.status_higher\`(\`${n}.safe_div\`(b.entregues, b.entregues + b.insucessos), mp.meta_entregas),
-        \`${n}.status_higher\`(\`${n}.safe_div\`(CAST(b.rotasConcluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), mp.meta_rotas),
-        \`${n}.status_target_band\`(
-          \`${n}.safe_div\`(b.tempoReal, CAST(b.rotas AS FLOAT64)), mp.meta_orh, 1.0, 2.1),
-        IF(b.volumesPlan > 0,
-           \`${n}.status_higher\`(
-             \`${n}.adherence_ratio\`(b.volumesComPlan, b.volumesPlan), mp.meta_ader_vol),
-           'Informativo'),
-        \`${n}.capacity_status\`(
-          \`${n}.safe_div\`(b.pesoRealCapacidade, NULLIF(b.capacidadePesoTotal, 0)))
-      ), 1) AS scoreOperacional,
+      ${score} AS scoreOperacional,
       ROUND(\`${n}.safe_div\`(b.pedidosComPlan, NULLIF(b.pedidosPlan, 0)), 4) AS aderenciaPedidos,
       ROUND(\`${n}.safe_div\`(b.volumesComPlan, NULLIF(b.volumesPlan, 0)), 4) AS aderenciaVolumes,
       ROUND(\`${n}.safe_div\`(b.pesoComPlan, NULLIF(b.pesoPlan, 0)), 4) AS aderenciaPeso,
@@ -389,8 +451,8 @@ export function alertasQuery(projectId, dataset, where) {
       ROUND(a.peso_real_kg, 2) AS pesoReal,
       a.pedidos_plan AS pedidosPlanejados,
       a.volumes_plan AS volumesPlanejados,
-      ROUND(a.km_planejado, 2) AS kmPlanejado,
-      ROUND(a.km_realizado, 2) AS kmRealizado,
+      ROUND(a.km_plan, 2) AS kmPlanejado,
+      ROUND(a.km_real, 2) AS kmRealizado,
       ROUND(a.tempo_plan_h, 2) AS tempoPlaneadoH,
       ROUND(a.tempo_operacional_h, 2) AS tempoRealizadoH,
       a.qtd_entregues AS entregues,
@@ -429,6 +491,10 @@ export function alertasQuery(projectId, dataset, where) {
 
 export function alertasContagemQuery(projectId, dataset, where) {
   return `
+    -- IMPORTANTE: Uma rota pode ter múltiplas flags true simultaneamente.
+    -- A soma das sub-categorias (naoPlanejada + semTempo + overtime + entregaCritica + matchCritico)
+    -- pode EXCEDER o total de rotas, pois cada flag é contada independentemente.
+    -- Exemplo: uma rota pode ter flag_overtime=true E flag_entrega_critica=true ao mesmo tempo.
     SELECT
       COUNTIF(flag_nao_planejada) AS naoPlanejada,
       COUNTIF(flag_sem_tempo) AS semTempo,
@@ -453,6 +519,15 @@ export function drillRotasCountQuery(projectId, dataset, where) {
 
 export function drillRotasQuery(projectId, dataset, where, sortField, orderDirection) {
   const n = ns(projectId, dataset);
+  const score = scoreExpr(n, {
+    sprVol: 'd.qtd_volumes',
+    entregasEf: 'd.pct_entrega_efetiva',
+    rotasConcl: 'IF(d.flag_rota_concluida, 1.0, 0.0)',
+    orh: 'd.tempo_operacional_h',
+    aderVol: 'd.ocup_volumes',
+    volPlan: 'COALESCE(d.volumes_plan, 0)',
+    ocupPeso: 'd.ocup_peso_veiculo',
+  });
   return `
     SELECT
       d.data_referencia AS data,
@@ -471,8 +546,8 @@ export function drillRotasQuery(projectId, dataset, where, sortField, orderDirec
       ROUND(d.peso_real_kg, 2) AS pesoReal,
       d.pedidos_plan AS pedidosPlanejados,
       d.volumes_plan AS volumesPlanejados,
-      ROUND(d.km_planejado, 2) AS kmPlanejado,
-      ROUND(d.km_realizado, 2) AS kmRealizado,
+      ROUND(d.km_plan, 2) AS kmPlanejado,
+      ROUND(d.km_real, 2) AS kmRealizado,
       ROUND(d.tempo_plan_h, 2) AS tempoPlaneadoH,
       ROUND(d.tempo_operacional_h, 2) AS tempoRealizadoH,
       d.qtd_entregues AS entregues,
@@ -498,14 +573,7 @@ export function drillRotasQuery(projectId, dataset, where, sortField, orderDirec
         WHEN d.flag_rota_concluida THEN 'OK'
         ELSE 'Pendente'
       END AS statusRota,
-      ROUND(\`${n}.fn_score_operacional\`(
-        \`${n}.status_higher\`(d.qtd_pedidos, m.meta_spr_ped),
-        \`${n}.status_higher\`(d.pct_entrega_efetiva, m.meta_entregas),
-        IF(d.flag_rota_concluida, 'OK', 'Crítico'),
-        \`${n}.status_target_band\`(d.tempo_operacional_h, m.meta_orh, 1.0, 2.1),
-        IF(d.ocup_volumes IS NOT NULL, \`${n}.status_higher\`(d.ocup_volumes, m.meta_ader_vol), 'Informativo'),
-        \`${n}.capacity_status\`(d.ocup_peso_veiculo)
-      ), 1) AS scoreOperacional
+      ${score} AS scoreOperacional
     FROM \`${n}.base_execucao_canonica\` d
     CROSS JOIN \`${n}.metas_pivot_canonico\` m
     ${where}
@@ -518,6 +586,15 @@ export function drillRotasQuery(projectId, dataset, where, sortField, orderDirec
 
 export function transportadoresQuery(projectId, dataset, where) {
   const n = ns(projectId, dataset);
+  const score = scoreExpr(n, {
+    sprVol: sd(n, 'b.volumes', 'CAST(b.rotas AS FLOAT64)'),
+    entregasEf: sd(n, 'b.entregues', 'b.entregues + b.insucessos'),
+    rotasConcl: sd(n, 'CAST(b.rotas_concluidas AS FLOAT64)', 'CAST(b.rotas AS FLOAT64)'),
+    orh: sd(n, 'b.tempo_oper_total', 'CAST(b.rotas AS FLOAT64)'),
+    aderVol: ar(n, 'b.volumes_com_plan', 'b.volumes_plan'),
+    volPlan: 'b.volumes_plan',
+    ocupPeso: sd(n, 'b.peso_total', 'NULLIF(b.capacidade_peso_total, 0)'),
+  });
   return `
     WITH
     base AS (
@@ -538,62 +615,40 @@ export function transportadoresQuery(projectId, dataset, where) {
       FROM \`${n}.base_execucao_canonica\` b
       ${where}
       GROUP BY 1
+    ),
+    scored AS (
+      SELECT
+        b.transportador,
+        b.rotas,
+        ROUND(\`${n}.safe_div\`(CAST(b.rotas AS FLOAT64), SUM(b.rotas) OVER ()), 4) AS share,
+        ROUND(\`${n}.safe_div\`(b.valor_total, NULLIF(b.rotas, 0)), 2) AS custo_medio_carga,
+        ROUND(\`${n}.safe_div\`(b.valor_total, NULLIF(b.volumes, 0)), 2) AS custo_medio_volume,
+        ROUND(\`${n}.safe_div\`(b.valor_total, NULLIF(b.pedidos, 0)), 2) AS custo_medio_pedido,
+        ROUND(\`${n}.safe_div\`(b.entregues, b.entregues + b.insucessos), 4) AS entregas_efetivas,
+        ${score} AS score_operacional,
+        ROUND(\`${n}.safe_div\`(b.pedidos, CAST(b.rotas AS FLOAT64)), 2) AS spr_pedidos,
+        ROUND(\`${n}.safe_div\`(b.volumes, CAST(b.rotas AS FLOAT64)), 2) AS spr_volumes,
+        b.pedidos,
+        b.volumes,
+        ROUND(b.valor_total, 2) AS valor_total
+      FROM base b
+      CROSS JOIN \`${n}.metas_pivot_canonico\` m
     )
-    SELECT
-      COALESCE(b.transportador, 'Transportador não informado') AS transportador,
-      b.rotas AS rotas,
-      ROUND(\`${n}.safe_div\`(CAST(b.rotas AS FLOAT64), SUM(b.rotas) OVER ()), 4) AS share,
-      ROUND(\`${n}.safe_div\`(b.valor_total, NULLIF(b.rotas, 0)), 2) AS custo_medio_carga,
-      ROUND(\`${n}.safe_div\`(b.valor_total, NULLIF(b.volumes, 0)), 2) AS custo_medio_volume,
-      ROUND(\`${n}.safe_div\`(b.valor_total, NULLIF(b.pedidos, 0)), 2) AS custo_medio_pedido,
-      ROUND(\`${n}.safe_div\`(b.entregues, b.entregues + b.insucessos), 4) AS entregas_efetivas,
-      ROUND(\`${n}.fn_score_operacional\`(
-        \`${n}.status_higher\`(\`${n}.safe_div\`(b.volumes, CAST(b.rotas AS FLOAT64)), m.meta_spr_vol),
-        \`${n}.status_higher\`(\`${n}.safe_div\`(b.entregues, b.entregues + b.insucessos), m.meta_entregas),
-        \`${n}.status_higher\`(\`${n}.safe_div\`(CAST(b.rotas_concluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), m.meta_rotas),
-        \`${n}.status_target_band\`(\`${n}.safe_div\`(b.tempo_oper_total, CAST(b.rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
-        IF(b.volumes_plan > 0,
-           \`${n}.status_higher\`(\`${n}.adherence_ratio\`(b.volumes_com_plan, b.volumes_plan), m.meta_ader_vol),
-           'Informativo'),
-        \`${n}.capacity_status\`(\`${n}.safe_div\`(b.peso_total, NULLIF(b.capacidade_peso_total, 0)))
-      ), 1) AS score_operacional,
-      ROUND(\`${n}.safe_div\`(b.pedidos, CAST(b.rotas AS FLOAT64)), 2) AS spr_pedidos,
-      ROUND(\`${n}.safe_div\`(b.volumes, CAST(b.rotas AS FLOAT64)), 2) AS spr_volumes,
-      b.pedidos AS pedidos,
-      b.volumes AS volumes,
-      ROUND(b.valor_total, 2) AS valor_total,
+    SELECT s.*,
       CASE
-        WHEN ROUND(\`${n}.fn_score_operacional\`(
-          \`${n}.status_higher\`(\`${n}.safe_div\`(b.volumes, CAST(b.rotas AS FLOAT64)), m.meta_spr_vol),
-          \`${n}.status_higher\`(\`${n}.safe_div\`(b.entregues, b.entregues + b.insucessos), m.meta_entregas),
-          \`${n}.status_higher\`(\`${n}.safe_div\`(CAST(b.rotas_concluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), m.meta_rotas),
-          \`${n}.status_target_band\`(\`${n}.safe_div\`(b.tempo_oper_total, CAST(b.rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
-          IF(b.volumes_plan > 0,
-             \`${n}.status_higher\`(\`${n}.adherence_ratio\`(b.volumes_com_plan, b.volumes_plan), m.meta_ader_vol),
-             'Informativo'),
-          \`${n}.capacity_status\`(\`${n}.safe_div\`(b.peso_total, NULLIF(b.capacidade_peso_total, 0)))
-        ), 1) >= 80 THEN 'OK'
-        WHEN ROUND(\`${n}.fn_score_operacional\`(
-          \`${n}.status_higher\`(\`${n}.safe_div\`(b.volumes, CAST(b.rotas AS FLOAT64)), m.meta_spr_vol),
-          \`${n}.status_higher\`(\`${n}.safe_div\`(b.entregues, b.entregues + b.insucessos), m.meta_entregas),
-          \`${n}.status_higher\`(\`${n}.safe_div\`(CAST(b.rotas_concluidas AS FLOAT64), CAST(b.rotas AS FLOAT64)), m.meta_rotas),
-          \`${n}.status_target_band\`(\`${n}.safe_div\`(b.tempo_oper_total, CAST(b.rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
-          IF(b.volumes_plan > 0,
-             \`${n}.status_higher\`(\`${n}.adherence_ratio\`(b.volumes_com_plan, b.volumes_plan), m.meta_ader_vol),
-             'Informativo'),
-          \`${n}.capacity_status\`(\`${n}.safe_div\`(b.peso_total, NULLIF(b.capacidade_peso_total, 0)))
-        ), 1) >= 60 THEN 'Atencao'
+        WHEN s.score_operacional >= 80 THEN 'OK'
+        WHEN s.score_operacional >= 60 THEN 'Atencao'
         ELSE 'Critico'
       END AS status_transportador
-    FROM base b
-    CROSS JOIN \`${n}.metas_pivot_canonico\` m
-    ORDER BY b.rotas DESC, transportador
+    FROM scored s
+    ORDER BY s.rotas DESC, s.transportador
   `;
 }
 
 // ── Frota / Ocupação por Tipo ───────────────────────────────────────────────
 
 export function frotaOcupacaoQuery(projectId, dataset, where) {
+  const n = ns(projectId, dataset);
   return `
     SELECT
       tipo_veiculo,
@@ -604,11 +659,11 @@ export function frotaOcupacaoQuery(projectId, dataset, where) {
       ROUND(AVG(peso_real_kg), 2) AS media_peso_rota,
       SUM(peso_real_kg) AS peso_total_kg,
       SUM(capacidade_peso_kg) AS capacidade_peso_total_kg,
-      ROUND(SAFE_DIVIDE(SUM(peso_real_kg), NULLIF(SUM(capacidade_peso_kg), 0)), 4) AS ocupacao_peso,
-      ROUND(SAFE_DIVIDE(SUM(qtd_volumes), NULLIF(COUNT(*), 0)), 2) AS spr_por_veiculo,
-      ROUND(SAFE_DIVIDE(SUM(tempo_operacional_h), NULLIF(COUNT(*), 0)), 2) AS orh,
-      ROUND(SAFE_DIVIDE(SUM(valor_total), NULLIF(SUM(qtd_volumes), 0)), 2) AS custo_medio_volume
-    FROM \`${ns(projectId, dataset)}.base_execucao_canonica\`
+      ROUND(\`${n}.safe_div\`(SUM(peso_real_kg), NULLIF(SUM(capacidade_peso_kg), 0)), 4) AS ocupacao_peso,
+      ROUND(\`${n}.safe_div\`(SUM(qtd_volumes), NULLIF(COUNT(*), 0)), 2) AS spr_por_veiculo,
+      ROUND(\`${n}.safe_div\`(SUM(tempo_operacional_h), NULLIF(COUNT(*), 0)), 2) AS orh,
+      ROUND(\`${n}.safe_div\`(SUM(valor_total), NULLIF(SUM(qtd_volumes), 0)), 2) AS custo_medio_volume
+    FROM \`${n}.base_execucao_canonica\`
     ${where}
     AND tipo_filial = 'Unidade'
     AND tipo_veiculo IS NOT NULL AND TRIM(tipo_veiculo) != ''
@@ -647,6 +702,15 @@ export function motoristasCountQuery(projectId, dataset, where, overtimeClause) 
 
 export function motoristasQuery(projectId, dataset, where, overtimeClause) {
   const n = ns(projectId, dataset);
+  const score = scoreExpr(n, {
+    sprVol: sd(n, 'SUM(b.qtd_volumes)', 'CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)'),
+    entregasEf: sd(n, 'SUM(b.qtd_entregues)', 'SUM(b.qtd_entregues) + SUM(b.qtd_insucessos)'),
+    rotasConcl: sd(n, 'CAST(COUNTIF(b.flag_rota_concluida) AS FLOAT64)', 'CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)'),
+    orh: sd(n, 'SUM(b.tempo_operacional_h)', 'CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)'),
+    aderVol: ar(n, 'SUM(b.qtd_volumes)', 'SUM(b.volumes_plan)'),
+    volPlan: 'SUM(b.volumes_plan)',
+    ocupPeso: sd(n, 'SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL))', 'NULLIF(SUM(b.capacidade_peso_kg), 0)'),
+  });
   return `
     WITH motorista_dia AS (
       SELECT
@@ -663,16 +727,7 @@ export function motoristasQuery(projectId, dataset, where, overtimeClause) {
         SUM(b.qtd_volumes) AS volumes,
         MAX(CASE WHEN b.flag_overtime THEN TRUE ELSE FALSE END) AS flag_overtime,
         ROUND(\`${n}.safe_div\`(SUM(b.qtd_entregues), SUM(b.qtd_entregues) + SUM(b.qtd_insucessos)), 4) AS pct_entregas_efetivas,
-        ROUND(\`${n}.fn_score_operacional\`(
-          \`${n}.status_higher\`(\`${n}.safe_div\`(SUM(b.qtd_volumes), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)), m.meta_spr_vol),
-          \`${n}.status_higher\`(\`${n}.safe_div\`(SUM(b.qtd_entregues), SUM(b.qtd_entregues) + SUM(b.qtd_insucessos)), m.meta_entregas),
-          \`${n}.status_higher\`(\`${n}.safe_div\`(CAST(COUNTIF(b.flag_rota_concluida) AS FLOAT64), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)), m.meta_rotas),
-          \`${n}.status_target_band\`(\`${n}.safe_div\`(SUM(b.tempo_operacional_h), CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)), m.meta_orh, 1.0, 2.1),
-          IF(SUM(b.volumes_plan) > 0,
-             \`${n}.status_higher\`(\`${n}.adherence_ratio\`(SUM(b.qtd_volumes), SUM(b.volumes_plan)), m.meta_ader_vol),
-             'Informativo'),
-          \`${n}.capacity_status\`(\`${n}.safe_div\`(SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)), NULLIF(SUM(b.capacidade_peso_kg), 0)))
-        ), 1) AS score_operacional
+        ${score} AS score_operacional
       FROM \`${n}.base_execucao_canonica\` b
       CROSS JOIN \`${n}.metas_pivot_canonico\` m
       ${where}
@@ -718,6 +773,15 @@ export function motoristasKpisQuery(projectId, dataset, where) {
 
 export function kpiDiarioQuery(projectId, dataset, where) {
   const n = ns(projectId, dataset);
+  const score = scoreExpr(n, {
+    sprVol: 'sprVolumes',
+    entregasEf: 'pctEntregasEfetivas',
+    rotasConcl: 'pctRotasConcluidas',
+    orh: 'tempoMedRealizado',
+    aderVol: 'pctAderVolumes',
+    volPlan: 'CASE WHEN pctAderVolumes IS NOT NULL THEN 1 ELSE 0 END',
+    ocupPeso: 'pctOcupacaoComposta',
+  });
   return `
     WITH daily AS (
       SELECT
@@ -729,7 +793,7 @@ export function kpiDiarioQuery(projectId, dataset, where) {
         SUM(b.qtd_insucessos) AS insucessos,
         COUNT(DISTINCT CASE WHEN b.placa IS NOT NULL AND b.placa != '' THEN UPPER(b.placa) END) AS veiculosAtivos,
         COUNT(DISTINCT b.motorista_key_canonico) AS motoristasAtivos,
-        SUM(b.km_realizado) AS totalKmRealizado,
+        SUM(b.km_real) AS totalKmRealizado,
         SUM(b.peso_real_kg) AS totalPesoKg,
         SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)) AS totalPesoKgCapacidade,
         -- Aderência: numerador restrito a rotas COM planejamento
@@ -737,12 +801,12 @@ export function kpiDiarioQuery(projectId, dataset, where) {
         SUM(IF(b.possui_planejamento, b.qtd_volumes, NULL)) AS volumesComPlan,
         SUM(IF(b.possui_planejamento, b.peso_real_kg, NULL)) AS pesoComPlan,
         SUM(IF(b.possui_planejamento, b.tempo_operacional_h, NULL)) AS tempoComPlan,
-        SUM(IF(b.possui_planejamento, b.km_realizado, NULL)) AS kmComPlan,
+        SUM(IF(b.possui_planejamento, b.km_real, NULL)) AS kmComPlan,
         SUM(b.pedidos_plan) AS pedidosPlan,
         SUM(b.volumes_plan) AS volumesPlan,
         SUM(b.peso_plan_kg) AS pesoPlanKg,
         SUM(b.tempo_operacional_h) AS tempoOperacionalTotal,
-        SUM(b.km_planejado) AS kmPlan,
+        SUM(b.km_plan) AS kmPlan,
         SUM(b.tempo_plan_h) AS tempoPlan,
         COUNTIF(b.flag_rota_concluida) AS rotasConcluidas,
         COUNTIF(b.flag_overtime) AS rotasOvertime,
@@ -765,7 +829,6 @@ export function kpiDiarioQuery(projectId, dataset, where) {
       SELECT *, ROW_NUMBER() OVER (ORDER BY data DESC) AS rn
       FROM daily
       WHERE entregas > 0
-        AND tempoOperacionalTotal > 0
     ),
     source_choice AS (
       SELECT EXISTS(SELECT 1 FROM ordered_complete WHERE rn = 1) AS use_complete
@@ -820,35 +883,16 @@ export function kpiDiarioQuery(projectId, dataset, where) {
     )
     SELECT
       *,
-      ROUND(tempoMedRealizado - m.m_orh, 2) AS gapOrhVsMeta,
-      m.m_entregas AS metaEntregas,
-      m.m_rotas AS metaRotasConcluidas,
-      m.m_ocup_peso AS metaOcupacaoPeso,
-      m.m_ocup AS metaOcupacaoComposta,
-      m.m_ader_vol AS metaAderenciaVolumes,
-      m.m_orh AS metaOrhTempo,
-      ROUND(\`${n}.fn_score_operacional\`(
-        \`${n}.status_higher\`(sprVolumes, m.m_spr_vol),
-        \`${n}.status_higher\`(pctEntregasEfetivas, m.m_entregas),
-        \`${n}.status_higher\`(pctRotasConcluidas, m.m_rotas),
-        \`${n}.status_target_band\`(tempoMedRealizado, m.m_orh, 1.0, 2.1),
-        IF(pctAderVolumes IS NOT NULL, \`${n}.status_higher\`(pctAderVolumes, m.m_ader_vol), 'Informativo'),
-        \`${n}.capacity_status\`(pctOcupacaoComposta)
-      ), 1) AS scoreOperacional
+      ROUND(tempoMedRealizado - m.meta_orh, 2) AS gapOrhVsMeta,
+      m.meta_entregas AS metaEntregas,
+      m.meta_rotas AS metaRotasConcluidas,
+      m.meta_ocup AS metaOcupacaoPeso,
+      m.meta_ocup AS metaOcupacaoComposta,
+      m.meta_ader_vol AS metaAderenciaVolumes,
+      m.meta_orh AS metaOrhTempo,
+      ${score} AS scoreOperacional
     FROM metrics
-    CROSS JOIN (
-      SELECT
-        meta_spr_ped AS m_spr_ped,
-        meta_spr_vol AS m_spr_vol,
-        meta_orh AS m_orh,
-        meta_entregas AS m_entregas,
-        meta_rotas AS m_rotas,
-        meta_ocup AS m_ocup,
-        meta_ocup AS m_ocup_peso,
-        meta_ader_vol AS m_ader_vol,
-        meta_dpph AS m_dpph
-      FROM \`${n}.metas_pivot_canonico\`
-    ) m
+    CROSS JOIN \`${n}.metas_pivot_canonico\` m
   `;
 }
 
@@ -856,6 +900,15 @@ export function kpiDiarioQuery(projectId, dataset, where) {
 
 export function serieDiariaQuery(projectId, dataset, where) {
   const n = ns(projectId, dataset);
+  const score = scoreExpr(n, {
+    sprVol: sd(n, 'd.volumes', 'CAST(d.rotas AS FLOAT64)'),
+    entregasEf: sd(n, 'd.entregues', 'd.entregues + d.insucessos'),
+    rotasConcl: 'd.pctRotasConcl',
+    orh: sd(n, 'd.tempoOperacionalTotal', 'CAST(d.rotas AS FLOAT64)'),
+    aderVol: ar(n, 'd.volumesComPlan', 'd.volumesPlanejados'),
+    volPlan: 'd.volumesPlanejados',
+    ocupPeso: 'd.ocupacaoPeso',
+  });
   return `
     WITH daily AS (
       SELECT
@@ -912,20 +965,7 @@ export function serieDiariaQuery(projectId, dataset, where) {
       ROUND(\`${n}.safe_div\`(d.entregues, d.entregues + d.insucessos), 4) AS entregasEfetivas,
       ROUND(\`${n}.safe_div\`(d.pedidos, CAST(d.rotas AS FLOAT64)), 2) AS sprPedidos,
       ROUND(\`${n}.safe_div\`(d.volumes, CAST(d.rotas AS FLOAT64)), 2) AS sprVolumes,
-      ROUND(\`${n}.fn_score_operacional\`(
-        \`${n}.status_higher\`(
-          \`${n}.safe_div\`(d.volumes, CAST(d.rotas AS FLOAT64)), m.meta_spr_vol),
-        \`${n}.status_higher\`(
-          \`${n}.safe_div\`(d.entregues, d.entregues + d.insucessos), m.meta_entregas),
-        \`${n}.status_higher\`(d.pctRotasConcl, m.meta_rotas),
-        \`${n}.status_target_band\`(
-          \`${n}.safe_div\`(d.tempoOperacionalTotal, CAST(d.rotas AS FLOAT64)), m.meta_orh, 1.0, 2.1),
-        IF(d.volumesPlanejados > 0,
-           \`${n}.status_higher\`(
-             \`${n}.adherence_ratio\`(d.volumesComPlan, d.volumesPlanejados), m.meta_ader_vol),
-           'Informativo'),
-        \`${n}.capacity_status\`(d.ocupacaoPeso)
-      ), 1) AS scoreOperacional,
+      ${score} AS scoreOperacional,
       ROUND(d.ocupacaoPeso, 4) AS ocupacaoPeso,
       ROUND(\`${n}.adherence_ratio\`(d.volumesComPlan, d.volumesPlanejados), 4) AS aderenciaVolumes,
       ROUND(\`${n}.safe_div\`(d.tempoOperacionalTotal, CAST(d.rotas AS FLOAT64)), 2) AS tempoMedRealizado,

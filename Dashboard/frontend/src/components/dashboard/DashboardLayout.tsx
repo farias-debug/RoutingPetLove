@@ -30,6 +30,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const { filters } = useGlobalFilters();
   const currentPage = navItems.find((item) => item.path === location.pathname)
+    ?? navItems.find((item) => location.pathname.startsWith(item.path) && item.path !== "/")
     ?? (location.pathname === "/cockpit-operacional" ? navItems[0] : undefined);
 
   return (
@@ -117,7 +118,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         )}
         <div className="flex-1 overflow-y-auto p-6 glow-soft">
-          {children}
+          <div className="mx-auto w-full max-w-[1600px] px-4">
+            {children}
+          </div>
         </div>
       </main>
     </div>

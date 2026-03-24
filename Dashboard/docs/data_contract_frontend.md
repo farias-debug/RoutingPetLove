@@ -379,6 +379,7 @@ Parâmetros opcionais:
 ### 11.1 Convenção de Naming entre Camadas
 
 **BigQuery → API → Frontend:**
+
 - BigQuery usa `snake_case` (padrão SQL)
 - API JSON usa `camelCase` (padrão JavaScript/JSON)
 - Frontend TypeScript usa `camelCase` (padrão JavaScript)
@@ -460,21 +461,25 @@ Parâmetros opcionais:
 ### 11.6 Valores Especiais
 
 **Percentuais:**
+
 - BigQuery: fração 0-1 (ex: 0.98 para 98%)
 - API: fração 0-1 (mantém)
 - Frontend: converte para 0-100 apenas na exibição
 
 **Moeda:**
+
 - BigQuery: decimal bruto (ex: 1234.56)
 - API: decimal bruto (mantém)
 - Frontend: formata com `formatMoney()` pt-BR (R$ 1.234,56)
 
 **Datas:**
+
 - BigQuery: DATE tipo nativo (YYYY-MM-DD)
 - API: string ISO (YYYY-MM-DD)
 - Frontend: Date object ou string ISO
 
 **NULL values:**
+
 - BigQuery: NULL
 - API: `null` (JSON)
 - Frontend: `null` ou `undefined` (TypeScript)
@@ -491,6 +496,7 @@ Parâmetros opcionais:
 | 'Sem dados' | 'Sem dados' | Mantém |
 
 **Cores de status (hex):**
+
 - OK: `#10b981` (verde)
 - Atenção: `#f59e0b` (amarelo)
 - Crítico: `#ef4444` (vermelho)

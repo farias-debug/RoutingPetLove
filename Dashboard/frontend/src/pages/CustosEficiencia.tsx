@@ -17,6 +17,15 @@ const sections: PageSectionNavItem[] = [
   { id: "detalhamento", label: "Detalhamento" },
 ];
 
+function median(arr: number[]): number {
+  if (arr.length === 0) return 0;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
 export default function CustosEficiencia() {
   const { filters } = useGlobalFilters();
   const { data: kpi, isLoading: loadingKpi } = useKpiDiario(filters);
@@ -108,12 +117,8 @@ export default function CustosEficiencia() {
               rotas: t.rotas,
               entregas: +(t.entregasEfetivas * 100).toFixed(1),
             }));
-            const custoMediano = list.length > 0
-              ? [...list].sort((a, b) => a.custoMedioCarga - b.custoMedioCarga)[Math.floor(list.length / 2)]?.custoMedioCarga ?? 0
-              : 0;
-            const scoreMediano = list.length > 0
-              ? [...list].sort((a, b) => a.scoreOperacional - b.scoreOperacional)[Math.floor(list.length / 2)]?.scoreOperacional ?? 0
-              : 0;
+            const custoMediano = median(list.map(t => t.custoMedioCarga));
+            const scoreMediano = median(list.map(t => t.scoreOperacional));
             function qColor(custo: number, score: number): string {
               if (score >= scoreMediano && custo <= custoMediano) return CHART_COLORS.success;
               if (score >= scoreMediano) return CHART_COLORS.primary;
@@ -134,7 +139,7 @@ export default function CustosEficiencia() {
                   <ResponsiveContainer width="100%" height="100%">
                     <ScatterChart margin={{ left: 8, right: 16, top: 8, bottom: 4 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                      <XAxis type="number" dataKey="custo" name="Custo/carga" tickFormatter={(v) => `R$${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} tick={TICK_STYLE_SM} />
+                      <XAxis type="number" dataKey="custo" name="Custo/carga" tickFormatter={(v) => v == null ? "" : `R$${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} tick={TICK_STYLE_SM} />
                       <YAxis type="number" dataKey="score" name="Score" tick={TICK_STYLE_SM} />
                       <ZAxis type="number" dataKey="rotas" range={[40, 220]} name="Rotas" />
                       <Tooltip

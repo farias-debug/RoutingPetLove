@@ -35,7 +35,6 @@ Mapeamento para os artefatos físicos atuais (arquitetura v7):
 | DIMENSÃO | pipeline_dashboard_v7.sql: dim_filial | enriquecer com metadados de filial |
 | BASE_EXECUCAO_CANONICA | pipeline_dashboard_v7.sql: base_execucao_canonica | consolidar a linha operacional por id_carga |
 | METAS | pipeline_dashboard_v7.sql: metas_globais, metas_pivot_canonico | fonte única de metas |
-| PUBLICACAO_SHEETS | pipeline_sheets_v8.sql: kpi_resumo_diario, Resumo_Filial, VW_Base_Execucao | views para consumo Google Sheets |
 | API | api/queries.js + api/server.js + api/helpers.js | agregação dinâmica direto de base_execucao_canonica |
 
 **Decisão arquitetural v7:**
@@ -43,7 +42,7 @@ Mapeamento para os artefatos físicos atuais (arquitetura v7):
 - **Marts eliminados**: Não há mais views mart_diario_canonico, mart_filial_dia, etc.
 - **API agrega inline**: queries.js contém SQL que agrega diretamente de base_execucao_canonica
 - **Simplicidade vs validação**: Deploy mais simples mas perde camada intermediária validável
-- **Separação Dashboard vs Sheets**: Pipeline v7 serve Dashboard Web; v8 serve Google Sheets
+- **Pipeline único**: v7 é o único pipeline ativo; artefatos de Sheets foram arquivados
 
 ---
 
@@ -105,39 +104,37 @@ Responsável por:
 - anexar atributos auxiliares de calendário, filial e planejamento
 - disponibilizar medidas atômicas auditáveis
 
-### 4.4 MARTS_CANONICOS
+### 4.4 API (substitui MARTS)
+
+Na arquitetura v7, a API (queries.js) substitui a camada de marts.
 
 Responsável por:
 
-- calcular KPIs uma vez por grão
+- calcular KPIs por grão sob demanda (inline SQL)
 - carregar metas, status e score segundo a regra central
-- suportar consumo por publicação e API
+- suportar filtros dinâmicos e paginação
 
-Grãos oficiais:
+Grãos suportados (via queries.js, não materialized):
 
-- diário
-- filial por dia
-- transportador por dia
-- motorista por dia
+- diário (kpiDiarioQuery, serieDiariaQuery)
+- filial (filiaisPerformanceQuery)
+- transportador (transportadoresQuery)
+- motorista (motoristasQuery, motoristasKpisQuery)
+- tipo veículo (frotaOcupacaoQuery)
 
-### 4.5 PUBLICACAO
+### 4.5 (PUBLICACAO — descontinuada)
 
-Responsável por:
+Na v7, não há camada de publicação separada.
+Artefatos de publicação (kpi_resumo_diario, Resumo_Filial, etc.) foram arquivados.
+O frontend consome diretamente a API.
 
-- traduzir para nomenclatura operacional e planilhas
-- selecionar colunas e ordenar dados
-
-Não deve:
-
-- redefinir fórmulas
-- criar score alternativo
-
-### 4.6 API
+### 4.5 API ENDPOINTS
 
 Responsável por:
 
 - expor endpoints estáveis
 - aplicar filtros, paginação e serialização
+- converter snake_case SQL → camelCase JSON
 
 Não deve:
 
@@ -150,19 +147,18 @@ Não deve:
 | Arquivo | Situação | Uso |
 | --- | --- | --- |
 | bigquery/pipeline_dashboard_v7.sql | ativo | camada completa Dashboard: staging, dim, base, metas, UDFs |
-| bigquery/pipeline_sheets_v8.sql | ativo | views para consumo Google Sheets |
 | bigquery/load_raw_to_bq.py | ativo | carga raw via bq load --replace |
 | bigquery/validate_pipeline.py | ativo | validação de integridade (row counts, freshness, KPI sanity) |
 | bigquery/validate_data_contract.py | ativo | validação de schemas e valores canônicos de metas |
 | api/queries.js | ativo | agregações inline SQL para todos os endpoints |
-| api/server.js | ativo | 15 endpoints REST consumindo queries.js |
+| api/server.js | ativo | 10 endpoints REST consumindo queries.js |
 | api/helpers.js | ativo | filtros, parsing, defaults temporais |
 
-**Arquivos descontinuados (deletados):**
+**Arquivos descontinuados (arquivados em bigquery/_archive/):**
 
+- pipeline_sheets_v8.sql, sync_bq_to_sheets.py (Sheets consome views separadamente se necessário)
 - pipeline_v4.sql, pipeline_v5_publicacao.sql, pipeline_v6_api.sql
 - deploy_v4.py, deploy_v5_publicacao.py, deploy_v6_api.py
-- sync_bq_to_sheets.py (sheets consumem views diretamente)
 
 ---
 
@@ -172,9 +168,8 @@ Não deve:
 2. **Opcional: persistir em GCS** quando ambiente é efêmero (usa TMS_GCS_BUCKET, TMS_GCS_PREFIX)
 3. **Carregar raw** via bigquery/load_raw_to_bq.py (executa bq load --replace para 3 tabelas)
 4. **Deploy pipeline v7** executando pipeline_dashboard_v7.sql no BigQuery Console ou via bq query
-5. **Deploy pipeline v8** (opcional) executando pipeline_sheets_v8.sql se Google Sheets consumir
-6. **Validar integridade** via bigquery/validate_pipeline.py (row counts, freshness, dedup, KPI sanity)
-7. **Validar contratos** via bigquery/validate_data_contract.py (schemas, metas canônicas, ranges)
+5. **Validar integridade** via bigquery/validate_pipeline.py (row counts, freshness, dedup, KPI sanity)
+6. **Validar contratos** via bigquery/validate_data_contract.py (schemas, metas canônicas, ranges)
 
 ### 6.1 Persistencia intermediaria recomendada
 

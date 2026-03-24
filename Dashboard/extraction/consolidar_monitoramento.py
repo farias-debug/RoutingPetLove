@@ -69,12 +69,18 @@ def baixar_base_consolidada_remota(gcs: GCSStorageManager | None) -> None:
 
     baixado = gcs.download_if_exists(COMPLETO_CSV, "consolidado", COMPLETO_CSV.name)
     if baixado:
-        print(f"  Base consolidada sincronizada do GCS: {gcs.uri('consolidado', COMPLETO_CSV.name)}")
+        print(
+            f"  Base consolidada sincronizada do GCS: {gcs.uri('consolidado', COMPLETO_CSV.name)}"
+        )
 
 
 def listar_incrementais_gcs(gcs: GCSStorageManager) -> tuple[list[dict], Path | None]:
     """Baixa incrementais remotos para um diretorio temporario local."""
-    blobs = [blob for blob in gcs.list_blobs("incrementais") if blob.name.lower().endswith(".csv")]
+    blobs = [
+        blob
+        for blob in gcs.list_blobs("incrementais")
+        if blob.name.lower().endswith(".csv")
+    ]
     if not blobs:
         return [], None
 
@@ -103,25 +109,40 @@ def sincronizar_incrementais_locais_para_gcs(
         print(f"    Upload local -> GCS: {arquivo.name} ({gcs.uri(destino)})")
 
 
-def coletar_incrementais(gcs: GCSStorageManager | None) -> tuple[list[dict], Path | None, str]:
+def coletar_incrementais(
+    gcs: GCSStorageManager | None,
+) -> tuple[list[dict], Path | None, str]:
     """Retorna incrementais a processar, priorizando o bucket quando configurado."""
     incrementais_locais = listar_incrementais()
 
     if gcs:
         incrementais_remotos, temp_dir = listar_incrementais_gcs(gcs)
         if incrementais_remotos:
-            print(f"  Incrementais obtidos do GCS: {len(incrementais_remotos)} arquivo(s)")
+            print(
+                f"  Incrementais obtidos do GCS: {len(incrementais_remotos)} arquivo(s)"
+            )
             return incrementais_remotos, temp_dir, "gcs"
 
         if incrementais_locais:
-            print("  Nenhum incremental remoto encontrado; publicando espelhos locais no GCS...")
+            print(
+                "  Nenhum incremental remoto encontrado; publicando espelhos locais no GCS..."
+            )
             sincronizar_incrementais_locais_para_gcs(gcs, incrementais_locais)
             incrementais_remotos, temp_dir = listar_incrementais_gcs(gcs)
             if incrementais_remotos:
-                print(f"  Incrementais sincronizados e reobtidos do GCS: {len(incrementais_remotos)} arquivo(s)")
+                print(
+                    f"  Incrementais sincronizados e reobtidos do GCS: {len(incrementais_remotos)} arquivo(s)"
+                )
                 return incrementais_remotos, temp_dir, "gcs"
 
-    return [{"path": caminho, "name": caminho.name, "blob_name": ""} for caminho in incrementais_locais], None, "local"
+    return (
+        [
+            {"path": caminho, "name": caminho.name, "blob_name": ""}
+            for caminho in incrementais_locais
+        ],
+        None,
+        "local",
+    )
 
 
 def publicar_base_no_gcs(gcs: GCSStorageManager | None, backup: Path | None) -> None:
@@ -133,11 +154,15 @@ def publicar_base_no_gcs(gcs: GCSStorageManager | None, backup: Path | None) -> 
         destino_backup = gcs.upload_file(backup, "backups", backup.name)
         print(f"  Backup remoto: {gcs.uri(destino_backup)}")
 
-    destino_consolidado = gcs.upload_file(COMPLETO_CSV, "consolidado", COMPLETO_CSV.name)
+    destino_consolidado = gcs.upload_file(
+        COMPLETO_CSV, "consolidado", COMPLETO_CSV.name
+    )
     print(f"  Consolidado remoto: {gcs.uri(destino_consolidado)}")
 
 
-def arquivar_incrementais_remotos(gcs: GCSStorageManager | None, incrementais: list[dict]) -> list[str]:
+def arquivar_incrementais_remotos(
+    gcs: GCSStorageManager | None, incrementais: list[dict]
+) -> list[str]:
     """Move blobs processados de incrementais/ para processados/."""
     if not gcs:
         return []
@@ -151,7 +176,9 @@ def arquivar_incrementais_remotos(gcs: GCSStorageManager | None, incrementais: l
         destino = gcs.build_path("processados", item["name"])
         gcs.move_blob(blob_name, destino)
         movidos.append(item["name"])
-        print(f"    Movido remoto: {item['name']} -> {gcs.uri('processados', item['name'])}")
+        print(
+            f"    Movido remoto: {item['name']} -> {gcs.uri('processados', item['name'])}"
+        )
 
     return movidos
 
@@ -272,7 +299,9 @@ def consolidar(
 
         stats["periodo_inicio"] = dt_min.strftime("%Y-%m-%d")
         stats["periodo_fim"] = dt_max.strftime("%Y-%m-%d")
-        print(f"  Periodo incremental: {stats['periodo_inicio']} a {stats['periodo_fim']}")
+        print(
+            f"  Periodo incremental: {stats['periodo_inicio']} a {stats['periodo_fim']}"
+        )
 
         # 4 — Substituicao integral por periodo
         if not df_base.empty:
@@ -282,7 +311,9 @@ def consolidar(
             df_base = df_base[mask_fora_periodo]
             stats["linhas_removidas_periodo"] = linhas_antes_corte - len(df_base)
 
-            print(f"  Removidas do periodo: {stats['linhas_removidas_periodo']:,} linhas")
+            print(
+                f"  Removidas do periodo: {stats['linhas_removidas_periodo']:,} linhas"
+            )
             print(f"  Base fora do periodo: {len(df_base):,} linhas")
 
             df_final = pd.concat([df_base, df_novos], ignore_index=True)
@@ -311,7 +342,10 @@ def consolidar(
         publicar_base_no_gcs(gcs, backup)
         arquivos_movidos = arquivar_incrementais_remotos(gcs, incrementais)
         arquivos_movidos.extend(
-            nome for nome in move_local_incrementais_para_processados([item["name"] for item in incrementais])
+            nome
+            for nome in move_local_incrementais_para_processados(
+                [item["name"] for item in incrementais]
+            )
             if nome not in arquivos_movidos
         )
         stats["arquivos_movidos"] = arquivos_movidos

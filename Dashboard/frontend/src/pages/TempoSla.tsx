@@ -40,8 +40,8 @@ export default function TempoSla() {
   const overtimeRotas = kpi ? Math.round(kpi.rotas * kpi.pctRotasOvertime) : 0;
 
   const kpis = kpi ? [
-    { label: "Tempo Médio Realizado", value: `${Math.floor(kpi.tempoMedRealizado)}h ${Math.round((kpi.tempoMedRealizado % 1) * 60)}min`, unit: "", meta: kpi.metaOrhTempo, metaLabel: "Meta h", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
-    { label: "Rotas Concluídas", value: +(kpi.pctRotasConcluidas * 100).toFixed(1), unit: "%", meta: metaRotasConcluidas * 100, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
+    { label: "Tempo Médio Realizado", value: formatDuration(kpi.tempoMedRealizado), unit: "", meta: kpi.metaOrhTempo != null ? +kpi.metaOrhTempo.toFixed(1) : undefined, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Rotas Concluídas", value: +(kpi.pctRotasConcluidas * 100).toFixed(1), unit: "%", meta: metaRotasConcluidas != null ? metaRotasConcluidas * 100 : undefined, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
     { label: "Ociosidade", value: +(kpi.pctOciosidadeJornada * 100).toFixed(1), unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
     { label: "Overtime", value: Math.round(kpi.rotas * kpi.pctRotasOvertime), unit: "rotas", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
   ] : [];
@@ -58,11 +58,11 @@ export default function TempoSla() {
     semTempo: item.qtdRotasSemTempo,
   }));
   const entregasDomain = getMetricDomain(
-    [...chartData.map((item) => item.entregasPct), metaEntregas * 100],
+    [...chartData.map((item) => item.entregasPct), ...(metaEntregas != null ? [metaEntregas * 100] : [])],
     { min: 0, max: 100, minimumSpan: 2 },
   );
   const sprDomain = getMetricDomain(
-    [...chartData.map((item) => item.sprPedidos), metaSpr],
+    [...chartData.map((item) => item.sprPedidos), ...(metaSpr != null ? [metaSpr] : [])],
     { min: 0, minimumSpan: 3 },
   );
   const tempoDomain = getMetricDomain(
@@ -91,13 +91,13 @@ export default function TempoSla() {
     {
       label: "Rotas concluídas",
       value: formatPercent(kpi?.pctRotasConcluidas == null ? null : kpi.pctRotasConcluidas * 100),
-      detail: kpi?.metaRotasConcluidas ? `Meta ${formatPercent(kpi.metaRotasConcluidas * 100)}` : "Leitura operacional do recorte atual",
+      detail: kpi?.metaRotasConcluidas != null ? `Meta ${formatPercent(kpi.metaRotasConcluidas * 100)}` : "Leitura operacional do recorte atual",
       icon: <Route className="h-4 w-4" />,
     },
     {
       label: "Entregas efetivas",
       value: latestSeriesPoint ? formatPercent(latestSeriesPoint.entregasEfetivas * 100) : "—",
-      detail: `Meta ${formatPercent(metaEntregas * 100)}`,
+      detail: metaEntregas != null ? `Meta ${formatPercent(metaEntregas * 100)}` : "Sem meta publicada",
       icon: <PackageCheck className="h-4 w-4" />,
     },
     {
@@ -166,7 +166,7 @@ export default function TempoSla() {
 
       <section id="entregas" className="scroll-mt-24">
         <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
-          <SectionCard title="Entregas efetivas por dia" subtitle={`Janela ${windowLabel} com meta de ${(metaEntregas * 100).toFixed(0)}%`} delay={350}>
+          <SectionCard title="Entregas efetivas por dia" subtitle={metaEntregas != null ? `Janela ${windowLabel} com meta de ${(metaEntregas * 100).toFixed(0)}%` : `Janela ${windowLabel}`} delay={350}>
             <div className="h-56">
               {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -175,7 +175,7 @@ export default function TempoSla() {
                     <XAxis dataKey="label" tick={TICK_STYLE} />
                     <YAxis tick={TICK_STYLE} domain={entregasDomain} />
                     <Tooltip contentStyle={TOOLTIP_STYLE} />
-                    <ReferenceLine y={metaEntregas * 100} stroke={CHART_COLORS.secondary} strokeDasharray="6 3" label={{ value: `Meta ${(metaEntregas * 100).toFixed(0)}%`, fontSize: 10, fill: CHART_COLORS.secondary, fontWeight: 700 }} />
+                    {metaEntregas != null && <ReferenceLine y={metaEntregas * 100} stroke={CHART_COLORS.secondary} strokeDasharray="6 3" label={{ value: `Meta ${(metaEntregas * 100).toFixed(0)}%`, fontSize: 10, fill: CHART_COLORS.secondary, fontWeight: 700 }} />}
                     <Line type="monotone" dataKey="entregasPct" stroke={CHART_COLORS.primary} strokeWidth={2.5} dot={{ r: 4, fill: CHART_COLORS.primary }} name="Entregas %" />
                   </LineChart>
                 </ResponsiveContainer>
@@ -214,7 +214,7 @@ export default function TempoSla() {
 
       <section id="produtividade" className="scroll-mt-24">
         <div className="grid gap-6 xl:grid-cols-2">
-          <SectionCard title="SPR pedidos por dia" subtitle={`Janela ${windowLabel} com meta ${formatDecimal(metaSpr)}`} delay={410}>
+          <SectionCard title="SPR pedidos por dia" subtitle={metaSpr != null ? `Janela ${windowLabel} com meta ${formatDecimal(metaSpr)}` : `Janela ${windowLabel}`} delay={410}>
             <div className="h-56">
               {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -223,7 +223,7 @@ export default function TempoSla() {
                     <XAxis dataKey="label" tick={TICK_STYLE} />
                     <YAxis tick={TICK_STYLE} domain={sprDomain} />
                     <Tooltip contentStyle={TOOLTIP_STYLE} />
-                    <ReferenceLine y={metaSpr} stroke={CHART_COLORS.secondary} strokeDasharray="6 3" label={{ value: `Meta ${formatDecimal(metaSpr)}`, fontSize: 10, fill: CHART_COLORS.secondary, fontWeight: 700 }} />
+                    {metaSpr != null && <ReferenceLine y={metaSpr} stroke={CHART_COLORS.secondary} strokeDasharray="6 3" label={{ value: `Meta ${formatDecimal(metaSpr)}`, fontSize: 10, fill: CHART_COLORS.secondary, fontWeight: 700 }} />}
                     <Line type="monotone" dataKey="sprPedidos" stroke={CHART_COLORS.primary} strokeWidth={2.5} dot={{ r: 4, fill: CHART_COLORS.primary }} name="SPR Ped." />
                   </LineChart>
                 </ResponsiveContainer>
@@ -291,12 +291,12 @@ export default function TempoSla() {
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Meta de entregas</p>
-                <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(metaEntregas * 100)}</p>
+                <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{metaEntregas != null ? formatPercent(metaEntregas * 100) : '—'}</p>
                 <p className="mt-2 text-xs font-semibold text-muted-foreground">Leitura diária comparada na janela {windowLabel}</p>
               </div>
               <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Meta de SPR</p>
-                <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(metaSpr)}</p>
+                <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{metaSpr != null ? formatDecimal(metaSpr) : '—'}</p>
                 <p className="mt-2 text-xs font-semibold text-muted-foreground">Pedidos por rota esperados</p>
               </div>
               <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">

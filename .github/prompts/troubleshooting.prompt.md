@@ -15,22 +15,21 @@ Guia de diagnóstico para problemas recorrentes no projeto de monitoramento.
 3. Testar API diretamente: `/api/filtros/opcoes`, `/api/kpi-diario?periodo=2026-03`
 4. Verificar CORS se rodando localhost vs produção
 
-## Dados desatualizados no Sheets / Dashboard
+## Dados desatualizados no Dashboard
 
 1. Executar pipeline diário: `.\scripts\daily_pipeline.ps1`
-2. Views BQ são auto-refresh (não precisam de redeploy)
-3. Se Sheets não atualizou, reexecutar sync: `python Dashboard/bigquery/sync_bq_to_sheets.py`
+2. Views BQ são auto-refresh (`base_execucao_canonica` roda no momento da query)
 
 ## Erro de encoding no BigQuery
 
 - NUNCA usar `bq.cmd` diretamente — causa corrupção cp1252
-- Sempre deployar via Python API (`deploy_v4.py`, `deploy_v5_publicacao.py`, etc.)
+- Sempre deployar via Python API: `python Dashboard/bigquery/deploy_v7_dashboard.py`
 
 ## KPIs operacionais inflados
 
-- NÃO agregar diretamente de VW_Base_Execucao para KPIs operacionais
-- Usar `alertas_rotas` deduplicada por Data+Filial+Rota
-- VW_Base_Execucao apenas para custos e campos não disponíveis em alertas
+- TODOS os KPIs são calculados em `queries.js` agregando de `base_execucao_canonica`
+- Verificar se o filtro WHERE está sendo aplicado antes do GROUP BY
+- Views `vw_*` legacy foram arquivadas — não recriar
 
 ## Health check do ambiente
 

@@ -42,9 +42,9 @@ export function formatMoney(value: number | null | undefined): string {
 
 export function formatDuration(hours: number | null | undefined): string {
   if (hours == null) return "—";
-  const totalHours = Number(hours);
-  const integerHours = Math.floor(totalHours);
-  const minutes = Math.round((totalHours % 1) * 60);
+  const totalMinutes = Math.round(Number(hours) * 60);
+  const integerHours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
   return `${integerHours}h ${minutes}min`;
 }
 

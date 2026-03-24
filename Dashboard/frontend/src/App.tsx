@@ -42,7 +42,7 @@ const App = () => (
               <Route path="/transportadores" element={<DashboardLayout><Transportadores /></DashboardLayout>} />
               <Route path="/motoristas" element={<DashboardLayout><MotoristasJornada /></DashboardLayout>} />
               <Route path="/alertas" element={<DashboardLayout><InvestigacaoOperacional /></DashboardLayout>} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="*" element={<DashboardLayout><NotFound /></DashboardLayout>} />
             </Routes>
           </Suspense>
         </ErrorBoundary>

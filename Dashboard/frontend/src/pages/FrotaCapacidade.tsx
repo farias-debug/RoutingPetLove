@@ -186,7 +186,7 @@ export default function FrotaCapacidade() {
                   <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
                   <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={TICK_STYLE} />
                   <YAxis type="category" dataKey="tipo" width={72} tick={TICK_STYLE} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number, name: string) => [`${v.toFixed(1)}%`, name === "ocupacaoPeso" ? "Utilizado" : "Ocioso"]} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number | null, name: string) => [v == null ? "—" : `${v.toFixed(1)}%`, name === "ocupacaoPeso" ? "Utilizado" : "Ocioso"]} />
                   <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
                   <ReferenceLine x={metaOcupacao * 100} stroke={CHART_COLORS.success} strokeWidth={2} strokeDasharray="5 3" label={{ value: "Meta", position: "insideTopRight", fill: CHART_COLORS.success, fontSize: 11, fontWeight: 700 }} />
                   <Bar dataKey="ocupacaoPeso" name="Utilizado %" radius={[0, 4, 4, 0]} stackId="a" barSize={22}>

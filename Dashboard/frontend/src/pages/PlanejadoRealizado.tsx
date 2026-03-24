@@ -34,8 +34,6 @@ const sections: PageSectionNavItem[] = [
   { id: "gaps", label: "Gaps e ranking" },
 ];
 
-const TOOLTIP_STYLE_LOCAL = TOOLTIP_STYLE;
-
 export default function PlanejadoRealizado() {
   const [trendWindow, setTrendWindow] = useState<TemporalWindow>("30d");
   const { filters } = useGlobalFilters();
@@ -220,7 +218,7 @@ export default function PlanejadoRealizado() {
                   <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
                   <XAxis dataKey="label" tick={TICK_STYLE_SM} />
                   <YAxis tick={TICK_STYLE} domain={trendDomain} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE_LOCAL} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
                   <Legend wrapperStyle={LEGEND_STYLE} />
                   {metaAderencia != null && (
                     <ReferenceLine y={metaAderencia * 100} stroke={CHART_COLORS.success} strokeWidth={1.5} strokeDasharray="5 3" label={{ value: `Meta ${(metaAderencia * 100).toFixed(0)}%`, position: "insideTopLeft", fill: CHART_COLORS.success, fontSize: 10, fontWeight: 700 }} />
@@ -247,10 +245,10 @@ export default function PlanejadoRealizado() {
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
                   <XAxis dataKey="filial" tick={TICK_STYLE_SM} interval={0} angle={-25} textAnchor="end" height={48} />
                   <YAxis tick={TICK_STYLE} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE_LOCAL} formatter={(v: number) => formatInteger(v)} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => formatInteger(v)} />
                   <Legend wrapperStyle={LEGEND_STYLE} />
                   <Bar dataKey="planejadoPedidos" fill={CHART_COLORS.primary} fillOpacity={0.3} name="Planejado" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="realizadoPedidos" fill={CHART_COLORS.primary} name="Realizado" radius={[4, 4, 0, 0]} />
@@ -274,10 +272,10 @@ export default function PlanejadoRealizado() {
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
                   <XAxis dataKey="filial" tick={TICK_STYLE_SM} interval={0} angle={-25} textAnchor="end" height={48} />
                   <YAxis tick={TICK_STYLE} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE_LOCAL} formatter={(v: number) => formatInteger(v)} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => formatInteger(v)} />
                   <Legend wrapperStyle={LEGEND_STYLE} />
                   <Bar dataKey="planejadoVolumes" fill={CHART_COLORS.secondary} fillOpacity={0.3} name="Planejado" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="realizadoVolumes" fill={CHART_COLORS.secondary} name="Realizado" radius={[4, 4, 0, 0]} />
@@ -309,7 +307,7 @@ export default function PlanejadoRealizado() {
               </div>
               <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Gap volumes</p>
-                <p className="mt-4 text-2xl font-black tracking-tight" style={{ color: totalRealizadoVolumes - totalPlanejadoVolumes >= 0 ? "#10b981" : "#ef4444" }}>
+                <p className="mt-4 text-2xl font-black tracking-tight" style={{ color: totalRealizadoVolumes - totalPlanejadoVolumes >= 0 ? CHART_COLORS.success : CHART_COLORS.danger }}>
                   {totalRealizadoVolumes - totalPlanejadoVolumes >= 0 ? "+" : ""}{formatInteger(totalRealizadoVolumes - totalPlanejadoVolumes)}
                 </p>
                 <p className="mt-2 text-xs font-semibold text-muted-foreground">Desvio total do plano</p>
@@ -337,14 +335,14 @@ export default function PlanejadoRealizado() {
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={maioresGaps} layout="vertical" margin={{ left: 8, right: 40 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
                     <XAxis type="number" tick={TICK_STYLE} />
-                    <YAxis type="category" dataKey="filial" width={90} tick={{ fontSize: 10, fontWeight: 600, fill: "#667085" }} />
+                    <YAxis type="category" dataKey="filial" width={90} tick={TICK_STYLE_SM} />
                     <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v >= 0 ? "+" : ""}${formatInteger(v)}`, "Gap"]} />
-                    <ReferenceLine x={0} stroke="#667085" strokeWidth={1.5} />
+                    <ReferenceLine x={0} stroke={CHART_COLORS.muted} strokeWidth={1.5} />
                     <Bar dataKey="gapVolumes" name="Gap volumes" radius={[0, 4, 4, 0]} barSize={18}>
                       {maioresGaps.map((entry) => (
-                        <Cell key={entry.filial} fill={entry.gapVolumes >= 0 ? "#10b981" : "#ef4444"} />
+                        <Cell key={entry.filial} fill={entry.gapVolumes >= 0 ? CHART_COLORS.success : CHART_COLORS.danger} />
                       ))}
                     </Bar>
                   </BarChart>

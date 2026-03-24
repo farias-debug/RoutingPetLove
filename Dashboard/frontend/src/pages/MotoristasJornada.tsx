@@ -20,7 +20,7 @@ const sections: PageSectionNavItem[] = [
 
 export default function MotoristasJornada() {
   const { filters, searchParams, setParam } = useGlobalFilters();
-  const page = Number(searchParams.get("motoristasPage") || "1");
+  const page = Math.max(1, parseInt(searchParams.get("motoristasPage") || "1", 10) || 1);
   const { data: kpis, isLoading: loadingKpis } = useMotoristasKpis(filters);
   const { data: motoristas, isLoading: loadingList } = useMotoristas({ page, limit: 20, periodo: filters.periodo, filial: filters.filial, transportador: filters.transportador, tipoVeiculo: filters.tipoVeiculo });
 
@@ -33,7 +33,7 @@ export default function MotoristasJornada() {
 
   const list = motoristas?.data ?? [];
   const overtimeList = list.filter((item) => item.flagOvertime);
-  const orderedByJornada = [...list].sort((left, right) => right.horasJornada - left.horasJornada);
+  const orderedByJornada = [...list].sort((left, right) => (right.horasJornada ?? 0) - (left.horasJornada ?? 0));
   const orderedByScore = [...list].sort((left, right) => right.scoreOperacional - left.scoreOperacional);
   const topJornada = orderedByJornada[0];
   const topScore = orderedByScore[0];
@@ -91,8 +91,8 @@ export default function MotoristasJornada() {
           <SectionCard title="Jornada por motorista" subtitle="Top 10 motoristas por horas de jornada na página atual" delay={300}>
             {loadingList ? <LoadingSkeleton rows={5} /> : (() => {
               const barData = orderedByJornada.slice(0, 10).map((item) => ({
-                motorista: item.motorista.length > 18 ? item.motorista.slice(0, 16) + "…" : item.motorista,
-                horas: +item.horasJornada.toFixed(1),
+                motorista: (item.motorista ?? "Sem motorista").length > 18 ? (item.motorista ?? "Sem motorista").slice(0, 16) + "…" : (item.motorista ?? "Sem motorista"),
+                horas: +((item.horasJornada ?? 0).toFixed(1)),
                 rotas: item.qtdRotas,
                 overtime: item.flagOvertime,
               }));
@@ -105,7 +105,7 @@ export default function MotoristasJornada() {
                     <BarChart data={barData} layout="vertical" margin={{ left: 8, right: 24 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
                       <XAxis type="number" tick={TICK_STYLE} unit="h" />
-                      <YAxis type="category" dataKey="motorista" width={110} tick={{ fontSize: 10, fontWeight: 600, fill: "#667085" }} />
+                      <YAxis type="category" dataKey="motorista" width={110} tick={TICK_STYLE_SM} />
                       <Tooltip
                         contentStyle={TOOLTIP_STYLE}
                         formatter={(v: number) => [`${v.toFixed(1)}h`, "Jornada"]}
@@ -201,7 +201,7 @@ export default function MotoristasJornada() {
                       <td className="py-2.5 px-3 text-muted-foreground">{m.nomeFilial || m.filial}</td>
                       <td className="py-2.5 px-3 text-muted-foreground">{m.transportador}</td>
                       <td className="py-2.5 px-3 tabular-nums">{m.qtdRotas}</td>
-                      <td className="py-2.5 px-3 tabular-nums">{m.horasJornada.toFixed(1)}h</td>
+                      <td className="py-2.5 px-3 tabular-nums">{(m.horasJornada ?? 0).toFixed(1)}h</td>
                       <td className="py-2.5 px-3">
                         <StatusChip
                           label={m.flagOvertime ? "Sim" : "Não"}

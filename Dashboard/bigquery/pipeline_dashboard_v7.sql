@@ -313,16 +313,6 @@ UNION ALL SELECT 'ocupacao_composta', 'Ocupação Composta', 0.85, 'target_band'
 -- ALIAS E VIEWS DERIVADAS DE METAS (para compatibilidade com API)
 -- ==============================================================================
 
--- pub_metas: Alias para metas_globais com nomes de coluna legados
-CREATE OR REPLACE VIEW `data-aileron-482822-d0.monitoramento_carga.pub_metas` AS
-SELECT
-  kpi_id AS KPI,
-  kpi_nome AS Nome,
-  meta AS Meta,
-  sentido AS Sentido,
-  unidade AS Unidade
-FROM `data-aileron-482822-d0.monitoramento_carga.metas_globais`;
-
 -- metas_pivot_canonico: View pivotada para scoring/comparação em queries
 -- IMPORTANTE: Esta view retorna UMA ÚNICA ROW com todas as metas em colunas
 CREATE OR REPLACE VIEW `data-aileron-482822-d0.monitoramento_carga.metas_pivot_canonico` AS
@@ -440,19 +430,13 @@ com_flags_adicionais AS (
 )
 SELECT
   *,
-  -- Aliases para compatibilidade com API (nomes legados)
-  km_real AS km_realizado,
-  km_plan AS km_planejado,
-  tempo_operacional_h AS tempo_realizado_h_final,
-  tempo_plan_h AS tempo_planejado_h_final,
-
   -- KPIs row-level pré-calculados (consumidos por alertas e drill-rotas)
   `data-aileron-482822-d0.monitoramento_carga.safe_div`(
     qtd_entregues, qtd_entregues + qtd_insucessos
   ) AS pct_entrega_efetiva,
   `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(
     qtd_volumes, NULLIF(volumes_plan, 0)
-  ) AS ocup_volumes,
+  ) AS aderencia_volumes,
   `data-aileron-482822-d0.monitoramento_carga.safe_div`(
     peso_real_kg, NULLIF(capacidade_peso_kg, 0)
   ) AS ocup_peso_veiculo,

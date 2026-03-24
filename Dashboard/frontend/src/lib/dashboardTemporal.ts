@@ -27,7 +27,10 @@ export function getSeriesExtremes(series: CockpitSerieDiaria[]) {
 }
 
 export function getVariation(current: number | null | undefined, previous: number | null | undefined) {
-  const safeCurrent = Number(current ?? 0);
+  if (current == null) {
+    return { current: 0, previous: 0, delta: 0, direction: "neutral" as const, noData: true };
+  }
+  const safeCurrent = Number(current);
   const safePrevious = Number(previous ?? 0);
   const delta = safeCurrent - safePrevious;
 
@@ -36,6 +39,7 @@ export function getVariation(current: number | null | undefined, previous: numbe
     previous: safePrevious,
     delta,
     direction: delta > 0 ? "up" : delta < 0 ? "down" : "neutral",
+    noData: false,
   } as const;
 }
 

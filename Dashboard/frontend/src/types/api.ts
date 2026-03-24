@@ -73,6 +73,7 @@ export interface FilialPerformance {
   nomeFilial: string;
   tipoFilial: string;
   metaSpr: number;
+  metaSprVolumes: number;
   diasCobertos: number;
   rotas: number;
   placasDistintas: number;
@@ -152,6 +153,7 @@ export interface DrillRota {
   data: string;
   filial: string;
   nomeFilial?: string;
+  regiao?: string | null;
   transportador: string;
   rota: string;
   placa: string;
@@ -168,11 +170,9 @@ export interface DrillRota {
   tempoPlanejado: number;
   tempoRealizado: number;
   entregaEfetiva: number;
-  ocupacaoPedidos: number;
-  ocupacaoVolumes: number;
   ocupacaoPeso: number;
   aderenciaVolumes?: number | null;
-  custoMedioCarga: number;
+  valorTotalRota?: number | null;
   scoreOperacional: number;
   flagOvertime: boolean;
   flagEntregaCritica: boolean;
@@ -221,7 +221,7 @@ export interface MotoristaJornada {
   nomeFilial?: string;
   transportador: string;
   motorista: string;
-  placa: string;
+  placa: string | null;
   qtdRotas: number;
   horasJornada: number;
   flagOvertime: boolean;
@@ -260,9 +260,9 @@ export interface KpiDiario {
   pctUtilizacaoJornada: number;
   pctOciosidadeJornada: number;
   pctRotasOvertime: number;
-  pctOcupacaoPedidos: number;
-  pctOcupacaoVolumes: number;
-  pctOcupacaoPeso: number;
+  pctOcupacaoPedidos: number | null;
+  pctOcupacaoVolumes: number | null;
+  pctOcupacaoPeso: number | null;
   pctAderPedidos?: number | null;
   pctAderVolumes?: number | null;
   pctAderPeso?: number | null;

@@ -220,6 +220,8 @@ export function buildCanonWhere(query, params = {}, options = {}) {
       where += ` AND ${tipoVeiculoField} IN UNNEST(@dashboardVehicleScope)`;
     }
   }
+  // Excluir transportadores nulos/vazios globalmente
+  where += ` AND ${transportadorField} IS NOT NULL AND TRIM(${transportadorField}) != ''`;
   return where;
 }
 
@@ -251,6 +253,8 @@ export function buildCanonAlertWhere(query, params = {}, options = {}) {
     params.dashboardVehicleScope = vehicleScope;
     where += ` AND ${alias}tipo_veiculo IN UNNEST(@dashboardVehicleScope)`;
   }
+  // Excluir transportadores nulos/vazios globalmente
+  where += ` AND ${alias}transportador IS NOT NULL AND TRIM(${alias}transportador) != ''`;
   return where;
 }
 

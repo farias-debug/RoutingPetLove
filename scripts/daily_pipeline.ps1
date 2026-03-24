@@ -1,18 +1,18 @@
 <#
 .SYNOPSIS
-  Pipeline diário BigQuery: extração TMS → consolidar → carga BQ → sync Sheets → Git sync.
+  Pipeline diário BigQuery: extração TMS → consolidar → carga BQ → deploy v7 → Git sync.
 .DESCRIPTION
   Executa o fluxo canônico de dados via BigQuery:
-  [1/5] Extrair dados do TMS via Playwright (últimos 7 dias)
-  [2/5] Consolidar CSVs incrementais
-  [3/5] Carregar dados no BigQuery (load_raw_to_bq.py)
-  [4/5] Sincronizar views BQ → Google Sheets (sync_bq_to_sheets.py)
-  [5/5] Git sync automático
+  [1/4] Extrair dados do TMS via Playwright (últimos 7 dias)
+  [2/4] Consolidar CSVs incrementais
+  [3/4] Carregar dados no BigQuery (load_raw_to_bq.py)
+  [4/4] Git sync automático
+
+  NOTA: Fluxo Google Sheets descontinuado. sync_bq_to_sheets.py em bigquery/_archive/.
 #>
 param(
     [switch]$SkipExtract,
     [switch]$SkipGit,
-    [switch]$SkipSync,
     [switch]$SkipConsolidar
 )
 
@@ -24,7 +24,7 @@ $dateTag = Get-Date -Format "yyyy-MM-dd"
 
 Write-Host ""
 Write-Host "==================================================" -ForegroundColor Cyan
-Write-Host "   PIPELINE DIARIO — BIGQUERY PATH                " -ForegroundColor Cyan
+Write-Host "   PIPELINE DIARIO — BIGQUERY PATH (v7)           " -ForegroundColor Cyan
 Write-Host "   $timestamp                          " -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Cyan
 Write-Host ""
@@ -42,13 +42,10 @@ if (-not (Test-Path $pythonExe)) {
 
 $consolidarScript = Join-Path $dashboardDir "extraction\consolidar_monitoramento.py"
 $loadScript = Join-Path $dashboardDir "bigquery\load_raw_to_bq.py"
-$syncScript = Join-Path $dashboardDir "bigquery\sync_bq_to_sheets.py"
 
-foreach ($script in @($loadScript, $syncScript)) {
-    if (-not (Test-Path $script)) {
-        Write-Host "[ERRO] Script nao encontrado: $script" -ForegroundColor Red
-        exit 1
-    }
+if (-not (Test-Path $loadScript)) {
+    Write-Host "[ERRO] Script nao encontrado: $loadScript" -ForegroundColor Red
+    exit 1
 }
 
 Write-Host "[0/5] Ambiente OK" -ForegroundColor Green
@@ -136,35 +133,14 @@ finally {
 }
 Write-Host ""
 
-# ── 4) Sincronizar BQ → Google Sheets ──────────────────────
-if (-not $SkipSync) {
-    Write-Host "[4/5] Sincronizando BigQuery → Google Sheets..." -ForegroundColor Yellow
-    Push-Location $dashboardDir
-    try {
-        & $pythonExe $syncScript $sheetsId
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "[ERRO] Sync Sheets falhou com codigo $LASTEXITCODE" -ForegroundColor Red
-            exit $LASTEXITCODE
-        }
-        Write-Host "[4/5] Sync Sheets concluido (13 abas)." -ForegroundColor Green
-    }
-    finally {
-        Pop-Location
-    }
-}
-else {
-    Write-Host "[4/5] Sync Sheets ignorado (-SkipSync)." -ForegroundColor DarkYellow
-}
-Write-Host ""
-
-# ── 5) Git sync ─────────────────────────────────────────────
+# ── 4) Git sync ─────────────────────────────────────────────
 if (-not $SkipGit) {
-    Write-Host "[5/5] Sincronizando com GitHub..." -ForegroundColor Yellow
+    Write-Host "[4/4] Sincronizando com GitHub..." -ForegroundColor Yellow
     & powershell -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "git_daily_sync.ps1") -AutoMessage "pipeline: atualizacao diaria $dateTag"
-    Write-Host "[5/5] GitHub sincronizado." -ForegroundColor Green
+    Write-Host "[4/4] GitHub sincronizado." -ForegroundColor Green
 }
 else {
-    Write-Host "[5/5] Git sync ignorado (-SkipGit)." -ForegroundColor DarkYellow
+    Write-Host "[4/4] Git sync ignorado (-SkipGit)." -ForegroundColor DarkYellow
 }
 
 Write-Host ""

@@ -5,7 +5,7 @@ import { BigQuery } from "@google-cloud/bigquery";
 import {
   normalizeEntityKey, normalizeEntityLabel, uniqueOptions,
   normalizeStatus, colorHex, formatDate, toNumberOrNull,
-  mapMetaKpiId, resolveJanelaPeriodo, bqNormalizeText,
+  resolveJanelaPeriodo, bqNormalizeText,
   buildCanonWhere, buildCanonAlertWhere, buildCanonAlertTypeFilter, buildDateFilter,
   formatCardMetric, sendError,
 } from "./helpers.js";
@@ -76,11 +76,11 @@ app.get("/api/metas", async (_req, res) => {
   try {
     const rows = await runQuery(Q.metasQuery(projectId, dataset));
     res.json(rows.map((row) => ({
-      kpiId: row["KPI ID"] || mapMetaKpiId(row.KPI),
-      kpiNome: row.KPI,
-      meta: Number(row.Meta ?? 0),
-      sentido: row.Sentido,
-      unidade: row.Unidade,
+      kpiId: row.kpi_id,
+      kpiNome: row.kpi_nome,
+      meta: Number(row.meta ?? 0),
+      sentido: row.sentido,
+      unidade: row.unidade,
     })));
   } catch (error) {
     sendError(res, 500, "METAS_QUERY_FAILED", "Falha ao consultar metas", { message: error.message });
@@ -212,6 +212,7 @@ app.get("/api/filiais/performance", async (req, res) => {
       tipoFilial: row.tipoFilial,
       regiao: row.regiao,
       metaSpr: Number(row.metaSpr ?? 0),
+      metaSprVolumes: Number(row.metaSprVolumes ?? 0),
       diasCobertos: Number(row.diasCobertos ?? 0),
       rotas: Number(row.rotas ?? 0),
       placasDistintas: Number(row.placasDistintas ?? 0),
@@ -364,7 +365,7 @@ app.get("/api/drill-rotas", async (req, res) => {
       scoreOperacional: "scoreOperacional",
       pedidos: "d.qtd_pedidos",
       volumes: "d.qtd_volumes",
-      kmRealizado: "d.km_realizado",
+      kmRealizado: "d.km_real",
       ocupacaoPeso: "d.ocup_peso_veiculo",
     };
     const sortField = orderMap[req.query.sort] || "d.data_referencia";
@@ -379,6 +380,7 @@ app.get("/api/drill-rotas", async (req, res) => {
         data: formatDate(row.data),
         filial: row.filial,
         nomeFilial: normalizeEntityLabel(row.nomeFilial, row.filial),
+        regiao: row.regiao ?? null,
         transportador: normalizeEntityLabel(row.transportador, "Transportador não informado"),
         rota: row.rota,
         placa: row.placa,
@@ -395,11 +397,9 @@ app.get("/api/drill-rotas", async (req, res) => {
         tempoPlanejado: Number(row.tempoPlaneadoH ?? 0),
         tempoRealizado: Number(row.tempoRealizadoH ?? 0),
         entregaEfetiva: Number(row.entregaEfetivaRota ?? 0),
-        ocupacaoPedidos: null,
-        ocupacaoVolumes: row.aderenciaVolumes == null ? null : Number(row.aderenciaVolumes),
         ocupacaoPeso: Number(row.ocupacaoPeso ?? 0),
         aderenciaVolumes: row.aderenciaVolumes == null ? null : Number(row.aderenciaVolumes),
-        custoMedioCarga: row.valorTotal == null ? null : Number(row.valorTotal),
+        valorTotalRota: row.valorTotal == null ? null : Number(row.valorTotal),
         scoreOperacional: Number(row.scoreOperacional ?? 0),
         flagOvertime: Boolean(row.flagOvertime),
         flagEntregaCritica: Boolean(row.flagEntregaCritica),
@@ -435,8 +435,8 @@ app.get("/api/transportadores", async (req, res) => {
       pedidos: Number(row.pedidos ?? 0),
       volumes: Number(row.volumes ?? 0),
       valorTotal: Number(row.valor_total ?? 0),
-      status: row.status_transportador ?? (Number(row.score_operacional ?? 0) >= 80 ? "OK" : Number(row.score_operacional ?? 0) >= 60 ? "Atenção" : "Crítico"),
-      statusCor: (row.status_transportador ?? "").startsWith("OK") ? "#12B76A" : (row.status_transportador ?? "").startsWith("Atencao") ? "#F79009" : "#F04438",
+      status: normalizeStatus(row.status_transportador ?? (Number(row.score_operacional ?? 0) >= 80 ? "OK" : Number(row.score_operacional ?? 0) >= 60 ? "Atencao" : "Critico")),
+      statusCor: (normalizeStatus(row.status_transportador) === "OK") ? "#12B76A" : (normalizeStatus(row.status_transportador) === "Atenção") ? "#F79009" : "#F04438",
     })));
   } catch (error) {
     sendError(res, 500, "TRANSPORTADORES_QUERY_FAILED", "Falha ao consultar transportadores", { message: error.message });
@@ -540,8 +540,45 @@ app.get("/api/kpi-diario", async (req, res) => {
     const rows = await runQuery(Q.kpiDiarioQuery(projectId, dataset, where), params);
     const row = rows[0] || {};
     res.json({
-      ...row,
       data: formatDate(row.data),
+      rotas: Number(row.rotas ?? 0),
+      pedidos: Number(row.pedidos ?? 0),
+      volumes: Number(row.volumes ?? 0),
+      entregas: Number(row.entregas ?? 0),
+      insucessos: Number(row.insucessos ?? 0),
+      veiculosAtivos: Number(row.veiculosAtivos ?? 0),
+      motoristasAtivos: Number(row.motoristasAtivos ?? 0),
+      totalKmRealizado: Number(row.totalKmRealizado ?? 0),
+      totalPesoKg: Number(row.totalPesoKg ?? 0),
+      sprPedidos: Number(row.sprPedidos ?? 0),
+      sprVolumes: Number(row.sprVolumes ?? 0),
+      pctEntregasEfetivas: Number(row.pctEntregasEfetivas ?? 0),
+      pctRotasConcluidas: Number(row.pctRotasConcluidas ?? 0),
+      tempoMedRealizado: Number(row.tempoMedRealizado ?? 0),
+      pctUtilizacaoJornada: Number(row.pctUtilizacaoJornada ?? 0),
+      pctOciosidadeJornada: Number(row.pctOciosidadeJornada ?? 0),
+      pctRotasOvertime: Number(row.pctRotasOvertime ?? 0),
+      pctOcupacaoPedidos: toNumberOrNull(row.pctOcupacaoPedidos),
+      pctOcupacaoVolumes: toNumberOrNull(row.pctOcupacaoVolumes),
+      pctOcupacaoPeso: toNumberOrNull(row.pctOcupacaoPeso),
+      pctAderPedidos: toNumberOrNull(row.pctAderPedidos),
+      pctAderVolumes: toNumberOrNull(row.pctAderVolumes),
+      pctAderPeso: toNumberOrNull(row.pctAderPeso),
+      pctAderKm: toNumberOrNull(row.pctAderKm),
+      pctAderTempo: toNumberOrNull(row.pctAderTempo),
+      pctMatchMesmoDia: toNumberOrNull(row.pctMatchMesmoDia),
+      valorPagamentoTotal: Number(row.valorPagamentoTotal ?? 0),
+      custoMedioCarga: Number(row.custoMedioCarga ?? 0),
+      custoMedioVolume: Number(row.custoMedioVolume ?? 0),
+      custoMedioPedido: Number(row.custoMedioPedido ?? 0),
+      dpph: Number(row.dpph ?? 0),
+      scoreOperacional: Number(row.scoreOperacional ?? 0),
+      metaEntregas: toNumberOrNull(row.metaEntregas),
+      metaRotasConcluidas: toNumberOrNull(row.metaRotasConcluidas),
+      metaOcupacaoPeso: toNumberOrNull(row.metaOcupacaoPeso),
+      metaAderenciaVolumes: toNumberOrNull(row.metaAderenciaVolumes),
+      metaOrhTempo: toNumberOrNull(row.metaOrhTempo),
+      gapOrhVsMeta: Number(row.gapOrhVsMeta ?? 0),
     });
   } catch (error) {
     sendError(res, 500, "KPI_DIARIO_QUERY_FAILED", "Falha ao consultar KPI diário", { message: error.message });

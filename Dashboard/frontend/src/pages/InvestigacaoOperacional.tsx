@@ -26,10 +26,12 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function InvestigacaoOperacional() {
   const { filters, searchParams, setParam } = useGlobalFilters();
-  const alertasPage = Number(searchParams.get("alertasPage") || "1");
-  const drillPage = Number(searchParams.get("drillPage") || "1");
-  const sort = searchParams.get("drillSort") || "data";
-  const order = searchParams.get("drillOrder") || "desc";
+  const alertasPage = Math.max(1, parseInt(searchParams.get("alertasPage") || "1", 10) || 1);
+  const drillPage = Math.max(1, parseInt(searchParams.get("drillPage") || "1", 10) || 1);
+  const VALID_SORTS = ["data", "scoreOperacional", "pedidos", "volumes", "kmRealizado", "ocupacaoPeso", "entregaEfetiva"];
+  const VALID_ORDERS = ["asc", "desc"];
+  const sort = VALID_SORTS.includes(searchParams.get("drillSort") || "") ? searchParams.get("drillSort")! : "data";
+  const order = VALID_ORDERS.includes(searchParams.get("drillOrder") || "") ? searchParams.get("drillOrder")! : "desc";
   const { data: contagem, isLoading: loadingContagem } = useAlertasContagem(filters);
   const { data: alertas, isLoading: loadingAlertas } = useAlertas({ page: alertasPage, limit: 20, filial: filters.filial, periodo: filters.periodo, transportador: filters.transportador, status: filters.status, prioridade: filters.prioridade, tipoVeiculo: filters.tipoVeiculo });
   const { data: rotas, isLoading: loadingRotas } = useDrillRotas({ page: drillPage, limit: 20, filial: filters.filial, transportador: filters.transportador, periodo: filters.periodo, status: filters.status, prioridade: filters.prioridade, tipoVeiculo: filters.tipoVeiculo, sort, order });

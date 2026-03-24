@@ -17,6 +17,15 @@ const sections: PageSectionNavItem[] = [
   { id: "ranking", label: "Ranking" },
 ];
 
+function median(arr: number[]): number {
+  if (arr.length === 0) return 0;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
 export default function Transportadores() {
   const { filters } = useGlobalFilters();
   const { data: transportadores, isLoading } = useTransportadores(filters);
@@ -56,12 +65,8 @@ export default function Transportadores() {
     entregas: +(t.entregasEfetivas * 100).toFixed(1),
     status: t.status,
   }));
-  const custoMediano = list.length > 0
-    ? [...list].sort((a, b) => a.custoMedioCarga - b.custoMedioCarga)[Math.floor(list.length / 2)]?.custoMedioCarga ?? 0
-    : 0;
-  const scoreMediano = list.length > 0
-    ? [...list].sort((a, b) => a.scoreOperacional - b.scoreOperacional)[Math.floor(list.length / 2)]?.scoreOperacional ?? 0
-    : 0;
+  const custoMediano = median(list.map(t => t.custoMedioCarga));
+  const scoreMediano = median(list.map(t => t.scoreOperacional));
 
   function scatterColor(custo: number, score: number): string {
     if (score >= scoreMediano && custo <= custoMediano) return CHART_COLORS.success;
@@ -205,8 +210,8 @@ export default function Transportadores() {
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ left: 8, right: 16, top: 8, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                  <XAxis type="number" dataKey="custo" name="Custo/carga" tickFormatter={(v) => `R$${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} tick={TICK_STYLE_SM} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis type="number" dataKey="custo" name="Custo/carga" tickFormatter={(v) => v == null ? "" : `R$${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} tick={TICK_STYLE_SM} />
                   <YAxis type="number" dataKey="score" name="Score" tick={TICK_STYLE_SM} />
                   <ZAxis type="number" dataKey="rotas" range={[40, 220]} name="Rotas" />
                   <Tooltip
@@ -225,8 +230,8 @@ export default function Transportadores() {
                       );
                     }}
                   />
-                  {custoMediano > 0 && <ReferenceLine x={custoMediano} stroke="#667085" strokeDasharray="5 3" strokeWidth={1} />}
-                  {scoreMediano > 0 && <ReferenceLine y={scoreMediano} stroke="#667085" strokeDasharray="5 3" strokeWidth={1} />}
+                  {custoMediano > 0 && <ReferenceLine x={custoMediano} stroke={CHART_COLORS.muted} strokeDasharray="5 3" strokeWidth={1} />}
+                  {scoreMediano > 0 && <ReferenceLine y={scoreMediano} stroke={CHART_COLORS.muted} strokeDasharray="5 3" strokeWidth={1} />}
                   <Scatter data={scatterData} name="Transportadores">
                     {scatterData.map((entry, i) => (
                       <Cell key={i} fill={scatterColor(entry.custo, entry.score)} />

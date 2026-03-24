@@ -18,6 +18,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -50,7 +51,8 @@ import {
 } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { mapStatusBQtoUI, type DrillRota, type KPIData } from "@/types/api";
-import { formatInteger, formatDecimal, formatMoney, formatPercentFrac as formatPercent } from "@/lib/formatters";
+import { formatInteger, formatDecimal, formatMoney, formatPercentFrac } from "@/lib/formatters";
+import { temporalWindows } from "@/lib/dashboardTemporal";
 import { formatShortDate, getVariation } from "@/lib/dashboardTemporal";
 import { TOOLTIP_STYLE, TICK_STYLE, TICK_STYLE_SM, GRID_STROKE, CHART_COLORS, LEGEND_STYLE } from "@/lib/chartConfig";
 import VariationCards from "@/components/dashboard/VariationCards";
@@ -69,12 +71,7 @@ const sections = [
 
 type SectionId = (typeof sections)[number]["id"];
 
-const trendWindows = [
-  { value: "7d", label: "7d" },
-  { value: "14d", label: "14d" },
-  { value: "30d", label: "30d" },
-  { value: "mtd", label: "MTD" },
-] as const;
+// Usando temporalWindows de dashboardTemporal.ts ao invés de definição local
 
 function isSameOrBefore(date: string, limitDate: string) {
   return date <= limitDate;
@@ -83,7 +80,7 @@ function isSameOrBefore(date: string, limitDate: string) {
 export default function CockpitOperacional() {
   const { filters } = useGlobalFilters();
   const [activeSection, setActiveSection] = useState<SectionId>(sections[0].id);
-  const [trendWindow, setTrendWindow] = useState<(typeof trendWindows)[number]["value"]>("30d");
+  const [trendWindow, setTrendWindow] = useState<(typeof temporalWindows)[number]["value"]>("30d");
   const [selectedRota, setSelectedRota] = useState<DrillRota | null>(null);
 
   const seriesFilters = {
@@ -201,8 +198,8 @@ export default function CockpitOperacional() {
     },
     {
       label: "Aderência volumes",
-      value: formatPercent(latestComparablePoint.aderenciaVolumes),
-      detail: `${getVariation(latestComparablePoint.aderenciaVolumes ?? 0, previousComparablePoint?.aderenciaVolumes ?? 0).delta >= 0 ? "+" : ""}${formatPercent(getVariation(latestComparablePoint.aderenciaVolumes ?? 0, previousComparablePoint?.aderenciaVolumes ?? 0).delta)}`,
+      value: formatPercentFrac(latestComparablePoint.aderenciaVolumes),
+      detail: `${getVariation(latestComparablePoint.aderenciaVolumes ?? 0, previousComparablePoint?.aderenciaVolumes ?? 0).delta >= 0 ? "+" : ""}${formatPercentFrac(getVariation(latestComparablePoint.aderenciaVolumes ?? 0, previousComparablePoint?.aderenciaVolumes ?? 0).delta)}`,
       direction: getVariation(latestComparablePoint.aderenciaVolumes ?? 0, previousComparablePoint?.aderenciaVolumes ?? 0).direction,
     },
     {
@@ -219,6 +216,42 @@ export default function CockpitOperacional() {
   const criticalFiliais = [...(filiais ?? [])]
     .sort((left, right) => left.sprVsMeta - right.sprVsMeta)
     .slice(0, 6);
+  const globalMetaSprVolumes = (filiais ?? [])[0]?.metaSprVolumes ?? 67;
+  const sprFiliais = [...(filiais ?? [])]
+    .filter((item) => item.sprVolumesReal > 0)
+    .sort((left, right) => right.sprVolumesReal - left.sprVolumesReal)
+    .slice(0, 10)
+    .map((item) => ({
+      nome: item.nomeFilial || item.filial,
+      sprVolumes: Number(item.sprVolumesReal.toFixed(2)),
+      meta: globalMetaSprVolumes,
+      metaFilial: Number(item.metaSpr.toFixed(2)),
+    }));
+
+  // ── Plan vs Actual (agregado do período via filiais) ──
+  const planVsActual = (filiais ?? []).reduce(
+    (acc, f) => ({
+      pedidosReal: acc.pedidosReal + f.pedidosReal,
+      pedidosPlan: acc.pedidosPlan + (f.pedidosPlan ?? 0),
+      volumesReal: acc.volumesReal + f.volumesReal,
+      volumesPlan: acc.volumesPlan + (f.volumesPlan ?? 0),
+      pesoReal: acc.pesoReal + f.pesoReal,
+      pesoPlan: acc.pesoPlan + (f.pesoPlan ?? 0),
+      kmReal: acc.kmReal + f.kmReal,
+      kmPlan: acc.kmPlan + (f.kmPlan ?? 0),
+      tempoReal: acc.tempoReal + f.tempoReal,
+      tempoPlan: acc.tempoPlan + (f.tempoPlan ?? 0),
+      entregues: acc.entregues + f.entregues,
+      insucessos: acc.insucessos + f.insucessos,
+    }),
+    { pedidosReal: 0, pedidosPlan: 0, volumesReal: 0, volumesPlan: 0, pesoReal: 0, pesoPlan: 0, kmReal: 0, kmPlan: 0, tempoReal: 0, tempoPlan: 0, entregues: 0, insucessos: 0 },
+  );
+  const pva = planVsActual;
+  const aderPedidos = pva.pedidosPlan > 0 ? pva.pedidosReal / pva.pedidosPlan : null;
+  const aderVolumes = pva.volumesPlan > 0 ? pva.volumesReal / pva.volumesPlan : null;
+  const aderPeso = pva.pesoPlan > 0 ? pva.pesoReal / pva.pesoPlan : null;
+  const aderKm = pva.kmPlan > 0 ? pva.kmReal / pva.kmPlan : null;
+  const aderTempo = pva.tempoPlan > 0 ? pva.tempoReal / pva.tempoPlan : null;
   const transportadoresRanking = [...(transportadores ?? [])]
     .sort((left, right) => right.share - left.share)
     .slice(0, 8);
@@ -242,12 +275,12 @@ export default function CockpitOperacional() {
       icon: Gauge,
       label: "Score operacional",
       value: formatDecimal(kpiDiario.scoreOperacional),
-      detail: `${formatPercent(kpiDiario.pctEntregasEfetivas)} de entrega efetiva`,
+      detail: `${formatPercentFrac(kpiDiario.pctEntregasEfetivas)} de entrega efetiva`,
     },
     {
       icon: Truck,
       label: "Capacidade de peso",
-      value: formatPercent(kpiDiario.pctOcupacaoPeso),
+      value: formatPercentFrac(kpiDiario.pctOcupacaoPeso),
       detail: `${formatInteger(kpiDiario.rotas)} rotas no recorte atual`,
     },
     {
@@ -295,7 +328,7 @@ export default function CockpitOperacional() {
 
   return (
     <>
-      <div className="space-y-6 pb-10">
+      <div className="space-y-10 pb-10">
         <section id="visao-geral" className="scroll-mt-24 space-y-6">
           <div className="overflow-hidden rounded-[28px] border border-border/60 bg-[linear-gradient(135deg,rgba(9,34,52,0.98),rgba(13,83,88,0.92)_48%,rgba(247,144,9,0.16))] p-6 text-white shadow-[0_24px_80px_rgba(9,34,52,0.32)]">
             <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -375,13 +408,49 @@ export default function CockpitOperacional() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {loadingCards ? <LoadingSkeleton rows={2} /> : kpis.map((kpi, index) => (
               <KPICard key={kpi.label} data={kpi} delay={index * 40} />
             ))}
           </div>
+
+          {/* Plan vs Actual — agregado do período */}
+          <SectionCard title="Plan vs Real — Aderência no período" subtitle="Comparativo do planejado contra o realizado no recorte selecionado" delay={60}>
+            {loadingFiliais ? <LoadingSkeleton rows={2} /> : (
+              <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+                {[
+                  { label: "Pedidos", real: pva.pedidosReal, plan: pva.pedidosPlan, ader: aderPedidos, fmt: formatInteger },
+                  { label: "Volumes", real: pva.volumesReal, plan: pva.volumesPlan, ader: aderVolumes, fmt: formatInteger },
+                  { label: "Peso (kg)", real: pva.pesoReal, plan: pva.pesoPlan, ader: aderPeso, fmt: (v: number) => formatInteger(Math.round(v)) },
+                  { label: "Km", real: pva.kmReal, plan: pva.kmPlan, ader: aderKm, fmt: (v: number) => formatInteger(Math.round(v)) },
+                  { label: "Tempo (h)", real: pva.tempoReal, plan: pva.tempoPlan, ader: aderTempo, fmt: (v: number) => formatDecimal(v, 1) },
+                  { label: "Entregas", real: pva.entregues, plan: null, ader: null, fmt: formatInteger },
+                  { label: "Insucessos", real: pva.insucessos, plan: null, ader: null, fmt: formatInteger },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{item.label}</p>
+                    <p className="mt-3 text-xl font-black tracking-tight text-foreground">{item.fmt(item.real)}</p>
+                    {item.plan != null && item.plan > 0 ? (
+                      <div className="mt-2 space-y-1">
+                        <p className="text-xs font-semibold text-muted-foreground">Plan {item.fmt(item.plan)}</p>
+                        <StatusChip
+                          label={item.ader != null ? formatPercentFrac(item.ader) : "—"}
+                          colorClass={item.ader == null ? "bg-muted text-muted-foreground" : item.ader >= 0.95 ? "bg-success/10 text-success" : item.ader >= 0.85 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}
+                        />
+                      </div>
+                    ) : item.label === "Insucessos" ? (
+                      <p className="mt-2 text-xs font-semibold text-muted-foreground">
+                        {pva.entregues + pva.insucessos > 0 ? formatPercentFrac(pva.insucessos / (pva.entregues + pva.insucessos)) : "—"} da base
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
         </section>
 
+        <div className="my-8 border-t border-border/40" />
         <section id="tendencias" className="scroll-mt-24 space-y-6">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
             <div>
@@ -394,7 +463,7 @@ export default function CockpitOperacional() {
               ) : null}
             </div>
             <div className="flex items-center gap-2 rounded-2xl border border-border/70 bg-card/70 p-1">
-              {trendWindows.map((windowOption) => (
+              {temporalWindows.map((windowOption) => (
                 <Button
                   key={windowOption.value}
                   type="button"
@@ -411,77 +480,120 @@ export default function CockpitOperacional() {
           <VariationCards items={variationCards} isLoading={variationCards.length === 0 || loadingSerieDiaria} />
 
           <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
-            <SectionCard title="Fluxo diário" subtitle="Rotas, pedidos e volume no período selecionado" delay={80}>
-              <div className="h-56 md:h-80">
-                {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={flowTrendData}>
-                      <defs>
-                        <linearGradient id="rotasFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#0D7C86" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#0D7C86" stopOpacity={0.03} />
-                        </linearGradient>
-                        <linearGradient id="pedidosFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#F79009" stopOpacity={0.25} />
-                          <stop offset="95%" stopColor="#F79009" stopOpacity={0.02} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                      <XAxis dataKey="label" tick={{ ...TICK_STYLE_SM, fill: "#667085" }} angle={-45} textAnchor="end" height={56} />
-                      <YAxis width={44} tick={TICK_STYLE} />
-                      <Tooltip contentStyle={TOOLTIP_STYLE} />
-                      <Legend align="center" wrapperStyle={LEGEND_STYLE} />
-                      <Area type="monotone" dataKey="rotas" stroke="#0D7C86" fill="url(#rotasFill)" strokeWidth={2.5} name="Rotas" />
-                      <Area type="monotone" dataKey="pedidos" stroke="#F79009" fill="url(#pedidosFill)" strokeWidth={2.5} name="Pedidos" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
+            <SectionCard title="Fluxo diário" subtitle="Rotas, pedidos e volumes no período selecionado" delay={80}>
+              <div className="h-64 md:h-80">
+                <div className="max-w-[900px] mx-auto">
+                  {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : flowTrendData.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-muted-foreground">Sem dados no período selecionado.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={flowTrendData}>
+                        <defs>
+                          <linearGradient id="rotasFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={CHART_COLORS.teal} stopOpacity={0.35} />
+                            <stop offset="95%" stopColor={CHART_COLORS.teal} stopOpacity={0.03} />
+                          </linearGradient>
+                          <linearGradient id="pedidosFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={CHART_COLORS.gold} stopOpacity={0.25} />
+                            <stop offset="95%" stopColor={CHART_COLORS.gold} stopOpacity={0.02} />
+                          </linearGradient>
+                          <linearGradient id="volumesFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.25} />
+                            <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0.02} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                        <XAxis dataKey="label" tick={TICK_STYLE_SM} angle={-45} textAnchor="end" height={56} />
+                        <YAxis yAxisId="left" width={56} tick={TICK_STYLE} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v} />
+                        <YAxis yAxisId="right" orientation="right" width={44} tick={TICK_STYLE} />
+                        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number, name: string) => [formatInteger(value), name]} />
+                        <Legend align="center" wrapperStyle={LEGEND_STYLE} />
+                        <Area yAxisId="left" type="monotone" dataKey="pedidos" stroke={CHART_COLORS.gold} fill="url(#pedidosFill)" strokeWidth={2.5} name="Pedidos" />
+                        <Area yAxisId="left" type="monotone" dataKey="volumes" stroke={CHART_COLORS.primary} fill="url(#volumesFill)" strokeWidth={2.5} name="Volumes" />
+                        <Area yAxisId="right" type="monotone" dataKey="rotas" stroke={CHART_COLORS.teal} fill="url(#rotasFill)" strokeWidth={2.5} name="Rotas (eixo dir.)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
               </div>
             </SectionCard>
 
             <SectionCard title="Qualidade de execução" subtitle="Entrega efetiva e aderência de volumes (%)" delay={120}>
-              <div className="h-56 md:h-80">
-                {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={qualityTrendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                      <XAxis dataKey="label" tick={{ ...TICK_STYLE_SM, fill: "#667085" }} angle={-45} textAnchor="end" height={56} />
-                      <YAxis width={48} tick={TICK_STYLE} domain={[0, 100]} allowDataOverflow unit="%" />
-                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number) => `${value.toFixed(1)}%`} />
-                      <Legend align="center" wrapperStyle={LEGEND_STYLE} />
-                      <Line type="monotone" dataKey="entregasPct" stroke="#0D7C86" strokeWidth={2.5} dot={false} name="Entrega efetiva" />
-                      <Line type="monotone" dataKey="aderenciaPct" stroke="#F04438" strokeWidth={2.5} dot={false} name="Aderência volumes" />
-                      <Line type="monotone" dataKey="ocupacaoPct" stroke="#F79009" strokeWidth={2.5} dot={false} name="Ocupação peso" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
+              <div className="h-64 md:h-80">
+                <div className="max-w-[900px] mx-auto">
+                  {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : qualityTrendData.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de qualidade no período selecionado.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={qualityTrendData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                        <XAxis dataKey="label" tick={TICK_STYLE_SM} angle={-45} textAnchor="end" height={56} />
+                        <YAxis width={48} tick={TICK_STYLE} domain={[0, 100]} allowDataOverflow unit="%" />
+                        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number) => `${value.toFixed(1)}%`} />
+                        <Legend align="center" wrapperStyle={LEGEND_STYLE} />
+                        <Line type="monotone" dataKey="entregasPct" stroke={CHART_COLORS.teal} strokeWidth={2.5} dot={false} name="Entrega efetiva" />
+                        <Line type="monotone" dataKey="aderenciaPct" stroke={CHART_COLORS.danger} strokeWidth={2.5} dot={false} name="Aderência volumes" />
+                        <Line type="monotone" dataKey="ocupacaoPct" stroke={CHART_COLORS.gold} strokeWidth={2.5} dot={false} name="Ocupação peso" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
               </div>
             </SectionCard>
           </div>
-        </section>
 
-        <section id="filiais" className="scroll-mt-24">
-          <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-            <SectionCard title="Filiais com melhor tração" subtitle="Score operacional e entrega efetiva no recorte" delay={140}>
-              <div className="h-64 md:h-80">
-                {loadingFiliais ? <LoadingSkeleton rows={5} /> : (
+          <SectionCard title="SPR Volumes por filial" subtitle="Volumes por rota (SPR) das principais filiais vs meta" delay={160}>
+            <div className="h-72 md:h-96">
+              <div className="max-w-[900px] mx-auto">
+                {loadingFiliais ? <LoadingSkeleton rows={5} /> : sprFiliais.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de SPR no período selecionado.</p>
+                ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={topFiliais.map((item) => ({ nome: item.nomeFilial || item.filial, score: item.scoreOperacional, entrega: Number((item.entregasEfetivas * 100).toFixed(1)) }))} layout="vertical">
+                    <BarChart data={sprFiliais} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                      <XAxis type="number" tick={TICK_STYLE} domain={[0, 100]} />
-                      <YAxis dataKey="nome" type="category" width={120} tick={TICK_STYLE} />
-                      <Tooltip contentStyle={TOOLTIP_STYLE} />
+                      <XAxis type="number" tick={TICK_STYLE} />
+                      <YAxis dataKey="nome" type="category" width={110} tick={TICK_STYLE_SM} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number, name: string) => [formatDecimal(value, 2), name]} />
                       <Legend align="center" wrapperStyle={LEGEND_STYLE} />
-                      <Bar dataKey="score" fill={CHART_COLORS.dark} radius={[0, 6, 6, 0]} name="Score" />
-                      <Bar dataKey="entrega" fill={CHART_COLORS.teal} radius={[0, 6, 6, 0]} name="Entrega %" />
+                      <Bar dataKey="sprVolumes" fill={CHART_COLORS.primary} radius={[0, 6, 6, 0]} name="SPR Volumes" barSize={18} />
+                      <ReferenceLine x={sprFiliais[0]?.meta ?? 0} stroke={CHART_COLORS.danger} strokeDasharray="6 4" strokeWidth={2} label={{ value: `Meta ${formatDecimal(sprFiliais[0]?.meta)}`, position: "top", fill: CHART_COLORS.danger, fontSize: 11, fontWeight: 700 }} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
               </div>
+            </div>
+          </SectionCard>
+        </section>
+
+        <div className="my-8 border-t border-border/40" />
+        <section id="filiais" className="scroll-mt-24">
+          <div className="grid gap-6 xl:grid-cols-2">
+            <SectionCard title="Filiais com melhor tração" subtitle="Score operacional e entrega efetiva no recorte" delay={140}>
+              <div className="h-80 md:h-96">
+                <div className="max-w-[900px] mx-auto">
+                  {loadingFiliais ? <LoadingSkeleton rows={5} /> : topFiliais.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de filiais no período selecionado.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={topFiliais.map((item) => ({ nome: item.nomeFilial || item.filial, score: item.scoreOperacional, entrega: Number((item.entregasEfetivas * 100).toFixed(1)) }))} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                        <XAxis type="number" tick={TICK_STYLE} domain={[0, 100]} />
+                        <YAxis dataKey="nome" type="category" width={110} tick={TICK_STYLE_SM} />
+                        <Tooltip contentStyle={TOOLTIP_STYLE} />
+                        <Legend align="center" wrapperStyle={LEGEND_STYLE} />
+                        <Bar dataKey="score" fill={CHART_COLORS.dark} radius={[0, 6, 6, 0]} name="Score" barSize={14} />
+                        <Bar dataKey="entrega" fill={CHART_COLORS.teal} radius={[0, 6, 6, 0]} name="Entrega %" barSize={14} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
             </SectionCard>
 
             <SectionCard title="Filiais que puxam a queda" subtitle="Gap de SPR vs meta e desvio de tempo" delay={180}>
-              {loadingFiliais ? <LoadingSkeleton rows={6} /> : (
+              {loadingFiliais ? <LoadingSkeleton rows={6} /> : criticalFiliais.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de filiais no período selecionado.</p>
+              ) : (
                 <div className="space-y-3">
                   {criticalFiliais.map((item) => (
                     <div key={item.filial} className="rounded-2xl border border-border/70 bg-muted/20 p-4">
@@ -498,7 +610,7 @@ export default function CockpitOperacional() {
                         />
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-3 text-xs font-semibold text-muted-foreground">
-                        <span>Entrega efetiva {formatPercent(item.entregasEfetivas)}</span>
+                        <span>Entrega efetiva {formatPercentFrac(item.entregasEfetivas)}</span>
                         <span>Desvio tempo {formatDecimal(item.desvioTempoH)}h</span>
                       </div>
                     </div>
@@ -509,6 +621,7 @@ export default function CockpitOperacional() {
           </div>
         </section>
 
+        <div className="my-8 border-t border-border/40" />
         <section id="transportadores" className="scroll-mt-24">
           <SectionCard title="Concentração e performance por transportador" subtitle="Share, custo médio e estabilidade de execução" delay={200}>
             {loadingTransportadores ? <LoadingSkeleton rows={6} /> : (
@@ -529,9 +642,9 @@ export default function CockpitOperacional() {
                     {transportadoresRanking.map((item) => (
                       <tr key={item.transportador} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
                         <td className="px-3 py-3 font-bold text-foreground">{item.transportador}</td>
-                        <td className="px-3 py-3 font-semibold text-muted-foreground">{formatPercent(item.share)}</td>
+                        <td className="px-3 py-3 font-semibold text-muted-foreground">{formatPercentFrac(item.share)}</td>
                         <td className="px-3 py-3 text-muted-foreground">{formatInteger(item.rotas)}</td>
-                        <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.entregasEfetivas)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatPercentFrac(item.entregasEfetivas)}</td>
                         <td className="px-3 py-3 text-muted-foreground">{formatDecimal(item.sprVolumes, 2)}</td>
                         <td className="px-3 py-3 text-muted-foreground">{formatMoney(item.custoMedioCarga)}</td>
                         <td className="px-3 py-3"><StatusChip label={formatDecimal(item.scoreOperacional)} colorClass={item.status === "OK" ? "bg-success/10 text-success" : item.status === "Atenção" ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"} /></td>
@@ -544,23 +657,27 @@ export default function CockpitOperacional() {
           </SectionCard>
         </section>
 
+        <div className="my-8 border-t border-border/40" />
         <section id="capacidade" className="scroll-mt-24">
           <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-            <SectionCard title="Mix de veículo e ocupação" subtitle="Onde a malha consome capacidade de peso" delay={220}>
-              <div className="h-64 md:h-80">
-                {loadingOcupacao ? <LoadingSkeleton rows={5} /> : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={frotaRanking}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                      <XAxis dataKey="tipoVeiculo" tick={TICK_STYLE} interval={0} angle={-14} textAnchor="end" height={60} />
-                      <YAxis width={44} tick={TICK_STYLE} />
-                      <Tooltip contentStyle={TOOLTIP_STYLE} />
-                      <Legend align="center" wrapperStyle={LEGEND_STYLE} />
-                      <Bar dataKey="rotas" fill={CHART_COLORS.dark} radius={[6, 6, 0, 0]} name="Rotas" />
-                      <Bar dataKey="ocupacaoPercent" fill={CHART_COLORS.gold} radius={[6, 6, 0, 0]} name="Ocupação peso %" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
+            <SectionCard title="Mix de veículo e ocupação" subtitle="Rotas por tipo (eixo esq.) e ocupação de peso (eixo dir.)" delay={220}>
+              <div className="h-72 md:h-80">
+                <div className="max-w-[900px] mx-auto">
+                  {loadingOcupacao ? <LoadingSkeleton rows={5} /> : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={frotaRanking}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                        <XAxis dataKey="tipoVeiculo" tick={TICK_STYLE_SM} interval={0} angle={-14} textAnchor="end" height={60} />
+                        <YAxis yAxisId="left" width={44} tick={TICK_STYLE} label={{ value: "Rotas", angle: -90, position: "insideLeft", style: { fontSize: 10, fill: CHART_COLORS.muted } }} />
+                        <YAxis yAxisId="right" orientation="right" width={48} tick={TICK_STYLE} domain={[0, 100]} unit="%" label={{ value: "Ocupação %", angle: 90, position: "insideRight", style: { fontSize: 10, fill: CHART_COLORS.muted } }} />
+                        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number | null, name: string) => value == null ? ["—", name] : name.includes("%") ? [`${value.toFixed(1)}%`, name] : [formatInteger(value), name]} />
+                        <Legend align="center" wrapperStyle={LEGEND_STYLE} />
+                        <Bar yAxisId="left" dataKey="rotas" fill={CHART_COLORS.dark} radius={[6, 6, 0, 0]} name="Rotas" />
+                        <Bar yAxisId="right" dataKey="ocupacaoPercent" fill={CHART_COLORS.gold} radius={[6, 6, 0, 0]} name="Ocupação peso %" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
               </div>
             </SectionCard>
 
@@ -577,7 +694,7 @@ export default function CockpitOperacional() {
                           </p>
                         </div>
                         <StatusChip
-                          label={formatPercent(item.ocupacaoPeso)}
+                          label={formatPercentFrac(item.ocupacaoPeso)}
                           colorClass={item.ocupacaoPeso >= 0.85 ? "bg-success/10 text-success" : item.ocupacaoPeso >= 0.7 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}
                         />
                       </div>
@@ -595,30 +712,47 @@ export default function CockpitOperacional() {
           </div>
         </section>
 
+        <div className="my-8 border-t border-border/40" />
         <section id="sla-produtividade" className="scroll-mt-24">
           <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
             <SectionCard title="SLA e produtividade" subtitle="Entrega, jornada e aderência no fechamento do recorte" delay={260}>
               {loadingKpiDiario || loadingMotoristasKpis ? <LoadingSkeleton rows={5} /> : (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Entrega efetiva</p>
-                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(kpiDiario?.pctEntregasEfetivas)}</p>
-                    <p className="mt-2 text-xs font-semibold text-muted-foreground">Meta {formatPercent(kpiDiario?.metaEntregas)}</p>
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Entrega efetiva</p>
+                      <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercentFrac(kpiDiario?.pctEntregasEfetivas)}</p>
+                      <p className="mt-2 text-xs font-semibold text-muted-foreground">Meta {formatPercentFrac(kpiDiario?.metaEntregas)}</p>
+                    </div>
+                    <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">ORH médio</p>
+                      <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(kpiDiario?.tempoMedRealizado, 2)}h</p>
+                      <p className="mt-2 text-xs font-semibold text-muted-foreground">Gap {formatDecimal(kpiDiario?.gapOrhVsMeta, 2)}h</p>
+                    </div>
+                    <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">DPPH</p>
+                      <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(motoristasKpis?.dpph, 2)}</p>
+                      <p className="mt-2 text-xs font-semibold text-muted-foreground">{formatInteger(motoristasKpis?.qtdOvertime)} motoristas em overtime</p>
+                    </div>
                   </div>
-                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">ORH médio</p>
-                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(kpiDiario?.tempoMedRealizado, 2)}h</p>
-                    <p className="mt-2 text-xs font-semibold text-muted-foreground">Gap {formatDecimal(kpiDiario?.gapOrhVsMeta, 2)}h</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Aderência volumes</p>
-                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(kpiDiario?.pctAderVolumes)}</p>
-                    <p className="mt-2 text-xs font-semibold text-muted-foreground">Meta {formatPercent(kpiDiario?.metaAderenciaVolumes)}</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">DPPH</p>
-                    <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatDecimal(motoristasKpis?.dpph, 2)}</p>
-                    <p className="mt-2 text-xs font-semibold text-muted-foreground">{formatInteger(motoristasKpis?.qtdOvertime)} motoristas em overtime</p>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Aderência por dimensão</p>
+                  <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+                    {[
+                      { label: "Pedidos", value: kpiDiario?.pctAderPedidos },
+                      { label: "Volumes", value: kpiDiario?.pctAderVolumes },
+                      { label: "Peso", value: kpiDiario?.pctAderPeso },
+                      { label: "Km", value: kpiDiario?.pctAderKm },
+                      { label: "Tempo", value: kpiDiario?.pctAderTempo },
+                    ].map((dim) => (
+                      <div key={dim.label} className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{dim.label}</p>
+                        <p className="mt-3 text-xl font-black tracking-tight text-foreground">{dim.value != null ? formatPercentFrac(dim.value) : "—"}</p>
+                        <StatusChip
+                          label={dim.value != null ? (dim.value >= 0.95 ? "OK" : dim.value >= 0.85 ? "Atenção" : "Crítico") : "Sem dados"}
+                          colorClass={dim.value == null ? "bg-muted text-muted-foreground" : dim.value >= 0.95 ? "bg-success/10 text-success" : dim.value >= 0.85 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -626,35 +760,38 @@ export default function CockpitOperacional() {
 
             <SectionCard title="Score operacional e produtividade" subtitle="Evolução do score e SPR volumes no período" delay={280}>
               <div className="h-64 md:h-80">
-                {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} angle={-45} textAnchor="end" height={56} />
-                      <YAxis yAxisId="left" width={48} tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} domain={[0, 100]} />
-                      <YAxis yAxisId="right" width={48} orientation="right" tick={{ fontSize: 11, fill: "#667085", fontWeight: 600 }} />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid rgba(15,23,42,0.06)", boxShadow: "0 8px 16px rgba(2,6,23,0.08)", fontSize: 11 }} />
-                      <Legend align="center" wrapperStyle={{ paddingTop: 12, fontSize: 12 }} />
-                      <Line yAxisId="left" type="monotone" dataKey="scoreOperacional" stroke="#092234" strokeWidth={2.5} dot={false} name="Score operacional" />
-                      <Line yAxisId="left" type="monotone" dataKey="entregasPct" stroke="#0D7C86" strokeWidth={2.5} dot={false} name="Entrega efetiva %" />
-                      <Line yAxisId="right" type="monotone" dataKey="tempoMedRealizado" stroke="#F79009" strokeWidth={2.5} dot={false} name="Tempo médio (h)" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
+                <div className="max-w-[900px] mx-auto">
+                  {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={trendData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                        <XAxis dataKey="label" tick={TICK_STYLE} angle={-45} textAnchor="end" height={56} />
+                        <YAxis yAxisId="left" width={48} tick={TICK_STYLE} domain={[0, 100]} />
+                        <YAxis yAxisId="right" width={48} orientation="right" tick={TICK_STYLE} />
+                        <Tooltip contentStyle={TOOLTIP_STYLE} />
+                        <Legend align="center" wrapperStyle={LEGEND_STYLE} />
+                        <Line yAxisId="left" type="monotone" dataKey="scoreOperacional" stroke={CHART_COLORS.dark} strokeWidth={2.5} dot={false} name="Score operacional" />
+                        <Line yAxisId="left" type="monotone" dataKey="entregasPct" stroke={CHART_COLORS.teal} strokeWidth={2.5} dot={false} name="Entrega efetiva %" />
+                        <Line yAxisId="right" type="monotone" dataKey="tempoMedRealizado" stroke={CHART_COLORS.gold} strokeWidth={2.5} dot={false} name="Tempo médio (h)" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
               </div>
             </SectionCard>
           </div>
         </section>
 
+        <div className="my-8 border-t border-border/40" />
         <section id="alertas" className="scroll-mt-24">
-          <div className="grid gap-6 xl:grid-cols-[0.75fr_1.25fr]">
+          <div className="grid gap-6 xl:grid-cols-[0.4fr_1fr]">
             <SectionCard title="Mapa de alertas" subtitle="O que está pressionando a malha agora" delay={300}>
               {loadingAlertasContagem ? <LoadingSkeleton rows={5} /> : (
-                <div className="space-y-3">
+                <div className="flex flex-col gap-3">
                   {alertSummary.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between rounded-2xl border border-border/70 px-4 py-3">
+                    <div key={item.label} className="flex items-center justify-between rounded-2xl border border-border/70 px-4 py-3.5">
                       <span className="text-sm font-semibold text-foreground">{item.label}</span>
-                      <span className={`rounded-full px-2.5 py-1 text-sm font-bold ${item.tone}`}>{item.value}</span>
+                      <span className={`min-w-[48px] text-center rounded-full px-3 py-1.5 text-sm font-bold ${item.tone}`}>{item.value}</span>
                     </div>
                   ))}
                 </div>
@@ -693,7 +830,7 @@ export default function CockpitOperacional() {
                               colorClass={item.flagOvertime || item.flagEntregaCritica ? "bg-destructive/10 text-destructive" : item.flagNaoPlanejada || item.flagMatchCritico ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground"}
                             />
                           </td>
-                          <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.ocupacaoPeso)}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{formatPercentFrac(item.ocupacaoPeso)}</td>
                           <td className="px-3 py-3 text-muted-foreground">{item.prioridade}</td>
                         </tr>
                       ))}
@@ -705,6 +842,7 @@ export default function CockpitOperacional() {
           </div>
         </section>
 
+        <div className="my-8 border-t border-border/40" />
         <section id="motoristas" className="scroll-mt-24">
           <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
             <SectionCard title="Jornada dos motoristas" subtitle="Atividade e overtime no recorte" delay={340}>
@@ -774,6 +912,7 @@ export default function CockpitOperacional() {
           </div>
         </section>
 
+        <div className="my-8 border-t border-border/40" />
         <section id="drill" className="scroll-mt-24">
           <SectionCard title="Drill operacional" subtitle="Rotas mais frágeis do recorte, prontas para abertura de detalhe" delay={380}>
             {loadingDrillRotas ? <LoadingSkeleton rows={7} /> : rotasCriticas.length === 0 ? (
@@ -790,6 +929,8 @@ export default function CockpitOperacional() {
                       <th className="px-3 py-3">Rota</th>
                       <th className="px-3 py-3">Filial</th>
                       <th className="px-3 py-3">Transportador</th>
+                      <th className="px-3 py-3">Pedidos</th>
+                      <th className="px-3 py-3">Volumes</th>
                       <th className="px-3 py-3">Score</th>
                       <th className="px-3 py-3">Entrega</th>
                       <th className="px-3 py-3">Capacidade</th>
@@ -806,14 +947,16 @@ export default function CockpitOperacional() {
                         <td className="px-3 py-3 font-bold text-foreground">{item.rota}</td>
                         <td className="px-3 py-3 text-muted-foreground">{item.nomeFilial || item.filial}</td>
                         <td className="px-3 py-3 text-muted-foreground">{item.transportador}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatInteger(item.pedidos)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatInteger(item.volumes)}</td>
                         <td className="px-3 py-3">
                           <StatusChip
                             label={formatDecimal(item.scoreOperacional)}
                             colorClass={item.scoreOperacional >= 85 ? "bg-success/10 text-success" : item.scoreOperacional >= 70 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}
                           />
                         </td>
-                        <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.entregaEfetiva)}</td>
-                        <td className="px-3 py-3 text-muted-foreground">{formatPercent(item.ocupacaoPeso)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatPercentFrac(item.entregaEfetiva)}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{formatPercentFrac(item.ocupacaoPeso)}</td>
                         <td className="px-3 py-3 text-muted-foreground">{item.alertaOperacional}</td>
                       </tr>
                     ))}
@@ -843,15 +986,15 @@ export default function CockpitOperacional() {
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Entrega efetiva</p>
-                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(selectedRota.entregaEfetiva)}</p>
+                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercentFrac(selectedRota.entregaEfetiva)}</p>
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Capacidade</p>
-                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(selectedRota.ocupacaoPeso)}</p>
+                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercentFrac(selectedRota.ocupacaoPeso)}</p>
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Aderência volumes</p>
-                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercent(selectedRota.aderenciaVolumes)}</p>
+                  <p className="mt-4 text-2xl font-black tracking-tight text-foreground">{formatPercentFrac(selectedRota.aderenciaVolumes)}</p>
                 </div>
               </div>
 
@@ -890,7 +1033,7 @@ export default function CockpitOperacional() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   {selectedRota.flagOvertime ? <StatusChip label="Overtime" colorClass="bg-destructive/10 text-destructive" /> : null}
                   {selectedRota.flagEntregaCritica ? <StatusChip label="Entrega crítica" colorClass="bg-destructive/10 text-destructive" /> : null}
-                  <StatusChip label={selectedRota.alertaOperacional} colorClass="bg-warning/10 text-warning" />
+                  {selectedRota.alertaOperacional ? <StatusChip label={selectedRota.alertaOperacional} colorClass="bg-warning/10 text-warning" /> : null}
                 </div>
               </div>
             </div>

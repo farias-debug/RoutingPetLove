@@ -252,8 +252,8 @@ async function fillFirst(page, selectors, value, timeoutMs = 5000) {
   await found.locator.click({ force: true });
   await found.locator.fill("");
   await found.locator.type(value, { delay: 20 });
-  await found.locator.dispatchEvent("input").catch(() => {});
-  await found.locator.dispatchEvent("change").catch(() => {});
+  await found.locator.dispatchEvent("input").catch(() => { });
+  await found.locator.dispatchEvent("change").catch(() => { });
   return found.selector;
 }
 
@@ -273,8 +273,8 @@ async function fillDateSmart(page, selectors, isoValue, brValue, timeoutMs = 500
     await found.locator.type(brValue, { delay: 20 });
   }
 
-  await found.locator.dispatchEvent("input").catch(() => {});
-  await found.locator.dispatchEvent("change").catch(() => {});
+  await found.locator.dispatchEvent("input").catch(() => { });
+  await found.locator.dispatchEvent("change").catch(() => { });
   return found.selector;
 }
 
@@ -287,7 +287,7 @@ async function maybeLogin(page, user, pass) {
   await fillFirst(page, SEL_USER, user, 8000);
   await fillFirst(page, SEL_PASS, pass, 8000);
   await clickFirst(page, SEL_ENTER, 8000, true);
-  await page.waitForLoadState("domcontentloaded").catch(() => {});
+  await page.waitForLoadState("domcontentloaded").catch(() => { });
   await page.waitForTimeout(2000);
   return true;
 }
@@ -428,7 +428,7 @@ async function main() {
     const finalName = `Relatorio_Monitoramento_Carga_${timestampTag()}.csv`;
     savedPath = path.join(destDir, finalName);
     await download.saveAs(savedPath);
-  gcsPath = await uploadToGcsIfConfigured(savedPath, finalName);
+    gcsPath = await uploadToGcsIfConfigured(savedPath, finalName);
 
     const okShot = path.join(runScreensDir, `ok_monitoramento_${timestampTag()}.png`);
     try {

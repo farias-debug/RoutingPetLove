@@ -32,7 +32,7 @@ Manter e evoluir a camada visual do Google Sheets:
 ## Arquitetura
 
 ```
-13 abas de dados (sync_bq_to_sheets.py) → main.gs → dashboard_builder.gs → Painéis visuais
+[ARQUIVADO] sync_bq_to_sheets.py → main.gs → dashboard_builder.gs → Painéis visuais
 ```
 
 ## Módulos Principais

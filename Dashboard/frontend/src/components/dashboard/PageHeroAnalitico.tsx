@@ -31,7 +31,7 @@ export default function PageHeroAnalitico({
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {highlights.map((item) => (
             <div key={item.label} className="rounded-2xl border border-white/12 bg-white/8 p-4 backdrop-blur-sm">
               <div className="flex items-center gap-2 text-white/72">
