@@ -36,6 +36,7 @@ export default function MotoristasJornada() {
   ] : [];
 
   const list = motoristas?.data ?? [];
+  const hasNoData = !loadingList && list.length === 0 && !loadingKpis && (!kpis || (kpis.motoristasAtivos ?? 0) === 0);
   const overtimeList = list.filter((item) => item.flagOvertime);
   const orderedByJornada = [...list].sort((left, right) => (right.horasJornada ?? 0) - (left.horasJornada ?? 0));
   const orderedByScore = [...list].sort((left, right) => right.scoreOperacional - left.scoreOperacional);
@@ -82,6 +83,17 @@ export default function MotoristasJornada() {
         />
 
         <PageSectionNav sections={sections} />
+
+        {hasNoData && (
+          <div className="rounded-2xl border-2 border-dashed border-amber-400/40 bg-amber-50/60 dark:bg-amber-950/20 p-6 text-center space-y-2">
+            <p className="text-sm font-bold text-amber-700 dark:text-amber-300">Nenhum dado de motorista encontrado para os filtros atuais</p>
+            <p className="text-xs text-muted-foreground max-w-xl mx-auto">
+              Verifique se o campo <code className="bg-muted px-1 rounded">motorista_key_canonico</code> está populado no pipeline de ingestão.
+              Motoristas sem jornada nem entregas registradas são filtrados automaticamente.
+              Tente ajustar o período ou limpar filtros de filial/transportador.
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
           {loadingKpis ? <LoadingSkeleton rows={2} /> : kpiCards.map((kpi, i) => (

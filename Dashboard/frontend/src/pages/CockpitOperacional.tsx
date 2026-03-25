@@ -47,6 +47,7 @@ import {
   useMotoristasKpis,
   useOcupacaoTipoVeiculo,
   useResumoCards,
+  useTendenciaSemanal,
   useTransportadores,
 } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
@@ -94,6 +95,7 @@ export default function CockpitOperacional() {
   const { data: cards, isLoading: loadingCards } = useResumoCards(filters);
   const { data: kpiDiario, isLoading: loadingKpiDiario } = useKpiDiario(filters);
   const { data: serieDiaria, isLoading: loadingSerieDiaria } = useCockpitSerieDiaria(trendWindow, seriesFilters);
+  const { data: weeklyTrend, isLoading: loadingWeekly } = useTendenciaSemanal(8, filters);
   const { data: filiais, isLoading: loadingFiliais } = useFilialPerformance(filters);
   const { data: transportadores, isLoading: loadingTransportadores } = useTransportadores(filters);
   const { data: ocupacaoTipoVeiculo, isLoading: loadingOcupacao } = useOcupacaoTipoVeiculo(filters);
@@ -601,6 +603,65 @@ export default function CockpitOperacional() {
               </div>
             </SectionCard>
           </div>
+
+          {/* Tendência Semanal (WoW) */}
+          <SectionCard title="Comparativo semana-a-semana" subtitle="Evolução de rotas, volumes, entregas efetivas e score operacional — 8 últimas semanas" delay={240}>
+            {loadingWeekly ? <LoadingSkeleton rows={4} /> : !weeklyTrend?.length ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Sem dados semanais no período selecionado.</p>
+            ) : (
+              <>
+                <div className="overflow-x-auto mb-6">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/70 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                        <th className="px-3 py-2">Semana</th>
+                        <th className="px-3 py-2 text-right">Rotas</th>
+                        <th className="px-3 py-2 text-right">Volumes</th>
+                        <th className="px-3 py-2 text-right">Entregas %</th>
+                        <th className="px-3 py-2 text-right">SPR Vol</th>
+                        <th className="px-3 py-2 text-right">Score</th>
+                        <th className="px-3 py-2 text-right">WoW Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {weeklyTrend.map((w, i) => {
+                        const prev = i > 0 ? weeklyTrend[i - 1] : null;
+                        const scoreDelta = prev ? w.scoreOperacional - prev.scoreOperacional : 0;
+                        return (
+                          <tr key={w.anoSemana} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                            <td className="px-3 py-2.5 font-medium text-foreground">{w.semanaLabel}</td>
+                            <td className="px-3 py-2.5 text-right">{formatInteger(w.rotas)}</td>
+                            <td className="px-3 py-2.5 text-right">{formatInteger(w.volumes)}</td>
+                            <td className="px-3 py-2.5 text-right">{formatPercentFrac(w.entregasEfetivas)}</td>
+                            <td className="px-3 py-2.5 text-right">{formatDecimal(w.sprVolumes, 1)}</td>
+                            <td className="px-3 py-2.5 text-right font-semibold">{formatDecimal(w.scoreOperacional)}</td>
+                            <td className={`px-3 py-2.5 text-right font-semibold ${scoreDelta > 0 ? "text-emerald-500" : scoreDelta < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                              {i === 0 ? "—" : `${scoreDelta >= 0 ? "+" : ""}${formatDecimal(scoreDelta)}`}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="h-64 xl:h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={weeklyTrend.map((w) => ({ ...w, entregasPct: Number((w.entregasEfetivas * 100).toFixed(1)) }))} margin={{ left: 0, right: 0, top: 4, bottom: 4 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                      <XAxis dataKey="semanaLabel" tick={TICK_STYLE_SM} />
+                      <YAxis yAxisId="left" tick={TICK_STYLE} width={48} />
+                      <YAxis yAxisId="right" orientation="right" tick={TICK_STYLE} width={44} domain={[0, 100]} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
+                      <Legend align="center" wrapperStyle={LEGEND_STYLE} />
+                      <Bar yAxisId="left" dataKey="rotas" fill={CHART_COLORS.primary} name="Rotas" radius={[4, 4, 0, 0]} />
+                      <Bar yAxisId="left" dataKey="volumes" fill={CHART_COLORS.teal} name="Volumes" radius={[4, 4, 0, 0]} />
+                      <Line yAxisId="right" type="monotone" dataKey="entregasPct" stroke={CHART_COLORS.gold} strokeWidth={2.5} dot={{ fill: CHART_COLORS.gold, r: 3 }} name="Entrega %" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </>
+            )}
+          </SectionCard>
         </section>
 
         <div className="my-8 border-t border-border/40" />

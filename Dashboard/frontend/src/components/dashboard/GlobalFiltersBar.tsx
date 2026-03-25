@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Calendar, Building2, Truck, RotateCcw, AlertTriangle, Package, ChevronDown } from "lucide-react";
-import { format, parse, isValid } from "date-fns";
+import { format, parse, isValid, subMonths, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import {
@@ -85,6 +85,20 @@ export default function GlobalFiltersBar() {
   const statusOptions = options?.status ?? [];
   const prioridadeOptions = options?.prioridades ?? [];
 
+  // Gerar últimos 6 meses como atalhos, marcando quais têm dados
+  const apiPeriodValues = new Set(periodos.map((p: { value: string }) => p.value));
+  const syntheticMonths = useMemo(() => {
+    const now = new Date();
+    const months: { value: string; label: string; hasData: boolean }[] = [];
+    for (let i = 0; i < 6; i++) {
+      const d = startOfMonth(subMonths(now, i));
+      const value = format(d, "yyyy-MM");
+      const label = format(d, "MMMM yyyy", { locale: ptBR }).replace(/^./, (l) => l.toUpperCase());
+      months.push({ value, label, hasData: apiPeriodValues.has(value) });
+    }
+    return months;
+  }, [apiPeriodValues.size]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const hasFilters = filters.periodo || filters.filial || filters.transportador || filters.status || filters.prioridade || filters.tipoVeiculo;
   const filterCount = [filters.periodo, filters.filial, filters.transportador, filters.tipoVeiculo, filters.status, filters.prioridade].filter(Boolean).length;
 
@@ -117,17 +131,24 @@ export default function GlobalFiltersBar() {
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <div className="flex flex-col sm:flex-row">
-            {/* Atalhos rápidos de mês */}
-            {periodos.length > 0 && (
-              <div className="border-b sm:border-b-0 sm:border-r border-border/40 p-2 flex flex-col gap-0.5 min-w-[130px]">
+            {/* Atalhos rápidos de mês (6 últimos, cinza se sem dados) */}
+            {syntheticMonths.length > 0 && (
+              <div className="border-b sm:border-b-0 sm:border-r border-border/40 p-2 flex flex-col gap-0.5 min-w-[140px]">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide px-2 py-1">Meses</p>
-                {periodos.map((p) => (
+                {syntheticMonths.map((m) => (
                   <button
-                    key={p.value}
-                    onClick={() => handleMonthShortcut(p.value)}
-                    className={`text-left text-xs px-2 py-1.5 rounded hover:bg-accent hover:text-accent-foreground transition-colors ${filters.periodo === p.value ? "bg-accent text-accent-foreground font-semibold" : ""}`}
+                    key={m.value}
+                    onClick={() => handleMonthShortcut(m.value)}
+                    disabled={!m.hasData}
+                    className={`text-left text-xs px-2 py-1.5 rounded transition-colors ${
+                      filters.periodo === m.value
+                        ? "bg-accent text-accent-foreground font-semibold"
+                        : m.hasData
+                          ? "hover:bg-accent hover:text-accent-foreground"
+                          : "text-muted-foreground/40 cursor-not-allowed"
+                    }`}
                   >
-                    {p.label}
+                    {m.label}{!m.hasData && " •"}
                   </button>
                 ))}
                 {filters.periodo && (

@@ -11,7 +11,7 @@ interface SectionCardProps {
 export default function SectionCard({ title, subtitle, children, delay = 0, className }: SectionCardProps) {
   return (
     <div
-      className={`rounded-xl bg-card card-shadow-soft p-3 md:p-5 opacity-0 animate-fade-in-up${className ? ` ${className}` : ""}`}
+      className={`rounded-xl bg-card card-shadow-soft p-4 xl:p-6 opacity-0 animate-fade-in-up${className ? ` ${className}` : ""}`}
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="mb-4">

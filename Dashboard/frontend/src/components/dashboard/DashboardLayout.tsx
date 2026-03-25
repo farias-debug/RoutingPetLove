@@ -2,12 +2,14 @@ import { ReactNode, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, DollarSign, Truck, Clock, CheckCircle,
-  BarChart3, Users, Building2, AlertTriangle, ChevronLeft, Menu, Info, GitCompare
+  BarChart3, Users, Building2, AlertTriangle, ChevronLeft, Menu, Info, GitCompare, X
 } from "lucide-react";
 import petloveLogo from "@/assets/petlove-logo.png";
 import GlobalFiltersBar from "@/components/dashboard/GlobalFiltersBar";
 import { API_ENABLED, MOCKS_ENABLED } from "@/config/env";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
+import { format, parse } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const navItems = [
   { path: "/", label: "Cockpit Executivo-Operacional", icon: LayoutDashboard },
@@ -29,10 +31,30 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const { filters } = useGlobalFilters();
+  const { filters, setFilter } = useGlobalFilters();
   const currentPage = navItems.find((item) => item.path === location.pathname)
     ?? navItems.find((item) => location.pathname.startsWith(item.path) && item.path !== "/")
     ?? (location.pathname === "/cockpit-operacional" ? navItems[0] : undefined);
+
+  // Build active filter chips
+  const activeChips: { key: string; label: string; onClear: () => void }[] = [];
+  if (filters.periodo) {
+    try {
+      const d = parse(filters.periodo, "yyyy-MM", new Date());
+      const label = format(d, "MMM yyyy", { locale: ptBR }).replace(/^./, (l) => l.toUpperCase());
+      activeChips.push({ key: "periodo", label: `Período: ${label}`, onClear: () => setFilter("periodo", undefined) });
+    } catch {
+      activeChips.push({ key: "periodo", label: `Período: ${filters.periodo}`, onClear: () => setFilter("periodo", undefined) });
+    }
+  }
+  if (filters.dataInicio && filters.dataFim) {
+    activeChips.push({ key: "range", label: `${filters.dataInicio} → ${filters.dataFim}`, onClear: () => { setFilter("dataInicio", undefined); setFilter("dataFim", undefined); } });
+  }
+  if (filters.filial) activeChips.push({ key: "filial", label: `Filial: ${filters.filial}`, onClear: () => setFilter("filial", undefined) });
+  if (filters.transportador) activeChips.push({ key: "transp", label: `Transp.: ${filters.transportador}`, onClear: () => setFilter("transportador", undefined) });
+  if (filters.tipoVeiculo) activeChips.push({ key: "veiculo", label: `Veículo: ${filters.tipoVeiculo}`, onClear: () => setFilter("tipoVeiculo", undefined) });
+  if (filters.status) activeChips.push({ key: "status", label: `Status: ${filters.status}`, onClear: () => setFilter("status", undefined) });
+  if (filters.prioridade) activeChips.push({ key: "prio", label: `Prio.: ${filters.prioridade}`, onClear: () => setFilter("prioridade", undefined) });
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -116,6 +138,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex items-center justify-center gap-1.5 bg-blue-500/10 text-blue-700 dark:text-blue-300 text-center text-xs font-semibold py-1.5 px-4 shrink-0">
             <Info className="h-3.5 w-3.5 shrink-0" />
             Exibindo dados do mês corrente. Selecione um período no filtro para navegar no histórico.
+          </div>
+        )}
+        {/* Active filter chips */}
+        {activeChips.length > 0 && (
+          <div className="flex items-center gap-1.5 px-6 py-1.5 bg-muted/50 border-b border-border/30 shrink-0 flex-wrap">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide mr-1">Filtros:</span>
+            {activeChips.map((chip) => (
+              <span
+                key={chip.key}
+                className="inline-flex items-center gap-1 text-[11px] font-medium bg-primary/10 text-primary rounded-full px-2.5 py-0.5"
+              >
+                {chip.label}
+                <button onClick={chip.onClear} className="hover:bg-primary/20 rounded-full p-0.5 transition-colors">
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
           </div>
         )}
         <div className="flex-1 overflow-y-auto p-4 xl:p-6 glow-soft">

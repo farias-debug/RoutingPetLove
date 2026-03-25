@@ -20,7 +20,7 @@ import PageSectionNav, { type PageSectionNavItem } from "@/components/dashboard/
 import SectionCard from "@/components/dashboard/SectionCard";
 import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
 import StatusChip from "@/components/dashboard/StatusChip";
-import { useFilialPerformance } from "@/hooks/useApiData";
+import { useFilialPerformance, useTendenciaSemanal } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
 import { formatInteger, formatPercent, formatDecimal, formatPercentFrac, formatMoney } from "@/lib/formatters";
 import { TOOLTIP_STYLE, TICK_STYLE, TICK_STYLE_SM, GRID_STROKE, CHART_COLORS } from "@/lib/chartConfig";
@@ -30,11 +30,13 @@ const sections: PageSectionNavItem[] = [
   { id: "ranking", label: "Ranking" },
   { id: "spr-score", label: "SPR × Score" },
   { id: "aderencia", label: "Aderência" },
+  { id: "tendencia-semanal", label: "Tendência" },
 ];
 
 export default function ComparativoFiliais() {
   const { filters } = useGlobalFilters();
   const { data: filiais, isLoading } = useFilialPerformance(filters);
+  const { data: weeklyTrend, isLoading: loadingWeekly } = useTendenciaSemanal(8, filters);
 
   const list = (filiais ?? []).filter((f) => f.rotas > 0);
   const sorted = [...list].sort((a, b) => b.scoreOperacional - a.scoreOperacional);
@@ -162,79 +164,79 @@ export default function ComparativoFiliais() {
       </section>
 
       <section id="ranking" className="scroll-mt-24 space-y-5">
-          <SectionCard title="Ranking de score por filial" subtitle="Score operacional — maior é melhor" delay={300}>
-            {isLoading ? <LoadingSkeleton rows={5} /> : scoreRankData.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">Sem filiais ativas no recorte.</p>
-            ) : (
-              <div style={{ height: Math.max(240, scoreRankData.length * 30) }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={scoreRankData} layout="vertical" margin={{ left: 8, right: 32 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
-                    <XAxis type="number" domain={[0, 100]} tick={TICK_STYLE} />
-                    <YAxis type="category" dataKey="filial" width={105} tick={TICK_STYLE_SM} />
-                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [v.toFixed(1), "Score"]} />
-                    <Bar dataKey="score" name="Score" radius={[0, 4, 4, 0]} barSize={18}>
-                      {scoreRankData.map((entry) => (
-                        <Cell
-                          key={entry.filial}
-                          fill={entry.score >= 70 ? CHART_COLORS.success : entry.score >= 55 ? CHART_COLORS.warning : CHART_COLORS.danger}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </SectionCard>
-
-          <SectionCard title="Tabela executiva por filial" subtitle="Performance, capacidade, aderência e custo consolidados" delay={340}>
-            {isLoading ? <LoadingSkeleton rows={8} /> : sorted.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">Sem filiais no recorte.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-[13px]">
-                  <thead>
-                    <tr className="border-b border-border/70 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                      <th className="px-2.5 py-2.5 sticky left-0 bg-card z-10">Filial</th>
-                      <th className="px-2.5 py-2.5 text-right">Score</th>
-                      <th className="px-2.5 py-2.5 text-right">Rotas</th>
-                      <th className="px-2.5 py-2.5 text-right">Pedidos</th>
-                      <th className="px-2.5 py-2.5 text-right">Volumes</th>
-                      <th className="px-2.5 py-2.5 text-right">SPR Vol</th>
-                      <th className="px-2.5 py-2.5 text-right">Entrega</th>
-                      <th className="px-2.5 py-2.5 text-right">Gap SPR</th>
-                      <th className="px-2.5 py-2.5 text-right">Ader.Ped</th>
-                      <th className="px-2.5 py-2.5 text-right">Ader.Vol</th>
-                      <th className="px-2.5 py-2.5 text-right">Desvio h</th>
-                      <th className="px-2.5 py-2.5 text-right">Progresso</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sorted.map((f) => (
-                      <tr key={f.filial} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
-                        <td className="px-2.5 py-2.5 font-bold sticky left-0 bg-card z-10 max-w-[160px] truncate">{f.nomeFilial || f.filial}</td>
-                        <td className="px-2.5 py-2.5 text-right">
-                          <StatusChip label={formatDecimal(f.scoreOperacional)} colorClass={f.scoreOperacional >= 70 ? "bg-success/10 text-success" : f.scoreOperacional >= 55 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"} />
-                        </td>
-                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatInteger(f.rotas)}</td>
-                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatInteger(f.pedidosReal)}</td>
-                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatInteger(f.volumesReal)}</td>
-                        <td className="px-2.5 py-2.5 text-right tabular-nums font-semibold">{formatDecimal(f.sprVolumesReal, 1)}</td>
-                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatPercentFrac(f.entregasEfetivas)}</td>
-                        <td className="px-2.5 py-2.5 text-right">
-                          <StatusChip label={`${f.sprVsMeta >= 0 ? "+" : ""}${formatDecimal(f.sprVsMeta)}`} colorClass={f.sprVsMeta >= 0 ? "bg-success/10 text-success" : f.sprVsMeta >= -5 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"} />
-                        </td>
-                        <td className="px-2.5 py-2.5 text-right tabular-nums">{f.aderenciaPedidos != null ? formatPercentFrac(f.aderenciaPedidos) : "—"}</td>
-                        <td className="px-2.5 py-2.5 text-right tabular-nums">{f.aderenciaVolumes != null ? formatPercentFrac(f.aderenciaVolumes) : "—"}</td>
-                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatDecimal(f.desvioTempoH)}h</td>
-                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatPercent(f.progressoPct, 0)}</td>
-                      </tr>
+        <SectionCard title="Ranking de score por filial" subtitle="Score operacional — maior é melhor" delay={300}>
+          {isLoading ? <LoadingSkeleton rows={5} /> : scoreRankData.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Sem filiais ativas no recorte.</p>
+          ) : (
+            <div style={{ height: Math.max(240, scoreRankData.length * 30) }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={scoreRankData} layout="vertical" margin={{ left: 8, right: 32 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
+                  <XAxis type="number" domain={[0, 100]} tick={TICK_STYLE} />
+                  <YAxis type="category" dataKey="filial" width={105} tick={TICK_STYLE_SM} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [v.toFixed(1), "Score"]} />
+                  <Bar dataKey="score" name="Score" radius={[0, 4, 4, 0]} barSize={18}>
+                    {scoreRankData.map((entry) => (
+                      <Cell
+                        key={entry.filial}
+                        fill={entry.score >= 70 ? CHART_COLORS.success : entry.score >= 55 ? CHART_COLORS.warning : CHART_COLORS.danger}
+                      />
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </SectionCard>
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </SectionCard>
+
+        <SectionCard title="Tabela executiva por filial" subtitle="Performance, capacidade, aderência e custo consolidados" delay={340}>
+          {isLoading ? <LoadingSkeleton rows={8} /> : sorted.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Sem filiais no recorte.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="border-b border-border/70 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                    <th className="px-2.5 py-2.5 sticky left-0 bg-card z-10">Filial</th>
+                    <th className="px-2.5 py-2.5 text-right">Score</th>
+                    <th className="px-2.5 py-2.5 text-right">Rotas</th>
+                    <th className="px-2.5 py-2.5 text-right">Pedidos</th>
+                    <th className="px-2.5 py-2.5 text-right">Volumes</th>
+                    <th className="px-2.5 py-2.5 text-right">SPR Vol</th>
+                    <th className="px-2.5 py-2.5 text-right">Entrega</th>
+                    <th className="px-2.5 py-2.5 text-right">Gap SPR</th>
+                    <th className="px-2.5 py-2.5 text-right">Ader.Ped</th>
+                    <th className="px-2.5 py-2.5 text-right">Ader.Vol</th>
+                    <th className="px-2.5 py-2.5 text-right">Desvio h</th>
+                    <th className="px-2.5 py-2.5 text-right">Progresso</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sorted.map((f) => (
+                    <tr key={f.filial} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                      <td className="px-2.5 py-2.5 font-bold sticky left-0 bg-card z-10 max-w-[160px] truncate">{f.nomeFilial || f.filial}</td>
+                      <td className="px-2.5 py-2.5 text-right">
+                        <StatusChip label={formatDecimal(f.scoreOperacional)} colorClass={f.scoreOperacional >= 70 ? "bg-success/10 text-success" : f.scoreOperacional >= 55 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"} />
+                      </td>
+                      <td className="px-2.5 py-2.5 text-right tabular-nums">{formatInteger(f.rotas)}</td>
+                      <td className="px-2.5 py-2.5 text-right tabular-nums">{formatInteger(f.pedidosReal)}</td>
+                      <td className="px-2.5 py-2.5 text-right tabular-nums">{formatInteger(f.volumesReal)}</td>
+                      <td className="px-2.5 py-2.5 text-right tabular-nums font-semibold">{formatDecimal(f.sprVolumesReal, 1)}</td>
+                      <td className="px-2.5 py-2.5 text-right tabular-nums">{formatPercentFrac(f.entregasEfetivas)}</td>
+                      <td className="px-2.5 py-2.5 text-right">
+                        <StatusChip label={`${f.sprVsMeta >= 0 ? "+" : ""}${formatDecimal(f.sprVsMeta)}`} colorClass={f.sprVsMeta >= 0 ? "bg-success/10 text-success" : f.sprVsMeta >= -5 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"} />
+                      </td>
+                      <td className="px-2.5 py-2.5 text-right tabular-nums">{f.aderenciaPedidos != null ? formatPercentFrac(f.aderenciaPedidos) : "—"}</td>
+                      <td className="px-2.5 py-2.5 text-right tabular-nums">{f.aderenciaVolumes != null ? formatPercentFrac(f.aderenciaVolumes) : "—"}</td>
+                      <td className="px-2.5 py-2.5 text-right tabular-nums">{formatDecimal(f.desvioTempoH)}h</td>
+                      <td className="px-2.5 py-2.5 text-right tabular-nums">{formatPercent(f.progressoPct, 0)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionCard>
       </section>
 
       <section id="spr-score" className="scroll-mt-24">
@@ -302,6 +304,29 @@ export default function ComparativoFiliais() {
                   <Bar dataKey="pedidos" name="Pedidos %" fill={CHART_COLORS.primary} radius={[0, 3, 3, 0]} barSize={10} />
                   <Bar dataKey="volumes" name="Volumes %" fill={CHART_COLORS.secondary} radius={[0, 3, 3, 0]} barSize={10} />
                   <Bar dataKey="km" name="Km %" fill={CHART_COLORS.warning} radius={[0, 3, 3, 0]} barSize={10} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </SectionCard>
+      </section>
+
+      <section id="tendencia-semanal" className="scroll-mt-24">
+        <SectionCard title="Tendência semanal" subtitle="Evolução semana-a-semana de rotas, score e entrega efetiva — 8 últimas semanas" delay={460}>
+          {loadingWeekly ? <LoadingSkeleton rows={4} /> : !weeklyTrend?.length ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Sem dados semanais no período selecionado.</p>
+          ) : (
+            <div className="h-72 xl:h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyTrend.map((w) => ({ label: w.semanaLabel, rotas: w.rotas, score: +w.scoreOperacional.toFixed(1), entrega: +(w.entregasEfetivas * 100).toFixed(1) }))} margin={{ left: 0, right: 0, top: 4, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis dataKey="label" tick={TICK_STYLE_SM} />
+                  <YAxis yAxisId="left" tick={TICK_STYLE} width={48} />
+                  <YAxis yAxisId="right" orientation="right" tick={TICK_STYLE} width={44} domain={[0, 100]} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
+                  <Bar yAxisId="left" dataKey="rotas" fill={CHART_COLORS.primary} name="Rotas" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="score" fill={CHART_COLORS.teal} name="Score" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
