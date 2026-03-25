@@ -542,27 +542,69 @@ export default function CockpitOperacional() {
             </SectionCard>
           </div>
 
-          <SectionCard title="SPR Volumes por filial" subtitle="Volumes por rota (SPR) das principais filiais vs meta" delay={160}>
-            <div className="h-72 md:h-96">
-              <div className="max-w-[900px] mx-auto h-full">
-                {loadingFiliais ? <LoadingSkeleton rows={5} /> : sprFiliais.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de SPR no período selecionado.</p>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={sprFiliais} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                      <XAxis type="number" tick={TICK_STYLE} />
-                      <YAxis dataKey="nome" type="category" width={110} tick={TICK_STYLE_SM} />
-                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number, name: string) => [formatDecimal(value, 2), name]} />
-                      <Legend align="center" wrapperStyle={LEGEND_STYLE} />
-                      <Bar dataKey="sprVolumes" fill={CHART_COLORS.primary} radius={[0, 6, 6, 0]} name="SPR Volumes" barSize={18} />
-                      <ReferenceLine x={sprFiliais[0]?.meta ?? 0} stroke={CHART_COLORS.danger} strokeDasharray="6 4" strokeWidth={2} label={{ value: `Meta ${formatDecimal(sprFiliais[0]?.meta)}`, position: "top", fill: CHART_COLORS.danger, fontSize: 11, fontWeight: 700 }} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
+          <div className="grid gap-6 xl:grid-cols-2">
+          <SectionCard title="SPR Volumes por filial" subtitle="Top 10 filiais — volumes por rota vs meta global e meta filial" delay={160}>
+            {loadingFiliais ? <LoadingSkeleton rows={5} /> : sprFiliais.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de SPR no período selecionado.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/50 text-left text-xs font-semibold text-muted-foreground">
+                      <th className="px-3 py-2">Filial</th>
+                      <th className="px-3 py-2 text-right">SPR Vol</th>
+                      <th className="px-3 py-2 text-right">Meta filial</th>
+                      <th className="px-3 py-2 text-right">Gap</th>
+                      <th className="px-3 py-2 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sprFiliais.map((item) => {
+                      const gap = item.sprVolumes - item.metaFilial;
+                      return (
+                        <tr key={item.nome} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                          <td className="px-3 py-2.5 font-medium text-foreground">{item.nome}</td>
+                          <td className="px-3 py-2.5 text-right font-semibold text-foreground">{formatDecimal(item.sprVolumes, 1)}</td>
+                          <td className="px-3 py-2.5 text-right text-muted-foreground">{formatDecimal(item.metaFilial, 1)}</td>
+                          <td className={`px-3 py-2.5 text-right font-semibold ${gap >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                            {gap >= 0 ? "+" : ""}{formatDecimal(gap, 1)}
+                          </td>
+                          <td className="px-3 py-2.5 text-right">
+                            <StatusChip
+                              label={gap >= 0 ? "OK" : gap >= -5 ? "Atenção" : "Crítico"}
+                              colorClass={gap >= 0 ? "bg-success/10 text-success" : gap >= -5 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
+            )}
+          </SectionCard>
+
+          <SectionCard title="SPR Volumes — visual comparativo" subtitle="Barras horizontais: realizado vs meta por filial" delay={200}>
+            <div className="h-72 md:h-96">
+              {loadingFiliais ? <LoadingSkeleton rows={5} /> : sprFiliais.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">Sem dados no período.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={sprFiliais} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                    <XAxis type="number" tick={TICK_STYLE} />
+                    <YAxis dataKey="nome" type="category" width={110} tick={TICK_STYLE_SM} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number, name: string) => [formatDecimal(value, 1), name]} />
+                    <Legend align="center" wrapperStyle={LEGEND_STYLE} />
+                    <Bar dataKey="sprVolumes" fill={CHART_COLORS.primary} radius={[0, 6, 6, 0]} name="SPR Volumes" barSize={14} />
+                    <Bar dataKey="metaFilial" fill={CHART_COLORS.danger} radius={[0, 6, 6, 0]} name="Meta filial" barSize={14} opacity={0.5} />
+                    <ReferenceLine x={sprFiliais[0]?.meta ?? 0} stroke={CHART_COLORS.gold} strokeDasharray="6 4" strokeWidth={2} label={{ value: `Meta global ${formatDecimal(sprFiliais[0]?.meta)}`, position: "top", fill: CHART_COLORS.gold, fontSize: 11, fontWeight: 700 }} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </SectionCard>
+          </div>
         </section>
 
         <div className="my-8 border-t border-border/40" />

@@ -150,12 +150,12 @@ def main():
         # Teste rápido de query
         print("\nTestando query básica...")
         test_query = f"""
-        SELECT COUNT(*) AS rows
+        SELECT COUNT(*) AS total_rows
         FROM `{PROJECT}.{DATASET}.base_execucao_canonica`
         """
         try:
             result = list(client.query(test_query).result())[0]
-            print(f"  ✓ base_execucao_canonica: {result.rows} linhas")
+            print(f"  ✓ base_execucao_canonica: {result.total_rows} linhas")
         except Exception as e:
             print(f"  ✗ Erro ao query base_execucao_canonica: {e}")
 
