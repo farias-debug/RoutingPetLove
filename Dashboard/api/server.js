@@ -562,6 +562,9 @@ app.get("/api/kpi-diario", async (req, res) => {
     res.json({
       data: formatDate(row.data),
       rotas: Number(row.rotas ?? 0),
+      rotasConcluidas: Number(row.rotasConcluidas ?? 0),
+      rotasPlanejadas: Number(row.rotasPlanejadas ?? 0),
+      qtdNaoPlanejada: Number(row.qtdNaoPlanejada ?? 0),
       pedidos: Number(row.pedidos ?? 0),
       volumes: Number(row.volumes ?? 0),
       entregas: Number(row.entregas ?? 0),

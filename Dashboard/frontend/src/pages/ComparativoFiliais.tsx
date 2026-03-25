@@ -19,9 +19,10 @@ import PageHeroAnalitico from "@/components/dashboard/PageHeroAnalitico";
 import PageSectionNav, { type PageSectionNavItem } from "@/components/dashboard/PageSectionNav";
 import SectionCard from "@/components/dashboard/SectionCard";
 import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
+import StatusChip from "@/components/dashboard/StatusChip";
 import { useFilialPerformance } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
-import { formatInteger, formatPercent } from "@/lib/formatters";
+import { formatInteger, formatPercent, formatDecimal, formatPercentFrac, formatMoney } from "@/lib/formatters";
 import { TOOLTIP_STYLE, TICK_STYLE, TICK_STYLE_SM, GRID_STROKE, CHART_COLORS } from "@/lib/chartConfig";
 
 const sections: PageSectionNavItem[] = [
@@ -160,8 +161,7 @@ export default function ComparativoFiliais() {
         </div>
       </section>
 
-      <section id="ranking" className="scroll-mt-24">
-        <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
+      <section id="ranking" className="scroll-mt-24 space-y-5">
           <SectionCard title="Ranking de score por filial" subtitle="Score operacional — maior é melhor" delay={300}>
             {isLoading ? <LoadingSkeleton rows={5} /> : scoreRankData.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">Sem filiais ativas no recorte.</p>
@@ -187,36 +187,54 @@ export default function ComparativoFiliais() {
             )}
           </SectionCard>
 
-          <SectionCard title="Tabela comparativa" subtitle="Métricas chave por filial" delay={340}>
-            {isLoading ? <LoadingSkeleton rows={6} /> : (
+          <SectionCard title="Tabela executiva por filial" subtitle="Performance, capacidade, aderência e custo consolidados" delay={340}>
+            {isLoading ? <LoadingSkeleton rows={8} /> : sorted.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Sem filiais no recorte.</p>
+            ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-[12px]">
+                <table className="w-full text-[13px]">
                   <thead>
-                    <tr className="border-b border-border">
-                      {["Filial", "Score", "SPR", "Ader."].map((h) => (
-                        <th key={h} className="text-left py-2 px-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{h}</th>
-                      ))}
+                    <tr className="border-b border-border/70 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                      <th className="px-2.5 py-2.5 sticky left-0 bg-card z-10">Filial</th>
+                      <th className="px-2.5 py-2.5 text-right">Score</th>
+                      <th className="px-2.5 py-2.5 text-right">Rotas</th>
+                      <th className="px-2.5 py-2.5 text-right">Pedidos</th>
+                      <th className="px-2.5 py-2.5 text-right">Volumes</th>
+                      <th className="px-2.5 py-2.5 text-right">SPR Vol</th>
+                      <th className="px-2.5 py-2.5 text-right">Entrega</th>
+                      <th className="px-2.5 py-2.5 text-right">Gap SPR</th>
+                      <th className="px-2.5 py-2.5 text-right">Ader.Ped</th>
+                      <th className="px-2.5 py-2.5 text-right">Ader.Vol</th>
+                      <th className="px-2.5 py-2.5 text-right">Desvio h</th>
+                      <th className="px-2.5 py-2.5 text-right">Progresso</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {sorted.map((f) => {
-                      const sc = f.scoreOperacional;
-                      const color = sc >= 70 ? CHART_COLORS.success : sc >= 55 ? CHART_COLORS.warning : CHART_COLORS.danger;
-                      return (
-                        <tr key={f.filial} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                          <td className="py-2 px-2 font-bold">{f.nomeFilial || f.filial}</td>
-                          <td className="py-2 px-2 tabular-nums font-bold" style={{ color }}>{sc.toFixed(1)}</td>
-                          <td className="py-2 px-2 tabular-nums">{f.sprPedidosReal.toFixed(2)}</td>
-                          <td className="py-2 px-2 tabular-nums">{f.aderenciaPedidos != null ? formatPercent(f.aderenciaPedidos * 100, 0) : "—"}</td>
-                        </tr>
-                      );
-                    })}
+                    {sorted.map((f) => (
+                      <tr key={f.filial} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                        <td className="px-2.5 py-2.5 font-bold sticky left-0 bg-card z-10 max-w-[160px] truncate">{f.nomeFilial || f.filial}</td>
+                        <td className="px-2.5 py-2.5 text-right">
+                          <StatusChip label={formatDecimal(f.scoreOperacional)} colorClass={f.scoreOperacional >= 70 ? "bg-success/10 text-success" : f.scoreOperacional >= 55 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"} />
+                        </td>
+                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatInteger(f.rotas)}</td>
+                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatInteger(f.pedidosReal)}</td>
+                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatInteger(f.volumesReal)}</td>
+                        <td className="px-2.5 py-2.5 text-right tabular-nums font-semibold">{formatDecimal(f.sprVolumesReal, 1)}</td>
+                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatPercentFrac(f.entregasEfetivas)}</td>
+                        <td className="px-2.5 py-2.5 text-right">
+                          <StatusChip label={`${f.sprVsMeta >= 0 ? "+" : ""}${formatDecimal(f.sprVsMeta)}`} colorClass={f.sprVsMeta >= 0 ? "bg-success/10 text-success" : f.sprVsMeta >= -5 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"} />
+                        </td>
+                        <td className="px-2.5 py-2.5 text-right tabular-nums">{f.aderenciaPedidos != null ? formatPercentFrac(f.aderenciaPedidos) : "—"}</td>
+                        <td className="px-2.5 py-2.5 text-right tabular-nums">{f.aderenciaVolumes != null ? formatPercentFrac(f.aderenciaVolumes) : "—"}</td>
+                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatDecimal(f.desvioTempoH)}h</td>
+                        <td className="px-2.5 py-2.5 text-right tabular-nums">{formatPercent(f.progressoPct, 0)}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
             )}
           </SectionCard>
-        </div>
       </section>
 
       <section id="spr-score" className="scroll-mt-24">
@@ -224,7 +242,7 @@ export default function ComparativoFiliais() {
           {isLoading ? <LoadingSkeleton rows={5} /> : scatterData.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">Sem dados para o recorte.</p>
           ) : (
-            <div className="h-64">
+            <div className="h-80 xl:h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ left: 8, right: 24, top: 8, bottom: 24 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
@@ -272,7 +290,7 @@ export default function ComparativoFiliais() {
           {isLoading ? <LoadingSkeleton rows={5} /> : aderenciaData.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de aderência para o recorte. Verifique se há planejamento cadastrado.</p>
           ) : (
-            <div className="h-72">
+            <div className="h-80 xl:h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={aderenciaData} layout="vertical" margin={{ left: 8, right: 32 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />

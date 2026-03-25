@@ -209,7 +209,7 @@ export default function PlanejadoRealizado() {
           <TemporalWindowTabs value={trendWindow} onChange={setTrendWindow} />
         </div>
         <SectionCard title={`Aderência volumes e entregas — ${windowLabel}`} subtitle={metaAderencia != null ? `Meta aderência ${formatPercent(metaAderencia * 100)}` : "Sem meta publicada"} delay={280}>
-          <div className="h-56">
+          <div className="h-72 xl:h-80">
             {loadingSerie ? <LoadingSkeleton rows={4} /> : seriesChart.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">Sem dados na janela selecionada.</p>
             ) : (
@@ -239,7 +239,7 @@ export default function PlanejadoRealizado() {
           subtitle="Top 10 filiais por volume realizado"
           delay={300}
         >
-          <div className="h-64">
+          <div className="h-80 xl:h-96">
             {loadingFiliais ? (
               <LoadingSkeleton rows={4} />
             ) : (
@@ -266,7 +266,7 @@ export default function PlanejadoRealizado() {
           subtitle="Top 10 filiais por volume realizado"
           delay={360}
         >
-          <div className="h-64">
+          <div className="h-80 xl:h-96">
             {loadingFiliais ? (
               <LoadingSkeleton rows={4} />
             ) : (

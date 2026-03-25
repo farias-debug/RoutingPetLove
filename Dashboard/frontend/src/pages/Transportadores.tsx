@@ -168,7 +168,7 @@ export default function Transportadores() {
 
       <section id="concentracao" className="scroll-mt-24">
         <SectionCard title="Share dos transportadores" subtitle="Participação % nas rotas — Pareto descendente" delay={180}>
-          <div className="h-64">
+          <div className="h-80 xl:h-96">
             {isLoading ? <LoadingSkeleton rows={4} /> : paretoData.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">Sem transportadores no recorte.</p>
             ) : (
@@ -202,7 +202,7 @@ export default function Transportadores() {
             <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS.warning }} /> Atenção</span>
             <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS.danger }} /> Revisão</span>
           </div>
-          <div className="h-64">
+          <div className="h-80 xl:h-96">
             {isLoading ? (
               <LoadingSkeleton rows={5} />
             ) : scatterData.length < 2 ? (

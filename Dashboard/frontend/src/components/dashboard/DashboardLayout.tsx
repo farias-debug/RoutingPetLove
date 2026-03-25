@@ -118,8 +118,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             Exibindo dados do mês corrente. Selecione um período no filtro para navegar no histórico.
           </div>
         )}
-        <div className="flex-1 overflow-y-auto p-6 glow-soft">
-          <div className="mx-auto w-full max-w-[1600px] px-4">
+        <div className="flex-1 overflow-y-auto p-4 xl:p-6 glow-soft">
+          <div className="mx-auto w-full max-w-[1920px] px-2 xl:px-6">
             {children}
           </div>
         </div>

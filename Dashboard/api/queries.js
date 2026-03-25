@@ -871,6 +871,9 @@ export function kpiDiarioQuery(projectId, dataset, where) {
       SELECT
         o.data,
         o.rotas,
+        o.rotasConcluidas,
+        o.rotasPlanejadas,
+        o.qtdNaoPlanejada,
         o.pedidos,
         o.volumes,
         o.entregas,

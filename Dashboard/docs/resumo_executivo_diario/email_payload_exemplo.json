@@ -1,0 +1,177 @@
+{
+  "asOfDate": "2026-03-25",
+  "title": "Resumo Executivo Diario",
+  "subtitle": "Fechamento operacional de 25/03",
+  "northStarKpis": [
+    {
+      "id": "score_operacional",
+      "label": "Score operacional",
+      "value": "82,4",
+      "detail": "SPR volumes 34,8",
+      "deltaText": "vs ultimo dia comparavel +1,6 pts",
+      "status": "success",
+      "source": "/api/kpi-diario"
+    },
+    {
+      "id": "entrega_efetiva",
+      "label": "Entrega efetiva",
+      "value": "95,1%",
+      "detail": "4.982 entregas concluidas",
+      "deltaText": "vs ultimo dia comparavel +0,8 pp",
+      "status": "success",
+      "source": "/api/kpi-diario"
+    },
+    {
+      "id": "spr_volumes",
+      "label": "SPR volumes",
+      "value": "34,8",
+      "detail": "12.411 volumes em 356 rotas",
+      "deltaText": "vs ultimo dia comparavel +0,7",
+      "status": "success",
+      "source": "/api/kpi-diario"
+    },
+    {
+      "id": "alertas_criticos",
+      "label": "Alertas criticos",
+      "value": "168",
+      "detail": "109 entrega critica + 59 overtime",
+      "deltaText": "vs ultimo dia comparavel -14",
+      "status": "warning",
+      "source": "/api/alertas/contagem"
+    }
+  ],
+  "routeSnapshot": [
+    {
+      "id": "rotas_planejadas",
+      "label": "Rotas planejadas",
+      "value": "341",
+      "detail": "96% do total do dia",
+      "deltaText": "vs ultimo dia comparavel +11",
+      "status": "neutral",
+      "source": "/api/kpi-diario"
+    },
+    {
+      "id": "rotas_em_transito",
+      "label": "Rotas em transito",
+      "value": "27",
+      "detail": "8% ainda abertas",
+      "deltaText": "vs ultimo dia comparavel -9",
+      "status": "warning",
+      "source": "/api/kpi-diario"
+    },
+    {
+      "id": "rotas_concluidas",
+      "label": "Rotas concluidas",
+      "value": "329",
+      "detail": "92,4% do dia encerrado",
+      "deltaText": "vs ultimo dia comparavel +15",
+      "status": "success",
+      "source": "/api/kpi-diario"
+    }
+  ],
+  "riskChips": [
+    {
+      "id": "overtime",
+      "label": "Overtime",
+      "value": "59",
+      "tone": "danger",
+      "source": "/api/alertas/contagem"
+    },
+    {
+      "id": "nao_planejada",
+      "label": "Nao planejadas",
+      "value": "15",
+      "tone": "warning",
+      "source": "/api/alertas/contagem"
+    },
+    {
+      "id": "entrega_critica",
+      "label": "Entrega critica",
+      "value": "109",
+      "tone": "danger",
+      "source": "/api/alertas/contagem"
+    }
+  ],
+  "sprLeaderboard": {
+    "title": "Top 3 filiais por SPR volumes",
+    "subtitle": "Leitura direta de densidade por rota no ultimo fechamento comparavel.",
+    "best": [
+      {
+        "rank": 1,
+        "filial": "Campinas",
+        "value": "38,4",
+        "detail": "Meta 35,0 | gap +3,4",
+        "supportingText": "Score 91,8 | 44 rotas",
+        "tone": "success",
+        "source": "/api/filiais/performance"
+      },
+      {
+        "rank": 2,
+        "filial": "Belo Horizonte",
+        "value": "36,9",
+        "detail": "Meta 35,0 | gap +1,9",
+        "supportingText": "Score 89,7 | 37 rotas",
+        "tone": "success",
+        "source": "/api/filiais/performance"
+      },
+      {
+        "rank": 3,
+        "filial": "Curitiba",
+        "value": "35,8",
+        "detail": "Meta 35,0 | gap +0,8",
+        "supportingText": "Score 88,2 | 31 rotas",
+        "tone": "success",
+        "source": "/api/filiais/performance"
+      }
+    ],
+    "worst": [
+      {
+        "rank": 1,
+        "filial": "Recife",
+        "value": "28,7",
+        "detail": "Meta 35,0 | gap -6,3",
+        "supportingText": "Score 78,6 | 29 rotas",
+        "tone": "danger",
+        "source": "/api/filiais/performance"
+      },
+      {
+        "rank": 2,
+        "filial": "Salvador",
+        "value": "29,4",
+        "detail": "Meta 35,0 | gap -5,6",
+        "supportingText": "Score 80,1 | 26 rotas",
+        "tone": "danger",
+        "source": "/api/filiais/performance"
+      },
+      {
+        "rank": 3,
+        "filial": "Porto Alegre",
+        "value": "30,2",
+        "detail": "Meta 35,0 | gap -4,8",
+        "supportingText": "Score 81,9 | 24 rotas",
+        "tone": "danger",
+        "source": "/api/filiais/performance"
+      }
+    ],
+    "source": "/api/filiais/performance"
+  },
+  "focusOfDay": {
+    "title": "Foco do dia",
+    "entity": "Recife",
+    "reason": "score operacional em 78,6, entrega efetiva de 91,8% e SPR volumes em 28,7",
+    "impact": "Meta 35,0 | gap -6,3",
+    "action": "Abrir o dashboard e revisar priorizacao, capacidade e fila critica da filial.",
+    "source": "/api/filiais/performance"
+  },
+  "cta": {
+    "label": "Abrir dashboard",
+    "url": "https://data-aileron-482822-d0.web.app/"
+  },
+  "email": {
+    "subject": "Resumo Executivo Diario - 25/03",
+    "preheader": "Score, SPR, rotas planejadas, transito e top 3 filiais do dia",
+    "intro": "O fechamento comparavel do dia trouxe score operacional de 82,4, entrega efetiva de 95,1%, 341 rotas planejadas e 27 rotas ainda em transito. O principal ponto de atencao segue concentrado em Recife.",
+    "comparisonLabel": "Comparacao D-1: 24/03",
+    "footerNote": "Base comparavel ate 25/03. Ultimo dia comparavel usado nas variacoes: 24/03. Custo medio por carga: R$ 2.181,40."
+  }
+}

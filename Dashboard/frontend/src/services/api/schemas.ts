@@ -260,6 +260,9 @@ export const motoristaKpisSchema = z.object({
 export const kpiDiarioSchema = z.object({
   data: z.string().nullable().optional().transform((value) => value ?? ""),
   rotas: z.number(),
+  rotasConcluidas: z.number(),
+  rotasPlanejadas: z.number(),
+  qtdNaoPlanejada: z.number(),
   pedidos: z.number(),
   volumes: z.number(),
   entregas: z.number(),

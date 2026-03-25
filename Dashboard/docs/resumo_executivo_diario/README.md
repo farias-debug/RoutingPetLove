@@ -2,10 +2,7 @@
 
 ## Objetivo
 
-Definir um pacote canonico para publicar um resumo executivo diario da operacao last-mile em dois canais:
-
-- e-mail, com bloco visual escaneavel
-- WhatsApp, com mensagem curta e acionavel
+Definir um pacote canonico para publicar um resumo executivo diario da operacao last-mile por e-mail.
 
 O blueprint parte do principio de que o resumo diario nao deve tentar reproduzir o dashboard inteiro. Ele deve responder, em menos de 20 segundos de leitura:
 
@@ -19,16 +16,15 @@ O blueprint parte do principio de que o resumo diario nao deve tentar reproduzir
 
 - um payload unico de resumo diario
 - um render HTML para e-mail
-- um render textual para WhatsApp
 - regras editoriais de conteudo
 - criterios de rollout
 
 ### Fora da v1
 
 - charts complexos no e-mail
-- tabelas detalhadas no WhatsApp
 - metricas com semantica ainda instavel
 - personalizacao por perfil de destinatario
+- automacao de canais de mensagem fora de e-mail
 
 ## Principios de produto
 
@@ -77,8 +73,6 @@ Um unico bloco narrativo:
 - `Abrir dashboard`
 - opcional: `Ver investigacao operacional`
 
-## Canais
-
 ## E-mail
 
 ### Objetivo
@@ -99,27 +93,6 @@ Entregar um snapshot executivo visual, com densidade media e leitura em coluna u
 - assunto: `Resumo Executivo Diario - 25/03`
 - preheader: `Score, entrega, alertas e foco operacional do dia`
 
-## WhatsApp
-
-### Objetivo
-
-Entregar leitura muito curta, com texto escaneavel e 1 link.
-
-### Regras
-
-- no maximo 5 linhas de conteudo util antes do CTA
-- sem tabela
-- sem jargao tecnico desnecessario
-- 1 insight e 1 acao
-- manter o template dentro das restricoes do provedor
-
-### Conteudo ideal
-
-- cabecalho curto
-- 3 a 4 metricas
-- 1 foco do dia
-- 1 link
-
 ## Payload canonico
 
 O payload proposto esta em `resumo_executivo_diario.schema.json`.
@@ -134,7 +107,6 @@ Campos principais:
 - `focusOfDay`
 - `cta`
 - `email`
-- `whatsapp`
 
 ## Mapeamento de dados v1
 
@@ -192,7 +164,6 @@ Formato:
 ```text
 BigQuery/API -> daily summary adapter -> canonical payload
                                      -> email renderer
-                                     -> whatsapp renderer
 ```
 
 ### Sugestao de responsabilidades
@@ -200,7 +171,6 @@ BigQuery/API -> daily summary adapter -> canonical payload
 - API: expor os dados de base
 - adapter do resumo: escolher metricas, textos e foco do dia
 - renderer de e-mail: gerar HTML seguro para clients de e-mail
-- renderer de WhatsApp: gerar texto e variaveis de template
 
 ## Fases de implementacao
 
@@ -208,7 +178,6 @@ BigQuery/API -> daily summary adapter -> canonical payload
 
 - definir payload canonico
 - montar e-mail estatico com dados mockados
-- montar mensagem WhatsApp estaticamente
 
 ### Fase 2
 
@@ -241,10 +210,10 @@ BigQuery/API -> daily summary adapter -> canonical payload
 
 ## Referencias externas
 
-- Twilio WhatsApp card/template constraints: <https://www.twilio.com/docs/content/whatsappcard>
 - Really Good Emails - DoorDash digest: <https://reallygoodemails.com/emails/november-dasher-digest>
 - Really Good Emails - Basecamp daily recap: <https://reallygoodemails.com/emails/daily-recap-email-design-basecamp>
 - Postmark email design guides: <https://postmarkapp.com/guides/email-design>
+- Campaign Monitor - email design review and hierarchy references: <https://www.campaignmonitor.com/wp-content/uploads/2023/08/Campaign-Monitor-ProServ-One-Pagers.pdf?1=1>
 
 ## Decisoes assumidas neste blueprint
 
@@ -252,3 +221,4 @@ BigQuery/API -> daily summary adapter -> canonical payload
 - API local padrao em `localhost:3001`
 - resumo diario com foco executivo, nao analitico
 - v1 sem metricas de ocupacao de peso no topo
+- canal primario e unico da v1: e-mail

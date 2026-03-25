@@ -9,11 +9,12 @@
     "title",
     "subtitle",
     "northStarKpis",
+    "routeSnapshot",
     "riskChips",
+    "sprLeaderboard",
     "focusOfDay",
     "cta",
-    "email",
-    "whatsapp"
+    "email"
   ],
   "properties": {
     "asOfDate": {
@@ -36,6 +37,14 @@
         "$ref": "#/$defs/kpiCard"
       }
     },
+    "routeSnapshot": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/kpiCard"
+      }
+    },
     "riskChips": {
       "type": "array",
       "minItems": 1,
@@ -43,6 +52,9 @@
       "items": {
         "$ref": "#/$defs/riskChip"
       }
+    },
+    "sprLeaderboard": {
+      "$ref": "#/$defs/sprLeaderboard"
     },
     "focusOfDay": {
       "$ref": "#/$defs/focusBlock"
@@ -55,7 +67,9 @@
       "additionalProperties": false,
       "required": [
         "subject",
-        "preheader"
+        "preheader",
+        "intro",
+        "comparisonLabel"
       ],
       "properties": {
         "subject": {
@@ -65,32 +79,17 @@
         "preheader": {
           "type": "string",
           "minLength": 1
-        }
-      }
-    },
-    "whatsapp": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "header",
-        "body",
-        "ctaLabel"
-      ],
-      "properties": {
-        "header": {
+        },
+        "intro": {
           "type": "string",
           "minLength": 1
         },
-        "body": {
+        "comparisonLabel": {
           "type": "string",
           "minLength": 1
         },
-        "footer": {
+        "footerNote": {
           "type": "string"
-        },
-        "ctaLabel": {
-          "type": "string",
-          "minLength": 1
         }
       }
     }
@@ -170,6 +169,93 @@
           "type": "string",
           "enum": [
             "warning",
+            "danger",
+            "neutral"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "sprLeaderboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "subtitle",
+        "best",
+        "worst"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subtitle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string"
+        },
+        "best": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/leaderboardItem"
+          }
+        },
+        "worst": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/leaderboardItem"
+          }
+        }
+      }
+    },
+    "leaderboardItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rank",
+        "filial",
+        "value",
+        "detail",
+        "supportingText",
+        "tone",
+        "source"
+      ],
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "filial": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supportingText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "success",
             "danger",
             "neutral"
           ]

@@ -6,12 +6,17 @@
   "scripts": {
     "frontend:dev": "npm --prefix ./frontend run dev -- --host",
     "frontend:build": "npm --prefix ./frontend run build",
+    "report:email:render:example": "node ./scripts/resumo_executivo_diario/render_email.mjs --input ./docs/resumo_executivo_diario/email_payload_exemplo.json",
+    "report:email:payload:api": "node ./scripts/resumo_executivo_diario/build_payload_from_api.mjs",
+    "report:email:api": "node ./scripts/resumo_executivo_diario/generate_email_from_api.mjs",
+    "report:email:send": "node ./scripts/resumo_executivo_diario/send_email.mjs",
     "pipeline:extract": "node ./extraction/extrair_relatorio_tms.mjs",
     "pipeline:consolidar": "python ./extraction/consolidar_monitoramento.py",
     "pipeline:bq-load": "python ./bigquery/load_raw_to_bq.py --table all"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",
+    "nodemailer": "^6.10.1",
     "playwright": "^1.52.0"
   },
   "devDependencies": {

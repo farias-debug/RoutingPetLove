@@ -91,7 +91,7 @@ export default function CustosEficiencia() {
 
       <section id="concentracao" className="scroll-mt-24">
         <SectionCard title="Custo Médio por Carga — Transportador" subtitle="R$/carga" delay={300}>
-          <div className="h-64">
+          <div className="h-80 xl:h-96">
             {loadingTransp ? <LoadingSkeleton rows={4} /> : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={list}>
@@ -135,7 +135,7 @@ export default function CustosEficiencia() {
                   <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS.warning }} /> Atenção</span>
                   <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS.danger }} /> Revisão</span>
                 </div>
-                <div className="h-64">
+                <div className="h-80 xl:h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <ScatterChart margin={{ left: 8, right: 16, top: 8, bottom: 4 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />

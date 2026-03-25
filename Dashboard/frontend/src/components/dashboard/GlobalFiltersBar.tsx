@@ -86,6 +86,7 @@ export default function GlobalFiltersBar() {
   const prioridadeOptions = options?.prioridades ?? [];
 
   const hasFilters = filters.periodo || filters.filial || filters.transportador || filters.status || filters.prioridade || filters.tipoVeiculo;
+  const filterCount = [filters.periodo, filters.filial, filters.transportador, filters.tipoVeiculo, filters.status, filters.prioridade].filter(Boolean).length;
 
   const selectedRange = periodoToRange(filters.periodo);
 
@@ -240,9 +241,10 @@ export default function GlobalFiltersBar() {
       {hasFilters && (
         <button
           onClick={resetFilters}
-          className="flex items-center gap-1 h-8 px-2.5 rounded-md text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+          className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/10 transition-colors"
         >
           <RotateCcw className="h-3 w-3" />
+          <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold">{filterCount}</span>
           Limpar
         </button>
       )}

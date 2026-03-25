@@ -408,7 +408,7 @@ export default function CockpitOperacional() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {loadingCards ? <LoadingSkeleton rows={2} /> : kpis.map((kpi, index) => (
               <KPICard key={kpi.label} data={kpi} delay={index * 40} />
             ))}
@@ -481,8 +481,7 @@ export default function CockpitOperacional() {
 
           <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
             <SectionCard title="Fluxo diário" subtitle="Rotas, pedidos e volumes no período selecionado" delay={80}>
-              <div className="h-64 md:h-80">
-                <div className="max-w-[900px] mx-auto h-full">
+              <div className="h-80 xl:h-96">
                   {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : flowTrendData.length === 0 ? (
                     <p className="py-8 text-center text-sm text-muted-foreground">Sem dados no período selecionado.</p>
                   ) : (
@@ -514,13 +513,11 @@ export default function CockpitOperacional() {
                       </AreaChart>
                     </ResponsiveContainer>
                   )}
-                </div>
               </div>
             </SectionCard>
 
             <SectionCard title="Qualidade de execução" subtitle="Entrega efetiva e aderência de volumes (%)" delay={120}>
-              <div className="h-64 md:h-80">
-                <div className="max-w-[900px] mx-auto h-full">
+              <div className="h-80 xl:h-96">
                   {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : qualityTrendData.length === 0 ? (
                     <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de qualidade no período selecionado.</p>
                   ) : (
@@ -537,73 +534,72 @@ export default function CockpitOperacional() {
                       </LineChart>
                     </ResponsiveContainer>
                   )}
-                </div>
               </div>
             </SectionCard>
           </div>
 
           <div className="grid gap-6 xl:grid-cols-2">
-          <SectionCard title="SPR Volumes por filial" subtitle="Top 10 filiais — volumes por rota vs meta global e meta filial" delay={160}>
-            {loadingFiliais ? <LoadingSkeleton rows={5} /> : sprFiliais.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de SPR no período selecionado.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border/50 text-left text-xs font-semibold text-muted-foreground">
-                      <th className="px-3 py-2">Filial</th>
-                      <th className="px-3 py-2 text-right">SPR Vol</th>
-                      <th className="px-3 py-2 text-right">Meta filial</th>
-                      <th className="px-3 py-2 text-right">Gap</th>
-                      <th className="px-3 py-2 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sprFiliais.map((item) => {
-                      const gap = item.sprVolumes - item.metaFilial;
-                      return (
-                        <tr key={item.nome} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
-                          <td className="px-3 py-2.5 font-medium text-foreground">{item.nome}</td>
-                          <td className="px-3 py-2.5 text-right font-semibold text-foreground">{formatDecimal(item.sprVolumes, 1)}</td>
-                          <td className="px-3 py-2.5 text-right text-muted-foreground">{formatDecimal(item.metaFilial, 1)}</td>
-                          <td className={`px-3 py-2.5 text-right font-semibold ${gap >= 0 ? "text-emerald-500" : "text-destructive"}`}>
-                            {gap >= 0 ? "+" : ""}{formatDecimal(gap, 1)}
-                          </td>
-                          <td className="px-3 py-2.5 text-right">
-                            <StatusChip
-                              label={gap >= 0 ? "OK" : gap >= -5 ? "Atenção" : "Crítico"}
-                              colorClass={gap >= 0 ? "bg-success/10 text-success" : gap >= -5 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </SectionCard>
-
-          <SectionCard title="SPR Volumes — visual comparativo" subtitle="Barras horizontais: realizado vs meta por filial" delay={200}>
-            <div className="h-72 md:h-96">
+            <SectionCard title="SPR Volumes por filial" subtitle="Top 10 filiais — volumes por rota vs meta global e meta filial" delay={160}>
               {loadingFiliais ? <LoadingSkeleton rows={5} /> : sprFiliais.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">Sem dados no período.</p>
+                <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de SPR no período selecionado.</p>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={sprFiliais} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                    <XAxis type="number" tick={TICK_STYLE} />
-                    <YAxis dataKey="nome" type="category" width={110} tick={TICK_STYLE_SM} />
-                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number, name: string) => [formatDecimal(value, 1), name]} />
-                    <Legend align="center" wrapperStyle={LEGEND_STYLE} />
-                    <Bar dataKey="sprVolumes" fill={CHART_COLORS.primary} radius={[0, 6, 6, 0]} name="SPR Volumes" barSize={14} />
-                    <Bar dataKey="metaFilial" fill={CHART_COLORS.danger} radius={[0, 6, 6, 0]} name="Meta filial" barSize={14} opacity={0.5} />
-                    <ReferenceLine x={sprFiliais[0]?.meta ?? 0} stroke={CHART_COLORS.gold} strokeDasharray="6 4" strokeWidth={2} label={{ value: `Meta global ${formatDecimal(sprFiliais[0]?.meta)}`, position: "top", fill: CHART_COLORS.gold, fontSize: 11, fontWeight: 700 }} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/50 text-left text-xs font-semibold text-muted-foreground">
+                        <th className="px-3 py-2">Filial</th>
+                        <th className="px-3 py-2 text-right">SPR Vol</th>
+                        <th className="px-3 py-2 text-right">Meta filial</th>
+                        <th className="px-3 py-2 text-right">Gap</th>
+                        <th className="px-3 py-2 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sprFiliais.map((item) => {
+                        const gap = item.sprVolumes - item.metaFilial;
+                        return (
+                          <tr key={item.nome} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                            <td className="px-3 py-2.5 font-medium text-foreground">{item.nome}</td>
+                            <td className="px-3 py-2.5 text-right font-semibold text-foreground">{formatDecimal(item.sprVolumes, 1)}</td>
+                            <td className="px-3 py-2.5 text-right text-muted-foreground">{formatDecimal(item.metaFilial, 1)}</td>
+                            <td className={`px-3 py-2.5 text-right font-semibold ${gap >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                              {gap >= 0 ? "+" : ""}{formatDecimal(gap, 1)}
+                            </td>
+                            <td className="px-3 py-2.5 text-right">
+                              <StatusChip
+                                label={gap >= 0 ? "OK" : gap >= -5 ? "Atenção" : "Crítico"}
+                                colorClass={gap >= 0 ? "bg-success/10 text-success" : gap >= -5 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
-            </div>
-          </SectionCard>
+            </SectionCard>
+
+            <SectionCard title="SPR Volumes — visual comparativo" subtitle="Barras horizontais: realizado vs meta por filial" delay={200}>
+              <div className="h-80 xl:h-[26rem]">
+                {loadingFiliais ? <LoadingSkeleton rows={5} /> : sprFiliais.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">Sem dados no período.</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={sprFiliais} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                      <XAxis type="number" tick={TICK_STYLE} />
+                      <YAxis dataKey="nome" type="category" width={110} tick={TICK_STYLE_SM} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number, name: string) => [formatDecimal(value, 1), name]} />
+                      <Legend align="center" wrapperStyle={LEGEND_STYLE} />
+                      <Bar dataKey="sprVolumes" fill={CHART_COLORS.primary} radius={[0, 6, 6, 0]} name="SPR Volumes" barSize={14} />
+                      <Bar dataKey="metaFilial" fill={CHART_COLORS.danger} radius={[0, 6, 6, 0]} name="Meta filial" barSize={14} opacity={0.5} />
+                      <ReferenceLine x={sprFiliais[0]?.meta ?? 0} stroke={CHART_COLORS.gold} strokeDasharray="6 4" strokeWidth={2} label={{ value: `Meta global ${formatDecimal(sprFiliais[0]?.meta)}`, position: "top", fill: CHART_COLORS.gold, fontSize: 11, fontWeight: 700 }} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </SectionCard>
           </div>
         </section>
 
@@ -611,8 +607,7 @@ export default function CockpitOperacional() {
         <section id="filiais" className="scroll-mt-24">
           <div className="grid gap-6 xl:grid-cols-2">
             <SectionCard title="Filiais com melhor tração" subtitle="Score operacional e entrega efetiva no recorte" delay={140}>
-              <div className="h-80 md:h-96">
-                <div className="max-w-[900px] mx-auto h-full">
+              <div className="h-96 xl:h-[28rem]">
                   {loadingFiliais ? <LoadingSkeleton rows={5} /> : topFiliais.length === 0 ? (
                     <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de filiais no período selecionado.</p>
                   ) : (
@@ -628,7 +623,6 @@ export default function CockpitOperacional() {
                       </BarChart>
                     </ResponsiveContainer>
                   )}
-                </div>
               </div>
             </SectionCard>
 
@@ -703,8 +697,7 @@ export default function CockpitOperacional() {
         <section id="capacidade" className="scroll-mt-24">
           <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
             <SectionCard title="Mix de veículo e ocupação" subtitle="Rotas por tipo (eixo esq.) e ocupação de peso (eixo dir.)" delay={220}>
-              <div className="h-72 md:h-80">
-                <div className="max-w-[900px] mx-auto h-full">
+              <div className="h-80 xl:h-96">
                   {loadingOcupacao ? <LoadingSkeleton rows={5} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={frotaRanking}>
@@ -719,7 +712,6 @@ export default function CockpitOperacional() {
                       </BarChart>
                     </ResponsiveContainer>
                   )}
-                </div>
               </div>
             </SectionCard>
 
@@ -801,8 +793,7 @@ export default function CockpitOperacional() {
             </SectionCard>
 
             <SectionCard title="Score operacional e produtividade" subtitle="Evolução do score e SPR volumes no período" delay={280}>
-              <div className="h-64 md:h-80">
-                <div className="max-w-[900px] mx-auto h-full">
+              <div className="h-80 xl:h-96">
                   {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={trendData}>
@@ -818,7 +809,6 @@ export default function CockpitOperacional() {
                       </LineChart>
                     </ResponsiveContainer>
                   )}
-                </div>
               </div>
             </SectionCard>
           </div>

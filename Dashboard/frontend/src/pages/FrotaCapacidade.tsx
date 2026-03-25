@@ -202,7 +202,7 @@ export default function FrotaCapacidade() {
           subtitle={`% de peso utilizado vs ocioso — meta: ${formatPercent(metaOcupacao * 100, 0)}`}
           delay={300}
         >
-          <div className="h-64">
+          <div className="h-80 xl:h-96">
             {loadingOcupacao ? (
               <LoadingSkeleton rows={4} />
             ) : (

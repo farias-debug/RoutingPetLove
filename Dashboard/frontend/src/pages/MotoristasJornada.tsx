@@ -101,7 +101,7 @@ export default function MotoristasJornada() {
               score: s.scoreOperacional != null ? +s.scoreOperacional.toFixed(1) : null,
             }));
             return (
-              <div className="h-64">
+              <div className="h-80 xl:h-96">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={serieData} margin={{ left: 0, right: 24, top: 8, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
@@ -140,7 +140,7 @@ export default function MotoristasJornada() {
               return barData.length === 0 ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de jornada registrados nesta página. Rotas do dia mais recente podem ainda estar em andamento.</p>
               ) : (
-                <div className="h-72">
+                <div className="h-80 xl:h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={barData} layout="vertical" margin={{ left: 8, right: 24 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />

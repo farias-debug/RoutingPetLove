@@ -118,7 +118,7 @@ export default function InvestigacaoOperacional() {
             return severityData.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">Nenhum alerta no recorte.</p>
             ) : (
-              <div className="h-48">
+              <div className="h-64 xl:h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={severityData} layout="vertical" margin={{ left: 8, right: 24 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />

@@ -167,7 +167,7 @@ export default function AderenciaAtendimento() {
 
       <section id="evolucao" className="scroll-mt-24">
         <SectionCard title="Evolução diária" subtitle={`Janela ${windowLabel} — aderência volumes e entregas efetivas`} delay={400}>
-          <div className="h-56">
+          <div className="h-72 xl:h-80">
             {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={seriesChart}>
@@ -191,7 +191,7 @@ export default function AderenciaAtendimento() {
       <section id="dimensoes" className="scroll-mt-24">
         <div className="grid gap-6 lg:grid-cols-3">
           <SectionCard title="Radar de aderência" subtitle="Visão de todas as dimensões" delay={440}>
-            <div className="h-56">
+            <div className="h-72 xl:h-80">
               {loadingKpi ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData} outerRadius="75%">
@@ -207,7 +207,7 @@ export default function AderenciaAtendimento() {
           </SectionCard>
 
           <SectionCard title="Barras dimensionais" subtitle="Comparação precisa de cada dimensão" delay={460}>
-            <div className="h-56">
+            <div className="h-72 xl:h-80">
               {loadingKpi ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[...radarData].sort((a, b) => b.valor - a.valor)} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>

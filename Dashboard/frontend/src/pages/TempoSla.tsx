@@ -167,7 +167,7 @@ export default function TempoSla() {
       <section id="entregas" className="scroll-mt-24">
         <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
           <SectionCard title="Entregas efetivas por dia" subtitle={metaEntregas != null ? `Janela ${windowLabel} com meta de ${(metaEntregas * 100).toFixed(0)}%` : `Janela ${windowLabel}`} delay={350}>
-            <div className="h-56">
+            <div className="h-72 xl:h-80">
               {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
@@ -215,7 +215,7 @@ export default function TempoSla() {
       <section id="produtividade" className="scroll-mt-24">
         <div className="grid gap-6 xl:grid-cols-2">
           <SectionCard title="SPR pedidos por dia" subtitle={metaSpr != null ? `Janela ${windowLabel} com meta ${formatDecimal(metaSpr)}` : `Janela ${windowLabel}`} delay={410}>
-            <div className="h-56">
+            <div className="h-72 xl:h-80">
               {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
@@ -232,7 +232,7 @@ export default function TempoSla() {
           </SectionCard>
 
           <SectionCard title="Tempo médio realizado por dia" subtitle="Tempo diário realizado versus meta publicada" delay={450}>
-            <div className="h-56">
+            <div className="h-72 xl:h-80">
               {loadingSerieDiaria ? <LoadingSkeleton rows={4} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>

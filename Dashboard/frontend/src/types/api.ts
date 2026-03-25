@@ -247,6 +247,9 @@ export interface MotoristaKpis {
 export interface KpiDiario {
   data: string;
   rotas: number;
+  rotasConcluidas: number;
+  rotasPlanejadas: number;
+  qtdNaoPlanejada: number;
   pedidos: number;
   volumes: number;
   entregas: number;

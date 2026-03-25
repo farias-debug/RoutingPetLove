@@ -21,10 +21,10 @@ export const GRID_STROKE = "hsl(220 13% 91%)";
 
 /** Alturas padronizadas para gráficos Recharts */
 export const CHART_HEIGHT = {
-  sm: 192,    // 48 * 4 — mini charts, sparklines
-  md: 256,    // 64 * 4 — padrão
-  lg: 320,    // 80 * 4 — destaque
-  xl: 400,    // 100 * 4 — hero/full width
+  sm: 220,    // mini charts, sparklines
+  md: 320,    // padrão
+  lg: 400,    // destaque
+  xl: 480,    // hero/full width
 } as const;
 
 /** Paleta primária do dashboard — púrpura, laranja, teal e cinzas */
