@@ -102,17 +102,6 @@ def normalize_and_export(df: pd.DataFrame, table_name: str, cfg: dict) -> Path:
                         ",", ".", regex=False
                     )
 
-    # Converter HH:MM → horas decimais em "Tempo Realizado" (FLOAT no BQ)
-    if "Tempo Realizado" in df.columns:
-        hhmm_mask = df["Tempo Realizado"].str.match(r"^\d{1,3}:\d{2}$", na=False)
-        if hhmm_mask.any():
-            parts = df.loc[hhmm_mask, "Tempo Realizado"].str.split(":", expand=True)
-            df.loc[hhmm_mask, "Tempo Realizado"] = (
-                (parts[0].astype(float) + parts[1].astype(float) / 60)
-                .round(2)
-                .astype(str)
-            )
-
     out_path = OUTPUT_DIR / f"{table_name}.csv"
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False, encoding="utf-8")

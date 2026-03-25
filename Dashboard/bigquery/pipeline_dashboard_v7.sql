@@ -208,7 +208,7 @@ SELECT
   SAFE_CAST(f.`Quantidade Volumes` AS FLOAT64) AS qtd_volumes,
   SAFE_CAST(f.Entregues AS FLOAT64) AS qtd_entregues,
   GREATEST(SAFE_CAST(f.Insucessos AS FLOAT64), 0) AS qtd_insucessos,
-  SAFE_CAST(f.Peso AS FLOAT64) / 1000.0 AS peso_real_kg,  -- TMS armazena em gramas; converter para kg
+  SAFE_CAST(f.Peso AS FLOAT64) AS peso_real_kg,  -- CSV já armazena em kg
   SAFE_CAST(f.baixas AS FLOAT64) AS qtd_baixas,
   SAFE_CAST(f.Paradas AS FLOAT64) AS qtd_paradas,
   SAFE_CAST(f.Clientes AS FLOAT64) AS qtd_clientes,
@@ -229,12 +229,12 @@ SELECT
 
   0.0 AS tempo_planejado_h,  -- Tempo planejado vem de raw_planejamento, não de raw_monitoramento
 
-  -- Valores pagamento (TMS armazena em centavos; converter para reais)
-  SAFE_CAST(f.`Valor Pagamento Carga` AS FLOAT64) / 100.0 AS valor_carga,
-  SAFE_CAST(f.`Valor Pagamento Rota` AS FLOAT64) / 100.0 AS valor_rota,
+  -- Valores pagamento (CSV já armazena em reais)
+  SAFE_CAST(f.`Valor Pagamento Carga` AS FLOAT64) AS valor_carga,
+  SAFE_CAST(f.`Valor Pagamento Rota` AS FLOAT64) AS valor_rota,
   0.0 AS valor_parada,  -- Campo não existe na raw
-  SAFE_CAST(f.`Valor Pagamento Remessas` AS FLOAT64) / 100.0 AS valor_remessas,
-  SAFE_CAST(f.`Valor Pagamento Km` AS FLOAT64) / 100.0 AS valor_km,
+  SAFE_CAST(f.`Valor Pagamento Remessas` AS FLOAT64) AS valor_remessas,
+  SAFE_CAST(f.`Valor Pagamento Km` AS FLOAT64) AS valor_km,
   0.0 AS valor_ajudante,  -- Campo não existe na raw
 
   -- Outros
