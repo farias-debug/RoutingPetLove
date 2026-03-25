@@ -255,7 +255,7 @@ export default function AderenciaAtendimento() {
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
-                        width: `${f.entregasEfetivas}%`,
+                        width: `${Math.min(f.entregasEfetivas, 100)}%`,
                         background: f.entregasEfetivas >= 95 ? CHART_COLORS.success : f.entregasEfetivas >= 93 ? CHART_COLORS.warning : CHART_COLORS.danger,
                       }}
                     />

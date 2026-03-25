@@ -137,12 +137,14 @@ CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.vehicle_t
 );
 
 CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.vehicle_weight_capacity`(vtype STRING) AS (
-  -- Apenas os tipos com capacidade de peso definida.
-  -- Outros tipos retornam NULL e ficam excluídos do cálculo de ocupação peso.
+  -- Capacidade de carga útil (kg) por tipo de veículo.
+  -- Valores ajustados: dados reais indicam peso médio 3.400-4.200 kg/rota,
+  -- consistente com VUC/3-4 Ton (não Fiorino/Passeio tradicionais).
+  -- TODO: validar com a equipe de frota os valores exatos de cada tipo.
   CASE vtype
-    WHEN 'Van'        THEN 900.0
-    WHEN 'Utilitario' THEN 550.0
-    WHEN 'Passeio'    THEN 350.0
+    WHEN 'Van'        THEN 5500.0
+    WHEN 'Utilitario' THEN 4500.0
+    WHEN 'Passeio'    THEN 4000.0
     ELSE NULL
   END
 );
@@ -155,6 +157,13 @@ CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.motorista
     NULLIF(TRIM(cpf), ''),
     `data-aileron-482822-d0.monitoramento_carga.normalize_text`(nome)
   )
+);
+
+CREATE OR REPLACE FUNCTION `data-aileron-482822-d0.monitoramento_carga.filial_code_canonical`(val STRING) AS (
+  -- Extrai o código numérico embutido na sigla da filial.
+  -- Exemplos: "PetLog01 São Paulo" → "01"  |  "Petlog08 Goiânia" → "08"
+  -- Formato esperado: {letras}{NN} {nome cidade} — dígitos DEPOIS de letras, antes do espaço.
+  LPAD(COALESCE(REGEXP_EXTRACT(UPPER(TRIM(IFNULL(val, ''))), r'[A-Z]+(\d+)'), '00'), 2, '0')
 );
 
 -- ==============================================================================
@@ -199,7 +208,7 @@ SELECT
   SAFE_CAST(f.`Quantidade Volumes` AS FLOAT64) AS qtd_volumes,
   SAFE_CAST(f.Entregues AS FLOAT64) AS qtd_entregues,
   GREATEST(SAFE_CAST(f.Insucessos AS FLOAT64), 0) AS qtd_insucessos,
-  SAFE_CAST(f.Peso AS FLOAT64) AS peso_real_kg,
+  SAFE_CAST(f.Peso AS FLOAT64) / 1000.0 AS peso_real_kg,  -- TMS armazena em gramas; converter para kg
   SAFE_CAST(f.baixas AS FLOAT64) AS qtd_baixas,
   SAFE_CAST(f.Paradas AS FLOAT64) AS qtd_paradas,
   SAFE_CAST(f.Clientes AS FLOAT64) AS qtd_clientes,
@@ -220,12 +229,12 @@ SELECT
 
   0.0 AS tempo_planejado_h,  -- Tempo planejado vem de raw_planejamento, não de raw_monitoramento
 
-  -- Valores pagamento (já são FLOAT na raw)
-  SAFE_CAST(f.`Valor Pagamento Carga` AS FLOAT64) AS valor_carga,
-  SAFE_CAST(f.`Valor Pagamento Rota` AS FLOAT64) AS valor_rota,
+  -- Valores pagamento (TMS armazena em centavos; converter para reais)
+  SAFE_CAST(f.`Valor Pagamento Carga` AS FLOAT64) / 100.0 AS valor_carga,
+  SAFE_CAST(f.`Valor Pagamento Rota` AS FLOAT64) / 100.0 AS valor_rota,
   0.0 AS valor_parada,  -- Campo não existe na raw
-  SAFE_CAST(f.`Valor Pagamento Remessas` AS FLOAT64) AS valor_remessas,
-  SAFE_CAST(f.`Valor Pagamento Km` AS FLOAT64) AS valor_km,
+  SAFE_CAST(f.`Valor Pagamento Remessas` AS FLOAT64) / 100.0 AS valor_remessas,
+  SAFE_CAST(f.`Valor Pagamento Km` AS FLOAT64) / 100.0 AS valor_km,
   0.0 AS valor_ajudante,  -- Campo não existe na raw
 
   -- Outros
@@ -285,6 +294,7 @@ SELECT
   d.Regiao AS regiao,
   d.`Capacidade Volume Dia` AS capacidade_volume_dia,
   `data-aileron-482822-d0.monitoramento_carga.normalize_text`(d.Filial) AS filial_key,
+  `data-aileron-482822-d0.monitoramento_carga.filial_code_canonical`(d.Filial) AS filial_codigo,
   `data-aileron-482822-d0.monitoramento_carga.normalize_text`(d.`Nome Filial`) AS nome_filial_key,
   (d.MetaSPR IS NOT NULL AND d.`Capacidade Volume Dia` IS NOT NULL) AS filial_completa,
   CASE
@@ -352,8 +362,14 @@ exec_base AS (
       'SEM_TRANSPORTADOR'
     ) AS transportador_key_canonico,
 
+    -- Nomes canônicos para exibição (capitalização correta)
+    INITCAP(LOWER(TRIM(m.motorista))) AS motorista_display,
+    INITCAP(LOWER(TRIM(m.transportador))) AS transportador_display,
+
     -- Flags operacionais
-    (LOWER(m.status_tms) IN ('concluido', 'concluída', 'finalizado', 'finalizada')) AS flag_rota_concluida,
+    (`data-aileron-482822-d0.monitoramento_carga.normalize_text`(m.status_tms)
+      IN ('concluido', 'concluida', 'finalizado', 'finalizada', 'entregue', 'entregues')
+    ) AS flag_rota_concluida,
     (
       CASE
         WHEN m.ts_primeira_baixa IS NOT NULL
@@ -363,7 +379,6 @@ exec_base AS (
         ELSE COALESCE(m.tempo_realizado_h, 0)
       END
     ) > 8.0 AS flag_overtime,
-    (m.ts_carregamento IS NULL OR DATE(m.ts_carregamento) != DATE(m.ts_primeira_baixa)) AS flag_nao_planejada,
 
     -- Tempo operacional (primeira a última baixa)
     CASE
@@ -390,7 +405,12 @@ com_filial AS (
     f.regiao,
     f.meta_spr AS meta_spr_filial,
     f.capacidade_volume_dia,
-    COALESCE(f.filial_nome, e.filial_raw) AS filial
+    f.filial_codigo,
+    -- Formato canônico: "09-Jundiai" (código + cidade, sem prefixo genérico)
+    COALESCE(
+      CONCAT(f.filial_codigo, '-', TRIM(REGEXP_REPLACE(f.filial_nome, r'^(?i)[A-Za-z]+\d+\s*', ''))),
+      e.filial_raw
+    ) AS filial
   FROM exec_base e
   LEFT JOIN `data-aileron-482822-d0.monitoramento_carga.dim_filial` f
     ON e.filial_key = f.filial_key
@@ -414,6 +434,9 @@ com_flags_adicionais AS (
   SELECT
     cp.*,
 
+    -- Flag: Rota sem planejamento (id_carga não encontrado em stg_planejamento)
+    (NOT cp.possui_planejamento) AS flag_nao_planejada,
+
     -- Flag: Rota sem tempo planejado ou realizado
     (COALESCE(cp.tempo_plan_h, 0) = 0 AND COALESCE(cp.tempo_operacional_h, 0) = 0) AS flag_sem_tempo,
 
@@ -429,20 +452,50 @@ com_flags_adicionais AS (
   FROM com_planejamento cp
 )
 SELECT
-  *,
-  -- KPIs row-level pré-calculados (consumidos por alertas e drill-rotas)
+  -- Remove colunas sempre-zero que poluem o schema
+  * EXCEPT(tempo_planejado_h, valor_parada, valor_ajudante),
+
+  -- ── KPIs row-level: entrega ───────────────────────────────────────────────
   `data-aileron-482822-d0.monitoramento_carga.safe_div`(
     qtd_entregues, qtd_entregues + qtd_insucessos
   ) AS pct_entrega_efetiva,
+
+  -- ── KPIs row-level: aderências (requerem planejamento) ───────────────────
   `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(
     qtd_volumes, NULLIF(volumes_plan, 0)
   ) AS aderencia_volumes,
+  `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(
+    qtd_pedidos, NULLIF(pedidos_plan, 0)
+  ) AS aderencia_pedidos,
+  `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(
+    peso_real_kg, NULLIF(peso_plan_kg, 0)
+  ) AS aderencia_peso,
+  `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(
+    km_real, NULLIF(km_plan_plan, 0)
+  ) AS aderencia_km,
+  `data-aileron-482822-d0.monitoramento_carga.adherence_ratio`(
+    tempo_operacional_h, NULLIF(tempo_plan_h, 0)
+  ) AS aderencia_tempo,
+
+  -- ── KPIs row-level: capacidade e velocidade ───────────────────────────────
   `data-aileron-482822-d0.monitoramento_carga.safe_div`(
     peso_real_kg, NULLIF(capacidade_peso_kg, 0)
   ) AS ocup_peso_veiculo,
   `data-aileron-482822-d0.monitoramento_carga.safe_div`(
     qtd_entregues, NULLIF(tempo_operacional_h, 0)
-  ) AS dpph
+  ) AS dpph,
+
+  -- ── KPIs row-level: custo unitário ────────────────────────────────────────
+  `data-aileron-482822-d0.monitoramento_carga.safe_div`(
+    valor_total, NULLIF(qtd_pedidos, 0)
+  ) AS custo_por_pedido,
+  `data-aileron-482822-d0.monitoramento_carga.safe_div`(
+    valor_total, NULLIF(qtd_volumes, 0)
+  ) AS custo_por_volume,
+
+  -- ── Temporal ──────────────────────────────────────────────────────────────
+  FORMAT_DATE('%G-W%V', data_referencia) AS semana_referencia
+
 FROM com_flags_adicionais;
 
 -- ==============================================================================

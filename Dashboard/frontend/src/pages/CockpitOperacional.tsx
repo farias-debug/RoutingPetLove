@@ -482,7 +482,7 @@ export default function CockpitOperacional() {
           <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
             <SectionCard title="Fluxo diário" subtitle="Rotas, pedidos e volumes no período selecionado" delay={80}>
               <div className="h-64 md:h-80">
-                <div className="max-w-[900px] mx-auto">
+                <div className="max-w-[900px] mx-auto h-full">
                   {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : flowTrendData.length === 0 ? (
                     <p className="py-8 text-center text-sm text-muted-foreground">Sem dados no período selecionado.</p>
                   ) : (
@@ -520,7 +520,7 @@ export default function CockpitOperacional() {
 
             <SectionCard title="Qualidade de execução" subtitle="Entrega efetiva e aderência de volumes (%)" delay={120}>
               <div className="h-64 md:h-80">
-                <div className="max-w-[900px] mx-auto">
+                <div className="max-w-[900px] mx-auto h-full">
                   {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : qualityTrendData.length === 0 ? (
                     <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de qualidade no período selecionado.</p>
                   ) : (
@@ -544,7 +544,7 @@ export default function CockpitOperacional() {
 
           <SectionCard title="SPR Volumes por filial" subtitle="Volumes por rota (SPR) das principais filiais vs meta" delay={160}>
             <div className="h-72 md:h-96">
-              <div className="max-w-[900px] mx-auto">
+              <div className="max-w-[900px] mx-auto h-full">
                 {loadingFiliais ? <LoadingSkeleton rows={5} /> : sprFiliais.length === 0 ? (
                   <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de SPR no período selecionado.</p>
                 ) : (
@@ -570,7 +570,7 @@ export default function CockpitOperacional() {
           <div className="grid gap-6 xl:grid-cols-2">
             <SectionCard title="Filiais com melhor tração" subtitle="Score operacional e entrega efetiva no recorte" delay={140}>
               <div className="h-80 md:h-96">
-                <div className="max-w-[900px] mx-auto">
+                <div className="max-w-[900px] mx-auto h-full">
                   {loadingFiliais ? <LoadingSkeleton rows={5} /> : topFiliais.length === 0 ? (
                     <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de filiais no período selecionado.</p>
                   ) : (
@@ -662,7 +662,7 @@ export default function CockpitOperacional() {
           <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
             <SectionCard title="Mix de veículo e ocupação" subtitle="Rotas por tipo (eixo esq.) e ocupação de peso (eixo dir.)" delay={220}>
               <div className="h-72 md:h-80">
-                <div className="max-w-[900px] mx-auto">
+                <div className="max-w-[900px] mx-auto h-full">
                   {loadingOcupacao ? <LoadingSkeleton rows={5} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={frotaRanking}>
@@ -760,7 +760,7 @@ export default function CockpitOperacional() {
 
             <SectionCard title="Score operacional e produtividade" subtitle="Evolução do score e SPR volumes no período" delay={280}>
               <div className="h-64 md:h-80">
-                <div className="max-w-[900px] mx-auto">
+                <div className="max-w-[900px] mx-auto h-full">
                   {loadingSerieDiaria ? <LoadingSkeleton rows={5} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={trendData}>

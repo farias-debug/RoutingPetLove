@@ -20,7 +20,7 @@ jobs:
         run: |
           echo "=== Verificando estrutura canônica ==="
           MISSING=()
-          for dir in Dashboard/bigquery Dashboard/extraction Dashboard/config Dashboard/google_apps Dashboard/api Dashboard/frontend Dashboard/docs scripts .github/agents .github/instructions .github/prompts; do
+          for dir in Dashboard/bigquery Dashboard/extraction Dashboard/config Dashboard/api Dashboard/frontend Dashboard/docs Dashboard/pipeline scripts .github/agents .github/instructions .github/prompts; do
             if [ ! -d "$dir" ]; then
               MISSING+=("$dir")
             fi
@@ -39,7 +39,7 @@ jobs:
         run: |
           echo "=== Verificando arquivos críticos ==="
           MISSING=()
-          for f in Dashboard/bigquery/pipeline_dashboard_v7.sql Dashboard/bigquery/deploy_v7_dashboard.py Dashboard/bigquery/load_raw_to_bq.py Dashboard/extraction/consolidar_monitoramento.py Dashboard/api/queries.js Dashboard/api/server.js scripts/daily_pipeline.ps1 AGENTS.md; do
+          for f in Dashboard/bigquery/pipeline_dashboard_v7.sql Dashboard/bigquery/deploy_v7_dashboard.py Dashboard/bigquery/load_raw_to_bq.py Dashboard/extraction/consolidar_monitoramento.py Dashboard/api/queries.js Dashboard/api/server.js Dashboard/pipeline/run_pipeline.mjs; do
             if [ ! -f "$f" ]; then
               MISSING+=("$f")
             fi

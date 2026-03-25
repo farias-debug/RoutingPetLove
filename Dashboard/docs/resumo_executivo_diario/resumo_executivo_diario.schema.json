@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petlove.local/schemas/resumo_executivo_diario.schema.json",
+  "title": "ResumoExecutivoDiario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "asOfDate",
+    "title",
+    "subtitle",
+    "northStarKpis",
+    "riskChips",
+    "focusOfDay",
+    "cta",
+    "email",
+    "whatsapp"
+  ],
+  "properties": {
+    "asOfDate": {
+      "type": "string",
+      "description": "Data base do fechamento executivo diario no formato YYYY-MM-DD."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subtitle": {
+      "type": "string",
+      "minLength": 1
+    },
+    "northStarKpis": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "$ref": "#/$defs/kpiCard"
+      }
+    },
+    "riskChips": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/riskChip"
+      }
+    },
+    "focusOfDay": {
+      "$ref": "#/$defs/focusBlock"
+    },
+    "cta": {
+      "$ref": "#/$defs/cta"
+    },
+    "email": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject",
+        "preheader"
+      ],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preheader": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "whatsapp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "header",
+        "body",
+        "ctaLabel"
+      ],
+      "properties": {
+        "header": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1
+        },
+        "footer": {
+          "type": "string"
+        },
+        "ctaLabel": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "kpiCard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "value",
+        "status",
+        "source"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "deltaText": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "success",
+            "warning",
+            "danger",
+            "neutral"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "riskChip": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "value",
+        "tone",
+        "source"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "warning",
+            "danger",
+            "neutral"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "focusBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "entity",
+        "reason",
+        "action"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "impact": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    },
+    "cta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "url"
+      ],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    }
+  }
+}

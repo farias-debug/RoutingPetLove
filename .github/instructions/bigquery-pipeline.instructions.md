@@ -20,7 +20,7 @@ raw_monitoramento (CSV → BQ load)
 raw_planejamento  (XLSX → BQ load)
 raw_dim_filial    (XLSX → BQ load)
         ↓
-pipeline_dashboard_v7.sql — UDFs + stg + dim + base_execucao_canonica + pub_metas + metas_pivot_canonico
+pipeline_dashboard_v7.sql — UDFs + stg + dim + base_execucao_canonica + metas_globais + metas_pivot_canonico
         ↓
 queries.js — agrega dinamicamente de base_execucao_canonica com filtros
         ↓
@@ -33,7 +33,7 @@ Contém em ordem:
 - UDFs (11): `normalize_text`, `safe_div`, `adherence_ratio`, `status_higher`, `status_target_band`, `capacity_status`, `status_score`, `fn_score_operacional`, `vehicle_type_canonical`, `vehicle_weight_capacity`, `motorista_key_canonical`
 - Staging (2): `stg_monitoramento`, `stg_planejamento`
 - Dimensão (1): `dim_filial`
-- Metas (2): `metas_globais`, `pub_metas`
+- Metas (1): `metas_globais`
 - Pivot (1): `metas_pivot_canonico`
 - Canônica (1): `base_execucao_canonica` — única fonte atômica da API
 

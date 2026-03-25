@@ -7,6 +7,10 @@ React 18 + TypeScript + Vite + shadcn/ui + Recharts + React Query.
 ```bash
 npm install
 npm run dev     # http://localhost:8080
+
+# Em paralelo, suba a API local na porta padronizada
+cd ../api
+node server.js   # http://localhost:3001
 ```
 
 ## Variáveis de Ambiente

@@ -14,47 +14,58 @@ DATASET = "monitoramento_carga"
 SNAPSHOT_FILE = Path(__file__).parent / "_regression_snapshot.json"
 
 QUERIES = {
-    "mart_kpi_diario_latest": f"""
-        SELECT data, qtd_rotas, spr_ped, spr_vol, pct_entregas, orh, dpph,
-               ocup_composta, score_operacional
-        FROM `{PROJECT}.{DATASET}.mart_kpi_diario`
-        ORDER BY data DESC
+    "base_execucao_canonica_latest": f"""
+        SELECT data_referencia, COUNT(*) AS qtd_rotas,
+               ROUND(AVG(pct_entrega_efetiva), 4) AS avg_pct_entregas,
+               ROUND(AVG(dpph), 2) AS avg_dpph,
+               ROUND(AVG(ocup_peso_veiculo), 4) AS avg_ocup_peso
+        FROM `{PROJECT}.{DATASET}.base_execucao_canonica`
+        WHERE data_referencia = (
+          SELECT MAX(data_referencia) FROM `{PROJECT}.{DATASET}.base_execucao_canonica`
+        )
+        GROUP BY data_referencia
+    """,
+    "base_execucao_canonica_count": f"""
+        SELECT COUNT(*) AS n FROM `{PROJECT}.{DATASET}.base_execucao_canonica`
+    """,
+    "metas_pivot_canonico_check": f"""
+        SELECT meta_spr_ped, meta_spr_vol, meta_entregas, meta_rotas,
+               meta_orh, meta_ader_vol, meta_ocup, meta_dpph
+        FROM `{PROJECT}.{DATASET}.metas_pivot_canonico`
         LIMIT 1
     """,
-    "mart_kpi_filial_count": f"""
-        SELECT COUNT(*) AS n FROM `{PROJECT}.{DATASET}.mart_kpi_filial_dia`
+    "metas_globais_count": f"""
+        SELECT COUNT(*) AS n FROM `{PROJECT}.{DATASET}.metas_globais`
     """,
-    "mart_kpi_transp_count": f"""
-        SELECT COUNT(*) AS n FROM `{PROJECT}.{DATASET}.mart_kpi_transportador_dia`
-    """,
-    "kpi_card_latest_count": f"""
-        SELECT COUNT(*) AS n FROM `{PROJECT}.{DATASET}.kpi_card_latest`
-    """,
-    "fct_execucao_sample": f"""
-        SELECT COUNT(*) AS n, MAX(data_planejada) AS max_data
-        FROM `{PROJECT}.{DATASET}.fct_execucao`
-    """,
-    "alertas_rotas_count": f"""
-        SELECT COUNT(*) AS n FROM `{PROJECT}.{DATASET}.alertas_rotas`
+    "freshness": f"""
+        SELECT MAX(data_referencia) AS max_data,
+               DATE_DIFF(CURRENT_DATE(), MAX(data_referencia), DAY) AS dias_atraso
+        FROM `{PROJECT}.{DATASET}.base_execucao_canonica`
     """,
     "score_consistency": f"""
         SELECT
-          ROUND(AVG(score_operacional), 1) AS avg_score,
-          MIN(score_operacional) AS min_score,
-          MAX(score_operacional) AS max_score
-        FROM `{PROJECT}.{DATASET}.mart_kpi_diario`
-        WHERE data >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
+          ROUND(AVG(`{PROJECT}.{DATASET}.fn_score_operacional`(
+            `{PROJECT}.{DATASET}.status_higher`(
+              `{PROJECT}.{DATASET}.safe_div`(b.qtd_volumes, CAST(1 AS FLOAT64)), m.meta_spr_vol),
+            `{PROJECT}.{DATASET}.status_higher`(b.pct_entrega_efetiva, m.meta_entregas),
+            IF(b.flag_rota_concluida, 'OK', 'Critico'),
+            `{PROJECT}.{DATASET}.status_target_band`(b.tempo_operacional_h, m.meta_orh, 1.0, 2.1),
+            IF(b.ocup_peso_veiculo IS NOT NULL,
+               `{PROJECT}.{DATASET}.status_higher`(b.ocup_peso_veiculo, m.meta_ocup),
+               'Informativo'),
+            `{PROJECT}.{DATASET}.capacity_status`(b.ocup_peso_veiculo)
+          )), 1) AS avg_score
+        FROM `{PROJECT}.{DATASET}.base_execucao_canonica` b
+        CROSS JOIN `{PROJECT}.{DATASET}.metas_pivot_canonico` m
+        WHERE b.data_referencia >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
     """,
 }
 
 THRESHOLDS = {
-    "score_operacional": 5.0,
-    "spr_ped": 3.0,
-    "spr_vol": 5.0,
-    "pct_entregas": 0.02,
-    "orh": 1.0,
-    "dpph": 1.0,
-    "ocup_composta": 0.05,
+    "avg_score": 5.0,
+    "avg_pct_entregas": 0.02,
+    "avg_dpph": 1.0,
+    "avg_ocup_peso": 0.05,
 }
 
 

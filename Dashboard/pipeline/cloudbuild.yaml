@@ -1,0 +1,12 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "gcr.io/$PROJECT_ID/pipeline-tms-bq"
+      - "-f"
+      - "pipeline/Dockerfile"
+      - "."
+images:
+  - "gcr.io/$PROJECT_ID/pipeline-tms-bq"
+timeout: "1200s"

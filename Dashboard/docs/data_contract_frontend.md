@@ -96,7 +96,7 @@ VITE_API_BASE_URL=https://dashboard-logistico-api-745676656148.us-central1.run.a
 ### Desenvolvimento local
 
 ```env
-VITE_API_BASE_URL=http://localhost:8080
+VITE_API_BASE_URL=http://localhost:3001
 ```
 
 ### Mock local controlado
@@ -189,6 +189,19 @@ Parâmetros opcionais:
 - tipoVeiculo
 - status
 
+### GET /api/executivo/serie-diaria
+
+Série diária de KPIs consolidados para o cockpit executivo. Suporta janela configurável.
+
+Parâmetros opcionais:
+
+- janela (default: 30d)
+- periodo
+- filial
+- transportador
+- tipoVeiculo
+- status
+
 ### GET /api/filiais/performance
 
 Performance agregada por filial, usada em resumo, planejado x realizado e aderência.
@@ -227,7 +240,7 @@ type PaginatedResponse<T> = {
 }
 ```
 
-Fonte BigQuery: alertas_rotas.
+Fonte BigQuery: base_execucao_canonica (filtros de alerta).
 
 ### GET /api/alertas/contagem
 
@@ -368,7 +381,7 @@ Parâmetros opcionais:
 ## 10. Status de implementação
 
 - API real implementada em Dashboard/api.
-- Views v6 corrigidas e publicadas no BigQuery.
+- Pipeline v7 canônico publicado no BigQuery.
 - Frontend publicado consumindo a URL pública do Cloud Run.
 - Mock mantido apenas como fallback local controlado e explícito.
 

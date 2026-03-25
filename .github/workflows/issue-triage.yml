@@ -29,8 +29,8 @@ jobs:
             if (content.includes('react') || content.includes('frontend') || content.includes('dashboard') || content.includes('vite')) {
               labelsToAdd.push('domain: frontend');
             }
-            if (content.includes('apps script') || content.includes('sheets') || content.includes('clasp') || content.includes('google apps')) {
-              labelsToAdd.push('domain: apps-script');
+            if (content.includes('cloud run job') || content.includes('scheduler') || content.includes('pipeline cloud')) {
+              labelsToAdd.push('domain: pipeline');
             }
             if (content.includes('api') || content.includes('cloud run') || content.includes('endpoint')) {
               labelsToAdd.push('domain: api');

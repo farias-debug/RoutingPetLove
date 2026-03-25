@@ -18,7 +18,7 @@ Esta matriz descreve a aderência real entre hooks, endpoints, fontes BQ, filtro
 | Motoristas | useMotoristas | /api/motoristas | bec (unitOnly) agregado por motorista/data | page, limit, periodo, filial, transportador, overtime | motorista paginado | PaginatedResponse\<Motorista\> | Aderente |
 | Motoristas | useMotoristasKpis | /api/motoristas/kpis | bec | periodo, filial, transportador, tipoVeiculo, status | agregado | MotoristaKpis | Aderente |
 | Múltiplas telas | useKpiDiario | /api/kpi-diario | bec | periodo, filial, transportador, tipoVeiculo, status; default = mês corrente | snapshot diário consolidado | KpiDiario | Aderente |
-| Tempo e SLA / múltiplas telas | useMetas | /api/metas | metas_globais (pub_metas_v7) | sem filtros | catálogo canônico | MetaGlobal[] | Aderente |
+| Tempo e SLA / múltiplas telas | useMetas | /api/metas | metas_globais | sem filtros | catálogo canônico | MetaGlobal[] | Aderente |
 | Todas as telas | useGlobalFilters | /api/filtros/opcoes | bec (facetas independentes por dimensão) | cross-dimensional por exclusão | opções de filtro | FiltrosOpcoes | Aderente |
 
 ## Leitura de status

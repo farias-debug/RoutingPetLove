@@ -2,10 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Transform Pipeline (debug)",
+      "name": "Deploy Pipeline v7 (debug)",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/Dashboard/scripts/transform.py",
+      "program": "${workspaceFolder}/Dashboard/bigquery/deploy_v7_dashboard.py",
       "cwd": "${workspaceFolder}/Dashboard",
       "python": "${workspaceFolder}/Dashboard/.venv/Scripts/python.exe",
       "console": "integratedTerminal",

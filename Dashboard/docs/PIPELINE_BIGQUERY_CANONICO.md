@@ -1,8 +1,8 @@
 # Pipeline BigQuery Canônico
 
 Projeto: data-aileron-482822-d0.monitoramento_carga
-Data: 2026-03-22
-Status: documento canônico único para a camada de dados BigQuery
+Data: 2026-03-25
+Status: documento canônico único para a camada de dados BigQuery — atualizado para refatoração v7 (2026-03-23)
 
 ---
 
@@ -146,13 +146,18 @@ Não deve:
 
 | Arquivo | Situação | Uso |
 | --- | --- | --- |
-| bigquery/pipeline_dashboard_v7.sql | ativo | camada completa Dashboard: staging, dim, base, metas, UDFs |
-| bigquery/load_raw_to_bq.py | ativo | carga raw via bq load --replace |
+| pipeline/run_pipeline.mjs | ativo | orquestrador Cloud Run Job (5 etapas) |
+| extraction/extrair_planejamento.py | ativo | extração planejamento de rotas do Google Sheets |
+| extraction/extrair_relatorio_tms.mjs | ativo | extração TMS via Playwright |
+| extraction/consolidar_monitoramento.py | ativo | consolidação CSVs incrementais + backup GCS |
+| bigquery/load_raw_to_bq.py | ativo | carga raw via Python API (WRITE_TRUNCATE) |
+| bigquery/pipeline_dashboard_v7.sql | ativo | camada completa: staging, dim, base, metas, UDFs |
+| bigquery/deploy_v7_dashboard.py | ativo | script de deploy do pipeline v7 |
 | bigquery/validate_pipeline.py | ativo | validação de integridade (row counts, freshness, KPI sanity) |
 | bigquery/validate_data_contract.py | ativo | validação de schemas e valores canônicos de metas |
 | api/queries.js | ativo | agregações inline SQL para todos os endpoints |
-| api/server.js | ativo | 10 endpoints REST consumindo queries.js |
-| api/helpers.js | ativo | filtros, parsing, defaults temporais |
+| api/server.js | ativo | 13 endpoints REST consumindo queries.js |
+| api/helpers.js | ativo | filtros, parsing, defaults temporais, buildCanonWhere |
 
 **Arquivos descontinuados (arquivados em bigquery/_archive/):**
 
@@ -162,30 +167,108 @@ Não deve:
 
 ---
 
-## 6. Ordem Oficial de Execução (v7)
+## 5.1 UDFs Ativas em pipeline_dashboard_v7.sql
 
-1. **Extrair dados do TMS** (scripts/extraction/extrair_relatorio_tms.mjs ou consolidar_monitoramento.py)
-2. **Opcional: persistir em GCS** quando ambiente é efêmero (usa TMS_GCS_BUCKET, TMS_GCS_PREFIX)
-3. **Carregar raw** via bigquery/load_raw_to_bq.py (executa bq load --replace para 3 tabelas)
-4. **Deploy pipeline v7** executando pipeline_dashboard_v7.sql no BigQuery Console ou via bq query
-5. **Validar integridade** via bigquery/validate_pipeline.py (row counts, freshness, dedup, KPI sanity)
-6. **Validar contratos** via bigquery/validate_data_contract.py (schemas, metas canônicas, ranges)
+| UDF | Assinatura | Descrição |
+| --- | --- | --- |
+| normalize_text | (val STRING) → STRING | lowercase + strip acentos + trim |
+| safe_div | (num FLOAT64, den FLOAT64) → FLOAT64 | divisão segura retorna NULL quando den=0 |
+| adherence_ratio | (real FLOAT64, plan FLOAT64) → FLOAT64 | LEAST(1.0, safe_div(real, plan)) |
+| status_higher | (val FLOAT64, meta FLOAT64) → STRING | OK/Atencao/Critico/Informativo |
+| status_target_band | (val, target, att_gap, crit_gap FLOAT64) → STRING | banda de alvo (usado para ORH) |
+| capacity_status | (val FLOAT64) → STRING | Saturado/Critico/Atencao/OK para ocupação |
+| status_score | (s STRING) → FLOAT64 | mapeia status textual para 0.0/0.5/1.0 |
+| fn_score_operacional | (6x STRING) → FLOAT64 | score médio via status_score (0–100) |
+| vehicle_type_canonical | (raw_type STRING) → STRING | normaliza tipo veículo: Van, Utilitario, Passeio |
+| vehicle_weight_capacity | (tipo STRING) → FLOAT64 | capacidade kg por tipo de veículo |
+| motorista_key_canonical | (cpf, nome STRING) → STRING | chave de dedup motorista: CPF ou normalize_text(nome) |
+| filial_code_canonical | (val STRING) → STRING | extrai código numérico da filial: 'PetLog01' → '01' |
 
-### 6.1 Persistencia intermediaria recomendada
+## 5.2 Schema de base_execucao_canonica (colunas principais)
 
-Quando a extracao do TMS roda fora da maquina local, os CSVs intermediarios devem ser persistidos em um bucket GCS configurado por variaveis de ambiente:
+Grão: 1 linha por id_carga (rota individual).
 
-- TMS_GCS_BUCKET
-- TMS_GCS_PREFIX
+| Coluna | Tipo | Origem | Descrição |
+| --- | --- | --- | --- |
+| id_carga | STRING | raw_monitoramento | chave primária da rota |
+| data_referencia | DATE | derivada ts_carregamento / dtabertura | data canônica de execução |
+| filial | STRING | dim_filial.filial_nome | nome formatado da filial |
+| filial_key | STRING | normalize_text(filial_raw) | chave de join |
+| filial_codigo | STRING | filial_code_canonical(filial_raw) | código numérico '01'–'16' |
+| tipo_filial | STRING | dim_filial.tipo | 'Unidade' ou outro |
+| regiao | STRING | dim_filial.regiao | região geográfica |
+| transportador | STRING | raw_monitoramento | nome bruto |
+| transportador_display | STRING | INITCAP(LOWER(TRIM(transportador))) | nome formatado para exibição |
+| transportador_key_canonico | STRING | COALESCE(normalize_text(transportador), 'SEM_TRANSPORTADOR') | chave de join |
+| motorista | STRING | raw_monitoramento | nome bruto |
+| motorista_display | STRING | INITCAP(LOWER(TRIM(motorista))) | nome formatado para exibição |
+| motorista_key_canonico | STRING | motorista_key_canonical(cpf, nome) | chave de dedup motorista |
+| tipo_veiculo | STRING | vehicle_type_canonical(tipo_veiculo_raw) | Van / Utilitario / Passeio |
+| capacidade_peso_kg | FLOAT64 | vehicle_weight_capacity(tipo_veiculo) | capacidade física inferida |
+| semana_referencia | STRING | FORMAT_DATE('%G-W%V', data_referencia) | semana ISO ex: '2026-W12' |
+| pct_entrega_efetiva | FLOAT64 | safe_div(entregues, entregues+insucessos) | efetividade de entrega row-level |
+| aderencia_volumes | FLOAT64 | adherence_ratio(volumes, volumes_plan) | NULL sem planejamento |
+| aderencia_pedidos | FLOAT64 | adherence_ratio(pedidos, pedidos_plan) | NULL sem planejamento |
+| aderencia_peso | FLOAT64 | adherence_ratio(peso, peso_plan) | NULL sem planejamento |
+| aderencia_km | FLOAT64 | adherence_ratio(km, km_plan) | NULL sem planejamento |
+| aderencia_tempo | FLOAT64 | adherence_ratio(tempo, tempo_plan) | NULL sem planejamento |
+| ocup_peso_veiculo | FLOAT64 | safe_div(peso_real_kg, capacidade_peso_kg) | ocupação física do veículo |
+| dpph | FLOAT64 | safe_div(entregues, tempo_operacional_h) | entregas por hora |
+| custo_por_pedido | FLOAT64 | safe_div(valor_total, qtd_pedidos) | custo unitário row-level |
+| custo_por_volume | FLOAT64 | safe_div(valor_total, qtd_volumes) | custo unitário row-level |
 
-Convencao operacional:
+O pipeline roda automaticamente via Cloud Run Job `pipeline-tms-bq` (Cloud Scheduler: `0 8 * * 1-5` BRT).
+Orquestrador: `pipeline/run_pipeline.mjs`
 
-- incrementais: gs://bucket/prefix/incrementais/
-- processados: gs://bucket/prefix/processados/
-- consolidado: gs://bucket/prefix/consolidado/Relatorio_Monitoramento_Carga_Completo.csv
-- backups: gs://bucket/prefix/backups/
+### 6.0 Etapa 0 — Download dimensões do GCS
 
-O diretorio local data/ continua como espelho de trabalho, mas a persistencia entre execucoes deixa de depender do disco do runner.
+Baixa arquivos de `gs://petlove-tms-data/tms-monitoramento/dimensoes/` para `/app/data/tab_auxiliar/`.
+
+### 6.1 Etapa 1 — Extração planejamento (Google Sheets)
+
+Script: `extraction/extrair_planejamento.py`
+
+- **Fonte**: Google Sheets `1zANDyZMZIdVp22C-RgPw3yu4L97rEJ5XYZnTj0TZDBw` (aba GID `63799993`)
+- **Autenticação**: `google.auth.default()` (SA do Cloud Run)
+- **Filtro**: apenas linhas com Data no ano 2026
+- **Conversões**: datas Excel serial → ISO, tempo fracção → HH:MM:SS
+- **Saída**: `data/planejamento_2026.csv` (9 colunas: Filial, Cluster, Data, Lista, Pedidos, Volume, Km, Tempo de Rota, Peso)
+- **Rename no load**: Cluster→Rota, Data→Data Planejada, Lista→Id Carga (para casar com schema BQ)
+- **Pré-requisitos**: Sheets API habilitada; planilha compartilhada com a SA `pipeline-tms-bq@data-aileron-482822-d0.iam.gserviceaccount.com`
+
+### 6.2 Etapa 2 — Extração TMS (Playwright)
+
+Script: `extraction/extrair_relatorio_tms.mjs`
+
+- Login automático no TMS com credenciais de Secret Manager (TMS_USER, TMS_PASS)
+- Download de CSVs incrementais por período (PIPELINE_DAYS_BACK dias)
+- Saída: `data/Relatorio_Monitoramento_Carga/*.csv`
+
+### 6.3 Etapa 3 — Consolidação
+
+Script: `extraction/consolidar_monitoramento.py`
+
+- Concatena incrementais em `_Completo.csv`
+- Remove sobreposições por período
+- Move processados para `_processados/`
+- Backup e upload para GCS
+
+### 6.4 Etapa 4 — Carga raw no BigQuery
+
+Script: `bigquery/load_raw_to_bq.py` (Python API, WRITE_TRUNCATE)
+
+3 tabelas carregadas:
+
+- `raw_monitoramento` ← `Relatorio_Monitoramento_Carga_Completo.csv`
+- `raw_planejamento` ← `planejamento_2026.csv`
+- `raw_dim_filial` ← `tab_auxiliar/dim_filial.xlsx`
+
+Após a carga, as views staging e base_execucao_canonica atualizam automaticamente.
+
+### 6.5 Validação (pós-pipeline)
+
+- `bigquery/validate_pipeline.py` — row counts, freshness, dedup, KPI sanity
+- `bigquery/validate_data_contract.py` — schemas, metas canônicas, ranges
 
 ---
 
@@ -204,7 +287,7 @@ ROW_NUMBER() OVER (
 ) = 1
 ```
 
-**Localização:** Aplicada em `dim_planejamento` antes do JOIN com `fct_execucao`
+**Localização:** Aplicada em `stg_planejamento` antes do JOIN com `base_execucao_canonica`
 
 **Regra de negócio:** Quando existem múltiplas linhas para o mesmo planning_key (id_carga + filial_key), prevalece o registro com data_planejada mais recente.
 
@@ -255,7 +338,7 @@ CREATE OR REPLACE FUNCTION motorista_key_canonical(cpf STRING, nome STRING) AS (
 - Alertar quando > 20% dos registros usam fallback para nome (CPF ausente)
 - CPF deve ser tratado com zero à esquerda preservado
 
-**Impacto:** `mart_motorista_dia_canonico` e derivados agregam corretamente motoristas com mesmo CPF mas nomes diferentes.
+**Impacto:** `base_execucao_canonica` agrega corretamente motoristas com mesmo CPF mas nomes diferentes, via coluna `motorista_key_canonico`.
 
 ### 7.3 Canonização da Chave de Transportador
 
@@ -279,13 +362,13 @@ COALESCE(
 - Transportador NULL ou vazio é tratado como categoria explícita 'SEM_TRANSPORTADOR'
 - Permite rastreamento e análise de registros com dado faltante
 
-**Impacto:** `mart_transportador_dia_canonico` inclui linha 'SEM_TRANSPORTADOR' quando aplicável.
+**Impacto:** `base_execucao_canonica` inclui coluna `transportador_key_canonico` com valor 'SEM_TRANSPORTADOR' quando aplicável.
 
 ---
 
 ## 8. Regras Operacionais Obrigatórias
 
-1. KPI não pode ser recalculado em server.js se já existir em mart canônico.
+1. KPIs são calculados exclusivamente em `queries.js` agregando de `base_execucao_canonica`.
 2. Percentuais publicados na API ficam em fração 0-1.
 3. DPPH oficial usa entregues por hora.
 4. Ocupação física oficial usa peso real por capacidade do veículo.
@@ -328,11 +411,10 @@ Motivo da absorção de v5 no documento canônico:
 
 ---
 
-## 11. Próxima Etapa Técnica
+## 11. Próximas Evoluções Previstas
 
-O próximo avanço estrutural esperado é:
+A arquitetura v7 esta consolidada. Evoluções previstas:
 
-- reduzir a carga semântica espalhada entre v5, v6 e server.js
-- aproximar a implementação física do desenho canônico definido em docs/PLANO_ESTRUTURAL_DADOS_CANONICO.md
-
-Até lá, toda evolução da camada BigQuery deve ser registrada aqui e não em novos documentos por versão.
+- Expor filial_codigo nos endpoints de filtro para seleção por código no frontend
+- Adicionar endpoint /api/semanas para agrupamento por semana_referencia
+- Avaliar materialization de motoristasQuery se latencia de resposta aumentar com volume

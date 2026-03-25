@@ -12,9 +12,8 @@ applyTo:
 Monitoramento logístico last-mile (Petlove) com pipeline de dados completo.
 
 ```
-TMS Web → CSV → BigQuery (v4 analítico + v5 publicação + v6 API)
-    → Google Sheets (13 abas) → Apps Script (Dashboard Visual)
-    → API Cloud Run → React Dashboard (Dashboard/frontend/)
+TMS Web → CSV → BigQuery (pipeline_dashboard_v7.sql — UDFs + views canônicas)
+    → API Cloud Run (Node.js/Express) → React Dashboard (Dashboard/frontend/)
 ```
 
 ## Estrutura Canônica
@@ -26,18 +25,17 @@ Projetos/
 │   ├── instructions/           #   Instruções por domínio
 │   └── _old/                   #   Legado (Power BI, etc.)
 ├── Dashboard/                  # Projeto completo (pipeline + frontend + API)
-│   ├── bigquery/               #   SQL (v4+v5+v6), deploy, load, sync
-│   │   └── _deploy/            #     Módulos SQL individuais
+│   ├── bigquery/               #   SQL (pipeline v7 canônico), deploy, load, validações
 │   ├── extraction/             #   Extração TMS + consolidação CSV
-│   ├── config/                 #   Config Google Sheets + credentials
-│   ├── google_apps/            #   Apps Script (dashboard visual Sheets)
+│   ├── pipeline/               #   Cloud Run Job (extração + carga automatizada)
+│   ├── config/                 #   Config credentials
 │   ├── api/                    #   API Node.js/Express (Cloud Run)
 │   ├── frontend/               #   React dashboard (Vite + shadcn/ui + Recharts)
 │   │   └── src/                #     components/ + pages/ + hooks/ + services/
 │   ├── data/                   #   Fontes (CSV/XLSX) — NÃO editar
 │   ├── docs/                   #   Documentação técnica
 │   ├── output/                 #   Outputs auxiliares
-│   └── _archive/               #   Código legado
+│   └── _archive/               #   Código legado (inclui google_apps/)
 └── scripts/                    # Automação raiz (daily, git sync, health, setup)
 ```
 

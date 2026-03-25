@@ -1,13 +1,14 @@
 """
 Carrega os CSVs consolidados nas raw tables do BigQuery (WRITE_TRUNCATE).
 Reutiliza a mesma lógica de fix_raw_export.py: normaliza CSV BR (sep=;, decimal=,, utf-8-sig)
-para CSV padrão (sep=,, decimal=., utf-8) e sobe via bq load CLI.
+para CSV padrão (sep=,, decimal=., utf-8) e sobe via Python API (google-cloud-bigquery)
+ou bq load CLI como fallback.
 As views se atualizam automaticamente após o load.
 
 Pré-requisitos:
   - Python 3.10+ com pandas instalado
-  - Google Cloud SDK instalado e autenticado (gcloud auth application-default login)
-  - bq CLI disponível no PATH ou em %LOCALAPPDATA%\\Google\\Cloud SDK
+  - google-cloud-bigquery instalado (pip) OU Google Cloud SDK (bq CLI)
+  - Autenticação GCP configurada (ADC, SA key, ou gcloud auth)
   - Arquivos fonte em Dashboard/data/
 
 Uso:
@@ -46,11 +47,15 @@ TABLE_MAP = {
         ],
     },
     "raw_planejamento": {
-        "src": DATA_DIR / "Relorio_Planejamento_Carga_Completo.xlsx",
-        "sep": None,  # xlsx
-        "encoding": None,
-        "decimal": None,
-        "rename": {},
+        "src": DATA_DIR / "planejamento_2026.csv",  # extraído do Google Sheets
+        "sep": ",",
+        "encoding": "utf-8",
+        "decimal": None,  # já normalizado pelo extrator (ponto decimal)
+        "rename": {
+            "Cluster": "Rota",
+            "Data": "Data Planejada",
+            "Lista": "Id Carga",
+        },
     },
     "raw_dim_filial": {
         "src": DATA_DIR / "tab_auxiliar" / "dim_filial.xlsx",
@@ -134,40 +139,58 @@ def validate_dataframe(df: pd.DataFrame, table_name: str) -> list[str]:
     return issues
 
 
-def find_bq_cmd() -> str:
-    """Encontra o bq CLI no PATH ou em locais conhecidos."""
-    bq_in_path = shutil.which("bq") or shutil.which("bq.cmd")
-    if bq_in_path:
-        return bq_in_path
-    local_app = os.environ.get("LOCALAPPDATA", "")
-    if local_app:
-        candidate = (
-            Path(local_app)
-            / "Google"
-            / "Cloud SDK"
-            / "google-cloud-sdk"
-            / "bin"
-            / "bq.cmd"
-        )
-        if candidate.exists():
-            return str(candidate)
-    for p in [
-        "/usr/bin/bq",
-        "/usr/local/bin/bq",
-        Path.home() / "google-cloud-sdk" / "bin" / "bq",
-    ]:
-        if Path(p).exists():
-            return str(p)
-    raise FileNotFoundError("bq CLI não encontrado. Instale o Google Cloud SDK.")
+def _bq_load_python_api(csv_path: Path, table_name: str) -> bool:
+    """Carga via google-cloud-bigquery Python API (preferida em containers)."""
+    from google.cloud import bigquery
+
+    client = bigquery.Client(project=PROJECT)
+    table_ref = f"{PROJECT}.{DATASET}.{table_name}"
+
+    job_config = bigquery.LoadJobConfig(
+        source_format=bigquery.SourceFormat.CSV,
+        skip_leading_rows=1,
+        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+        autodetect=False,
+    )
+
+    print(f"  bq load (Python API) → {table_ref}...")
+    with open(csv_path, "rb") as f:
+        job = client.load_table_from_file(f, table_ref, job_config=job_config)
+
+    job.result(timeout=300)
+
+    table = client.get_table(table_ref)
+    print(f"  OK ({table.num_rows:,} rows loaded)")
+    return True
 
 
-def bq_load(csv_path: Path, table_name: str, dry_run: bool) -> bool:
-    """Executa bq load --replace (sem autodetect — usa schema existente)."""
+def _bq_load_cli(csv_path: Path, table_name: str) -> bool:
+    """Carga via bq CLI (fallback para dev local)."""
     import subprocess
 
-    table_ref = f"{PROJECT}:{DATASET}.{table_name}"
-    bq_cmd = find_bq_cmd()
+    bq_cmd = shutil.which("bq") or shutil.which("bq.cmd")
+    if not bq_cmd:
+        local_app = os.environ.get("LOCALAPPDATA", "")
+        if local_app:
+            candidate = (
+                Path(local_app)
+                / "Google"
+                / "Cloud SDK"
+                / "google-cloud-sdk"
+                / "bin"
+                / "bq.cmd"
+            )
+            if candidate.exists():
+                bq_cmd = str(candidate)
+    if not bq_cmd:
+        for p in ["/usr/bin/bq", "/usr/local/bin/bq"]:
+            if Path(p).exists():
+                bq_cmd = p
+                break
+    if not bq_cmd:
+        raise FileNotFoundError("bq CLI não encontrado e google-cloud-bigquery falhou.")
 
+    table_ref = f"{PROJECT}:{DATASET}.{table_name}"
     cmd = [
         bq_cmd,
         "load",
@@ -179,13 +202,8 @@ def bq_load(csv_path: Path, table_name: str, dry_run: bool) -> bool:
         str(csv_path),
     ]
 
-    if dry_run:
-        print(f"  [DRY-RUN] {' '.join(cmd)}")
-        return True
-
-    print(f"  bq load → {table_ref}...")
+    print(f"  bq load (CLI) → {table_ref}...")
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-    # bq envia progresso para stderr mesmo em sucesso
     output = (proc.stdout + proc.stderr).strip()
     if proc.returncode == 0:
         print(f"  OK ({output.splitlines()[-1] if output else 'done'})")
@@ -194,6 +212,21 @@ def bq_load(csv_path: Path, table_name: str, dry_run: bool) -> bool:
         print(f"  FAIL (rc={proc.returncode})")
         print(f"  {output[:500]}")
         return False
+
+
+def bq_load(csv_path: Path, table_name: str, dry_run: bool) -> bool:
+    """Carrega CSV no BigQuery. Tenta Python API primeiro, fallback para bq CLI."""
+    table_ref = f"{PROJECT}.{DATASET}.{table_name}"
+
+    if dry_run:
+        print(f"  [DRY-RUN] bq load → {table_ref}")
+        return True
+
+    try:
+        return _bq_load_python_api(csv_path, table_name)
+    except Exception as e:
+        print(f"  Python API falhou ({e.__class__.__name__}: {e}), tentando bq CLI...")
+        return _bq_load_cli(csv_path, table_name)
 
 
 def main():

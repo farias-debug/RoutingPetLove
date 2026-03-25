@@ -1,16 +1,14 @@
 {
-  "name": "dashboard-monitoramento-google-sheets",
-  "version": "1.0.0",
+  "name": "dashboard-monitoramento-logistico",
+  "version": "2.0.0",
   "private": true,
-  "description": "Workspace local do fluxo TMS -> Google Sheets -> Apps Script.",
+  "description": "Dashboard Logístico Petlove — TMS → BigQuery → API → React.",
   "scripts": {
     "frontend:dev": "npm --prefix ./frontend run dev -- --host",
-    "setup:google-apps": "npm --prefix ./google_apps install",
+    "frontend:build": "npm --prefix ./frontend run build",
     "pipeline:extract": "node ./extraction/extrair_relatorio_tms.mjs",
-    "google-apps:status": "npm --prefix ./google_apps run clasp:status",
-    "google-apps:push": "npm --prefix ./google_apps run clasp:push",
-    "google-apps:pull": "npm --prefix ./google_apps run clasp:pull",
-    "google-apps:open": "npm --prefix ./google_apps run clasp:open"
+    "pipeline:consolidar": "python ./extraction/consolidar_monitoramento.py",
+    "pipeline:bq-load": "python ./bigquery/load_raw_to_bq.py --table all"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",

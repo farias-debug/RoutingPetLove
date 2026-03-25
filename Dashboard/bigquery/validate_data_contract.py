@@ -2,16 +2,15 @@
 Validacao de contratos da arquitetura v7 canonica.
 
 Na v7 NAO existem views api_* separadas. A API (queries.js) consulta
-diretamente base_execucao_canonica, metas_pivot_canonico e pub_metas.
+diretamente base_execucao_canonica e metas_pivot_canonico.
 
 Este script valida:
   1. Schema obrigatorio de base_execucao_canonica (todas as colunas usadas pelos endpoints)
   2. Schema de metas_pivot_canonico (9 colunas esperadas)
-  3. Schema de pub_metas (KPI, Nome, Meta, Sentido, Unidade)
-  4. Score operacional em [0, 100] quando calculado
-  5. Campos percentuais em [0, 1]
-  6. Ausencia de NULLs em data_referencia
-  7. Valores canonicos de metas conforme catalogo oficial
+  3. Score operacional em [0, 100] quando calculado
+  4. Campos percentuais em [0, 1]
+  5. Ausencia de NULLs em data_referencia
+  6. Valores canonicos de metas conforme catalogo oficial
 
 Uso: python validate_data_contract.py
 """
@@ -76,9 +75,6 @@ METAS_PIVOT_REQUIRED = {
 }
 METAS_PIVOT_OPTIONAL = {"meta_custo_medio_carga"}
 
-# Colunas esperadas em pub_metas
-PUB_METAS_REQUIRED = {"KPI", "Nome", "Meta", "Sentido", "Unidade"}
-
 # Catalogo canonico de metas (valores de referencia)
 CANONICAL_METAS = {
     "meta_spr_ped": 42.0,
@@ -133,26 +129,7 @@ CONTRACTS = [
             )
         )({r["column_name"] for r in rows}),
     ),
-    # ------ 3. pub_metas: colunas KPI, Nome, Meta, Sentido, Unidade ------
-    (
-        "pub_metas: colunas obrigatorias (KPI, Nome, Meta, Sentido, Unidade)",
-        f"""
-        SELECT column_name
-        FROM `{PROJECT}.{DATASET}.INFORMATION_SCHEMA.COLUMNS`
-        WHERE table_name = 'pub_metas'
-        """,
-        lambda rows: (
-            lambda found: (
-                PUB_METAS_REQUIRED.issubset(found),
-                (
-                    f"faltando: {PUB_METAS_REQUIRED - found}"
-                    if not PUB_METAS_REQUIRED.issubset(found)
-                    else ""
-                ),
-            )
-        )({r["column_name"] for r in rows}),
-    ),
-    # ------ 4. Score operacional em [0, 100] ------
+    # ------ 3. Score operacional em [0, 100] ------
     (
         "base_execucao_canonica: score operacional computado em [0, 100]",
         f"""
@@ -188,7 +165,7 @@ CONTRACTS = [
             ),
         ),
     ),
-    # ------ 5a. pct_entrega_efetiva em [0, 1] ------
+    # ------ 4a. pct_entrega_efetiva em [0, 1] ------
     (
         "base_execucao_canonica: pct_entrega_efetiva em [0, 1]",
         f"""
@@ -207,7 +184,7 @@ CONTRACTS = [
             ),
         ),
     ),
-    # ------ 5b. ocup_peso_veiculo em [0, 1] (tolerancia ate 1.5 para sobrecarga) ------
+    # ------ 4b. ocup_peso_veiculo em [0, 1] (tolerancia ate 1.5 para sobrecarga) ------
     (
         "base_execucao_canonica: ocup_peso_veiculo em [0, 1.5]",
         f"""
@@ -226,7 +203,7 @@ CONTRACTS = [
             ),
         ),
     ),
-    # ------ 6. Sem NULL em data_referencia ------
+    # ------ 5. Sem NULL em data_referencia ------
     (
         "base_execucao_canonica: sem NULL em data_referencia",
         f"""
@@ -244,7 +221,7 @@ CONTRACTS = [
             ),
         ),
     ),
-    # ------ 7. Valores canonicos de metas ------
+    # ------ 6. Valores canonicos de metas ------
     (
         "metas_pivot_canonico: valores conferem com catalogo canonico",
         f"""
@@ -272,18 +249,6 @@ CONTRACTS = [
                 ),
             )
         )(dict(rows[0]) if rows else {}),
-    ),
-    # ------ Extra: pub_metas tem dados ------
-    (
-        "pub_metas: view tem dados (pelo menos 5 KPIs)",
-        f"""
-        SELECT COUNT(*) AS total
-        FROM `{FQN}.pub_metas`
-        """,
-        lambda rows: (
-            rows[0]["total"] >= 5,
-            f"total={rows[0]['total']}, esperado >= 5" if rows[0]["total"] < 5 else "",
-        ),
     ),
     # ------ Extra: base_execucao_canonica tem dados recentes ------
     (
@@ -331,7 +296,7 @@ def run_contract(name, query, validator):
 def main():
     print("=" * 72)
     print("DATA CONTRACT VALIDATION - arquitetura v7 canonica")
-    print("  base_execucao_canonica + metas_pivot_canonico + pub_metas")
+    print("  base_execucao_canonica + metas_pivot_canonico")
     print(f"  projeto: {PROJECT} / dataset: {DATASET}")
     print("=" * 72)
     total = len(CONTRACTS)

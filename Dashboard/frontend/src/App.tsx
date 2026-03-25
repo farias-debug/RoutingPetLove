@@ -16,6 +16,7 @@ const TempoSla = lazy(() => import("@/pages/TempoSla"));
 const AderenciaAtendimento = lazy(() => import("@/pages/AderenciaAtendimento"));
 const Transportadores = lazy(() => import("@/pages/Transportadores"));
 const MotoristasJornada = lazy(() => import("@/pages/MotoristasJornada"));
+const ComparativoFiliais = lazy(() => import("@/pages/ComparativoFiliais"));
 const InvestigacaoOperacional = lazy(() => import("@/pages/InvestigacaoOperacional"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/planejado-realizado" element={<DashboardLayout><PlanejadoRealizado /></DashboardLayout>} />
               <Route path="/custos" element={<DashboardLayout><CustosEficiencia /></DashboardLayout>} />
               <Route path="/frota" element={<DashboardLayout><FrotaCapacidade /></DashboardLayout>} />
+              <Route path="/filiais" element={<DashboardLayout><ComparativoFiliais /></DashboardLayout>} />
               <Route path="/tempo-sla" element={<DashboardLayout><TempoSla /></DashboardLayout>} />
               <Route path="/aderencia" element={<DashboardLayout><AderenciaAtendimento /></DashboardLayout>} />
               <Route path="/transportadores" element={<DashboardLayout><Transportadores /></DashboardLayout>} />

@@ -59,10 +59,10 @@ export default function Transportadores() {
   // ScatterChart: Custo × Score
   const scatterData = list.map(t => ({
     nome: t.transportador,
-    custo: +t.custoMedioCarga.toFixed(2),
-    score: +t.scoreOperacional.toFixed(1),
+    custo: +(t.custoMedioCarga ?? 0).toFixed(2),
+    score: +(t.scoreOperacional ?? 0).toFixed(1),
     rotas: t.rotas,
-    entregas: +(t.entregasEfetivas * 100).toFixed(1),
+    entregas: +((t.entregasEfetivas ?? 0) * 100).toFixed(1),
     status: t.status,
   }));
   const custoMediano = median(list.map(t => t.custoMedioCarga));
@@ -258,12 +258,12 @@ export default function Transportadores() {
                 </thead>
                 <tbody>
                   {orderedByScore.map(t => {
-                    const pctEntregas = +(t.entregasEfetivas * 100).toFixed(1);
+                    const pctEntregas = +(((t.entregasEfetivas ?? 0)) * 100).toFixed(1);
                     return (
                       <tr key={t.transportador} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                         <td className="py-2.5 px-3 font-bold">{t.transportador}</td>
                         <td className="py-2.5 px-3 tabular-nums">{t.rotas}</td>
-                        <td className="py-2.5 px-3 tabular-nums">{(t.share * 100).toFixed(1)}%</td>
+                        <td className="py-2.5 px-3 tabular-nums">{((t.share ?? 0) * 100).toFixed(1)}%</td>
                         <td className="py-2.5 px-3">
                           <StatusChip
                             label={`${pctEntregas}%`}
@@ -272,7 +272,7 @@ export default function Transportadores() {
                         </td>
                         <td className="py-2.5 px-3 tabular-nums">{formatMoney(t.custoMedioCarga)}</td>
                         <td className="py-2.5 px-3 font-bold tabular-nums">
-                          <StatusChip label={t.scoreOperacional.toFixed(1)} colorClass={t.status === "OK" ? "bg-success/15 text-success" : t.status === "Atenção" ? "bg-warning/15 text-warning" : "bg-destructive/15 text-destructive"} />
+                          <StatusChip label={(t.scoreOperacional ?? 0).toFixed(1)} colorClass={t.status === "OK" ? "bg-success/15 text-success" : t.status === "Atenção" ? "bg-warning/15 text-warning" : "bg-destructive/15 text-destructive"} />
                         </td>
                       </tr>
                     );

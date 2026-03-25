@@ -95,6 +95,7 @@ export const filialPerformanceSchema = z.object({
   tipoFilial: z.string(),
   regiao: z.string().nullable().optional().transform((value) => value ?? ""),
   metaSpr: z.number().nullable().optional().transform((value) => value ?? 0),
+  metaSprVolumes: z.number().nullable().optional().transform((value) => value ?? 0),
   diasCobertos: z.number().nullable().optional().transform((value) => value ?? 0),
   rotas: z.number(),
   placasDistintas: z.number().nullable().optional().transform((value) => value ?? 0),

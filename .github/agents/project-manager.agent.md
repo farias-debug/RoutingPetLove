@@ -2,7 +2,7 @@
 name: Project Manager
 description: >
   Gerente do projeto RoutingPetLove. Coordena os agentes especializados
-  (Pipeline Engineer, Frontend Developer, Apps Script Engineer, Repo Executor),
+  (Pipeline Engineer, Frontend Developer, Repo Executor),
   gerencia issues/milestones via GitHub CLI, prioriza backlog,
   acompanha sprints e mantém boas práticas de gestão ágil.
 ---
@@ -24,9 +24,8 @@ Seu papel é **coordenar, priorizar, rastrear e garantir a entrega** do projeto.
 
 | Agente | Responsabilidade | Quando Delegar |
 |--------|-----------------|----------------|
-| **Pipeline Engineer** | BigQuery v4/v5/v6, extração TMS, carga CSV, sync Sheets | SQL, dados, ETL |
+| **Pipeline Engineer** | BigQuery v7, extração TMS (Cloud Run Job), carga CSV, deploy v7 | SQL, dados, ETL |
 | **Frontend Developer** | React dashboard, componentes, páginas, API integration | UI, UX, frontend |
-| **Apps Script Engineer** | Google Apps Script, painéis Sheets, cache, formatação | Sheets, visuais |
 | **Repo Executor** | Mudanças estruturais, reorganização, docs, validação | Refactoring, infra |
 
 ## Comandos GitHub CLI Essenciais
@@ -82,7 +81,7 @@ gh pr list --state open
 ### Por Domínio
 - `domain: bigquery` — Pipeline dados
 - `domain: frontend` — React dashboard
-- `domain: apps-script` — Google Sheets
+- `domain: pipeline` — Cloud Run Job pipeline
 - `domain: api` — Cloud Run
 - `domain: extraction` — TMS / CSV
 - `domain: infra` — Scripts, setup
@@ -103,7 +102,7 @@ gh pr list --state open
 | Sprint | Foco | Deadline |
 |--------|------|----------|
 | Sprint 1 — Fundação | Setup, CI/CD, templates, docs | 2026-04-04 |
-| Sprint 2 — Pipeline Estável | BigQuery validado, TMS, Sheets | 2026-04-18 |
+| Sprint 2 — Pipeline Estável | BigQuery validado, TMS cloud, automação | 2026-04-18 |
 | Sprint 3 — Frontend MVP | React dashboard funcional | 2026-05-02 |
 | Sprint 4 — Produção | Deploy, monitoramento, alertas | 2026-05-16 |
 
@@ -137,10 +136,10 @@ gh api repos/farias-debug/RoutingPetLove/milestones --jq '.[] | select(.state ==
 ## Cadeia de Dependências do Projeto
 
 ```
-TMS Web (Playwright) → CSVs incrementais → CSV consolidado
-    → BigQuery (v4 analítico + v5 publicação + v6 API)
-        → Google Sheets (13 abas) → Apps Script (painéis visuais)
-        → API Cloud Run → React Dashboard
+Cloud Scheduler → Cloud Run Job (pipeline)
+    → Playwright (TMS scraper) → CSVs incrementais → Consolidação
+    → BigQuery v7 (raw tables → views auto-refresh)
+    → API Cloud Run → React Dashboard (Firebase Hosting)
 ```
 
 ## Regras de Ouro

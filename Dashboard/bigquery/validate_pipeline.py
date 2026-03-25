@@ -3,7 +3,7 @@ Validacao do pipeline BigQuery v7 — verifica integridade da arquitetura minima
 
 Objetos validados:
   Views: stg_monitoramento, stg_planejamento, dim_filial, metas_globais,
-         pub_metas, metas_pivot_canonico, base_execucao_canonica
+         metas_pivot_canonico, base_execucao_canonica
   UDFs:  normalize_text, safe_div, adherence_ratio, status_higher,
          status_target_band, capacity_status, status_score,
          fn_score_operacional, vehicle_type_canonical,

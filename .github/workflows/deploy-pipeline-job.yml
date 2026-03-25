@@ -1,0 +1,102 @@
+name: "🚀 Deploy Pipeline Job"
+
+on:
+  push:
+    paths:
+      - "Dashboard/pipeline/**"
+      - "Dashboard/extraction/**"
+      - "Dashboard/bigquery/load_raw_to_bq.py"
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      execute_after_deploy:
+        description: "Executar o job após deploy?"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: data-aileron-482822-d0
+  REGION: us-central1
+  JOB_NAME: pipeline-tms-bq
+  SA_EMAIL: pipeline-tms-bq@data-aileron-482822-d0.iam.gserviceaccount.com
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.SA_EMAIL }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push container
+        run: |
+          cd Dashboard
+          gcloud builds submit \
+            --project="${{ env.PROJECT_ID }}" \
+            --config=pipeline/cloudbuild.yaml \
+            .
+
+      - name: Deploy Cloud Run Job
+        run: |
+          IMAGE="gcr.io/${{ env.PROJECT_ID }}/${{ env.JOB_NAME }}"
+
+          if gcloud run jobs describe "${{ env.JOB_NAME }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --region="${{ env.REGION }}" &>/dev/null; then
+            echo "Updating existing job..."
+            gcloud run jobs update "${{ env.JOB_NAME }}" \
+              --project="${{ env.PROJECT_ID }}" \
+              --region="${{ env.REGION }}" \
+              --image="${IMAGE}" \
+              --task-timeout=15m \
+              --max-retries=1 \
+              --memory=2Gi \
+              --cpu=2 \
+              --service-account="${{ env.SA_EMAIL }}" \
+              --set-env-vars="TMS_GCS_BUCKET=petlove-tms-data,TMS_GCS_PREFIX=tms-monitoramento,PIPELINE_DAYS_BACK=7,BIGQUERY_PROJECT_ID=${{ env.PROJECT_ID }},BIGQUERY_DATASET=monitoramento_carga" \
+              --update-secrets="TMS_USER=tms-user:latest,TMS_PASS=tms-pass:latest"
+          else
+            echo "Creating new job..."
+            gcloud run jobs create "${{ env.JOB_NAME }}" \
+              --project="${{ env.PROJECT_ID }}" \
+              --region="${{ env.REGION }}" \
+              --image="${IMAGE}" \
+              --task-timeout=15m \
+              --max-retries=1 \
+              --memory=2Gi \
+              --cpu=2 \
+              --service-account="${{ env.SA_EMAIL }}" \
+              --set-env-vars="TMS_GCS_BUCKET=petlove-tms-data,TMS_GCS_PREFIX=tms-monitoramento,PIPELINE_DAYS_BACK=7,BIGQUERY_PROJECT_ID=${{ env.PROJECT_ID }},BIGQUERY_DATASET=monitoramento_carga" \
+              --update-secrets="TMS_USER=tms-user:latest,TMS_PASS=tms-pass:latest"
+          fi
+
+      - name: Execute job (if requested)
+        if: github.event.inputs.execute_after_deploy == 'true'
+        run: |
+          gcloud run jobs execute "${{ env.JOB_NAME }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --region="${{ env.REGION }}" \
+            --wait
+
+      - name: Summary
+        run: |
+          echo "## Deploy Pipeline Job" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Job** | \`${{ env.JOB_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Region** | \`${{ env.REGION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Image** | \`gcr.io/${{ env.PROJECT_ID }}/${{ env.JOB_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Executed** | \`${{ github.event.inputs.execute_after_deploy || 'false' }}\` |" >> $GITHUB_STEP_SUMMARY

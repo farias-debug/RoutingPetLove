@@ -1,8 +1,12 @@
 <#
 .SYNOPSIS
-  Pipeline diário BigQuery: extração TMS → consolidar → carga BQ → deploy v7 → Git sync.
+  [LEGADO] Pipeline diário BigQuery: extração TMS → consolidar → carga BQ → deploy v7 → Git sync.
 .DESCRIPTION
-  Executa o fluxo canônico de dados via BigQuery:
+  ⚠️ SUBSTITUÍDO pelo Cloud Run Job `pipeline-tms-bq` que roda automaticamente via Cloud Scheduler (Seg-sex 8h BRT).
+  Para executar o pipeline cloud: gcloud run jobs execute pipeline-tms-bq --region=us-central1 --wait
+  Para deploy do job: cd Dashboard/pipeline && bash deploy_pipeline_job.sh
+
+  Este script local ainda funciona para execuções ad-hoc/debug:
   [1/4] Extrair dados do TMS via Playwright (últimos 7 dias)
   [2/4] Consolidar CSVs incrementais
   [3/4] Carregar dados no BigQuery (load_raw_to_bq.py)
@@ -32,7 +36,7 @@ Write-Host ""
 # ── 0) Verificar ambiente ───────────────────────────────────
 $dashboardDir = Join-Path $PSScriptRoot "..\Dashboard"
 $pythonExe = Join-Path $dashboardDir ".venv\Scripts\python.exe"
-$sheetsId = "1Z-Jhaf9g4dbnti_ry7IO2J6BuZhCsqhoUREKtWMd3k4"
+# Google Sheets descontinuado — projeto focado exclusivamente no Dashboard React
 
 if (-not (Test-Path $pythonExe)) {
     Write-Host "[ERRO] Ambiente virtual nao encontrado: $pythonExe" -ForegroundColor Red

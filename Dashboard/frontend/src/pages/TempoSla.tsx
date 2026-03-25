@@ -40,7 +40,7 @@ export default function TempoSla() {
   const overtimeRotas = kpi ? Math.round(kpi.rotas * kpi.pctRotasOvertime) : 0;
 
   const kpis = kpi ? [
-    { label: "Tempo Médio Realizado", value: formatDuration(kpi.tempoMedRealizado), unit: "", meta: kpi.metaOrhTempo != null ? +kpi.metaOrhTempo.toFixed(1) : undefined, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Tempo Médio Realizado", value: formatDuration(kpi.tempoMedRealizado), unit: "", meta: kpi.metaOrhTempo != null ? +kpi.metaOrhTempo.toFixed(1) : undefined, metaLabel: "Meta", metaFormatted: kpi.metaOrhTempo != null ? formatDuration(kpi.metaOrhTempo) : undefined, trend: "neutral" as const, trendValue: undefined, status: "success" as const },
     { label: "Rotas Concluídas", value: +(kpi.pctRotasConcluidas * 100).toFixed(1), unit: "%", meta: metaRotasConcluidas != null ? metaRotasConcluidas * 100 : undefined, metaLabel: "Meta", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
     { label: "Ociosidade", value: +(kpi.pctOciosidadeJornada * 100).toFixed(1), unit: "%", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
     { label: "Overtime", value: Math.round(kpi.rotas * kpi.pctRotasOvertime), unit: "rotas", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },

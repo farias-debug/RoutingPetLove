@@ -1,7 +1,7 @@
 # Schema Raw Canônico
 
 Projeto: Monitoramento Logístico Last-Mile
-Data: 2026-03-22
+Data: 2026-03-24
 Status: referência canônica para schemas de entrada, parse e normalização
 
 ---
@@ -33,10 +33,15 @@ Em caso de divergência entre planilhas, scripts ad hoc e código de consumo, pr
 
 ### 2.2 Planejamento
 
-- Arquivo: Dashboard/data/Relorio_Planejamento_Carga_Completo.xlsx
+- Fonte: Google Sheets `1zANDyZMZIdVp22C-RgPw3yu4L97rEJ5XYZnTj0TZDBw` (aba GID `63799993`)
+- Extrator: `extraction/extrair_planejamento.py`
+- Arquivo intermediário: `Dashboard/data/planejamento_2026.csv`
 - Destino BigQuery: raw_planejamento
-- Chave operacional: Id Carga
-- Frequência: apoio ao reconciliamento entre planejado e realizado
+- Chave operacional: Id Carga (coluna "Lista" na planilha, renomeada no load)
+- Filtro: apenas dados do ano 2026
+- Frequência: diária (Cloud Run Job, etapa 1/5)
+- Autenticação: SA `pipeline-tms-bq@data-aileron-482822-d0.iam.gserviceaccount.com` (Viewer na planilha)
+- Mapeamento de colunas: Cluster→Rota, Data→Data Planejada, Lista→Id Carga
 
 ### 2.3 Dimensão de filial
 
@@ -55,10 +60,14 @@ Em caso de divergência entre planilhas, scripts ad hoc e código de consumo, pr
 - Decimais: vírgula, convertidos para ponto antes do load
 - Datas textuais: padrão brasileiro
 
-### 3.2 XLSX planejamento e dimensões auxiliares
+### 3.2 CSV planejamento (extraído do Google Sheets)
 
-- Leitura tipada inicialmente como texto
-- Conversão explícita na camada de staging
+- Separador: , (vírgula)
+- Encoding: utf-8
+- Decimais: ponto (já normalizado pelo extrator)
+- Datas: formato ISO (YYYY-MM-DD), convertidas de serial Excel pelo extrator
+- Tempos: formato HH:MM:SS, convertidos de fração decimal pelo extrator
+- Leitura via Google Sheets API: `valueRenderOption=UNFORMATTED_VALUE` + `dateTimeRenderOption=SERIAL_NUMBER` (independente de locale)
 
 ### 3.3 Regras obrigatórias
 
@@ -194,7 +203,7 @@ COALESCE(
   - Fórmula: Aplica UDF `motorista_key_canonical(cpf_motorista, motorista)`
 
 - **Uso obrigatório:** TODOS os marts por motorista devem usar `motorista_key_canonico` em GROUP BY
-  - `mart_motorista_dia_canonico`: usa motorista_key_canonico
+  - `base_execucao_canonica`: usa motorista_key_canonico
   - Qualquer agregação por motorista: deve usar a coluna canonizada
 
 **Validação:**

@@ -72,6 +72,7 @@ export interface FilialPerformance {
   filial: string;
   nomeFilial: string;
   tipoFilial: string;
+  regiao?: string | null;
   metaSpr: number;
   metaSprVolumes: number;
   diasCobertos: number;
@@ -109,7 +110,7 @@ export interface Alerta {
   data: string;
   filial: string;
   nomeFilial?: string;
-  regiao: string;
+  regiao: string | null;
   transportador: string;
   rota: string;
   rotaPlanejada: string | null;
@@ -135,7 +136,7 @@ export interface Alerta {
   flagOvertime: boolean;
   flagMatchCritico: boolean;
   flagEntregaCritica: boolean;
-  matchTemporal: string;
+  matchTemporal: string | null;
   prioridade: string;
 }
 
@@ -238,6 +239,8 @@ export interface MotoristaKpis {
   jornadaMedia: number;
   qtdOvertime: number;
   dpph: number;
+  efetividadeMedia?: number;
+  volumesPerMotorista?: number;
 }
 
 // ─── KPI Diário Consolidado ────────────────────────────────────────
@@ -321,6 +324,7 @@ export interface KPIData {
   unit?: string;
   meta?: number | null;
   metaLabel?: string;
+  metaFormatted?: string;
   trend?: "up" | "down" | "neutral";
   trendValue?: string;
   status?: "success" | "warning" | "danger" | "neutral";

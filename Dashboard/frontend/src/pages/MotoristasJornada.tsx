@@ -1,18 +1,19 @@
 import { Clock3, Route, TrendingUp, UserRound } from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ReferenceLine } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ReferenceLine, LineChart, Line, Legend } from "recharts";
 import KPICard from "@/components/dashboard/KPICard";
 import PageHeroAnalitico from "@/components/dashboard/PageHeroAnalitico";
 import PageSectionNav, { type PageSectionNavItem } from "@/components/dashboard/PageSectionNav";
 import SectionCard from "@/components/dashboard/SectionCard";
 import StatusChip from "@/components/dashboard/StatusChip";
 import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
-import { useMotoristas, useMotoristasKpis } from "@/hooks/useApiData";
+import { useMotoristas, useMotoristasKpis, useCockpitSerieDiaria } from "@/hooks/useApiData";
 import { useGlobalFilters } from "@/hooks/useGlobalFilters";
-import { formatInteger, formatDuration, formatDecimal } from "@/lib/formatters";
-import { TOOLTIP_STYLE, TICK_STYLE, GRID_STROKE, CHART_COLORS } from "@/lib/chartConfig";
+import { formatInteger, formatDuration, formatDecimal, formatPercent } from "@/lib/formatters";
+import { TOOLTIP_STYLE, TICK_STYLE, TICK_STYLE_SM, GRID_STROKE, CHART_COLORS } from "@/lib/chartConfig";
 
 const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
+  { id: "tendencia", label: "Tendência" },
   { id: "jornada", label: "Jornada" },
   { id: "overtime", label: "Overtime" },
   { id: "tabela", label: "Tabela" },
@@ -22,13 +23,16 @@ export default function MotoristasJornada() {
   const { filters, searchParams, setParam } = useGlobalFilters();
   const page = Math.max(1, parseInt(searchParams.get("motoristasPage") || "1", 10) || 1);
   const { data: kpis, isLoading: loadingKpis } = useMotoristasKpis(filters);
+  const { data: serie, isLoading: loadingSerie } = useCockpitSerieDiaria("30d", filters);
   const { data: motoristas, isLoading: loadingList } = useMotoristas({ page, limit: 20, periodo: filters.periodo, filial: filters.filial, transportador: filters.transportador, tipoVeiculo: filters.tipoVeiculo });
 
   const kpiCards = kpis ? [
     { label: "Motoristas Ativos", value: kpis.motoristasAtivos, unit: "mot.", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
-    { label: "Média Rotas/Dia", value: Number(kpis.mediaRotasDia.toFixed(1)), unit: "rotas", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
+    { label: "Média Rotas/Dia", value: Number((kpis.mediaRotasDia ?? 0).toFixed(1)), unit: "rotas", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
     { label: "Jornada Média", value: formatDuration(kpis.jornadaMedia), unit: "", trend: "neutral" as const, trendValue: undefined, status: "warning" as const },
     { label: "DPPH", value: Number((kpis.dpph ?? 0).toFixed(2)), unit: "ent/h", trend: "neutral" as const, trendValue: undefined, status: "success" as const },
+    { label: "Vol./Motorista", value: Number((kpis.volumesPerMotorista ?? 0).toFixed(1)), unit: "vol.", trend: "neutral" as const, trendValue: undefined, status: "neutral" as const },
+    { label: "Efetividade Entrega", value: Number(((kpis.efetividadeMedia ?? 0) * 100).toFixed(1)), unit: "%", trend: "neutral" as const, trendValue: undefined, status: (kpis.efetividadeMedia ?? 0) >= 0.9 ? "success" as const : (kpis.efetividadeMedia ?? 0) >= 0.8 ? "warning" as const : "danger" as const },
   ] : [];
 
   const list = motoristas?.data ?? [];
@@ -79,11 +83,47 @@ export default function MotoristasJornada() {
 
         <PageSectionNav sections={sections} />
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
           {loadingKpis ? <LoadingSkeleton rows={2} /> : kpiCards.map((kpi, i) => (
             <KPICard key={kpi.label} data={kpi} delay={i * 60} />
           ))}
         </div>
+      </section>
+
+      <section id="tendencia" className="scroll-mt-24">
+        <SectionCard title="Tendência operacional (30 dias)" subtitle="Efetividade de entrega (%) e score operacional" delay={265}>
+          {loadingSerie ? <LoadingSkeleton rows={4} /> : !serie || serie.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de série histórica para o recorte.</p>
+          ) : (() => {
+            const serieData = serie.map((s) => ({
+              data: s.data.slice(5),
+              efetividade: s.entregasEfetivas != null ? +(s.entregasEfetivas * 100).toFixed(1) : null,
+              score: s.scoreOperacional != null ? +s.scoreOperacional.toFixed(1) : null,
+            }));
+            return (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={serieData} margin={{ left: 0, right: 24, top: 8, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                    <XAxis dataKey="data" tick={TICK_STYLE_SM} interval="preserveStartEnd" />
+                    <YAxis yAxisId="esq" domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={TICK_STYLE_SM} />
+                    <YAxis yAxisId="dir" orientation="right" domain={[0, 100]} tick={TICK_STYLE_SM} />
+                    <Tooltip
+                      contentStyle={TOOLTIP_STYLE}
+                      formatter={(v: number, name: string) => [
+                        name === "efetividade" ? `${v?.toFixed(1)}%` : v?.toFixed(1),
+                        name === "efetividade" ? "Efetividade %" : "Score",
+                      ]}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} formatter={(v) => v === "efetividade" ? "Efetividade %" : "Score"} />
+                    <Line yAxisId="esq" type="monotone" dataKey="efetividade" name="efetividade" stroke={CHART_COLORS.success} strokeWidth={2} dot={false} connectNulls />
+                    <Line yAxisId="dir" type="monotone" dataKey="score" name="score" stroke={CHART_COLORS.primary} strokeWidth={2} dot={false} connectNulls />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            );
+          })()}
+        </SectionCard>
       </section>
 
       <section id="jornada" className="scroll-mt-24">
@@ -95,10 +135,10 @@ export default function MotoristasJornada() {
                 horas: +((item.horasJornada ?? 0).toFixed(1)),
                 rotas: item.qtdRotas,
                 overtime: item.flagOvertime,
-              }));
+              })).filter((d) => d.horas > 0);
               const mediaJornada = kpis?.jornadaMedia ?? 0;
               return barData.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">Sem motoristas na página atual.</p>
+                <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de jornada registrados nesta página. Rotas do dia mais recente podem ainda estar em andamento.</p>
               ) : (
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">

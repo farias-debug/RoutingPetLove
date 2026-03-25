@@ -5,9 +5,8 @@ Cria:
 - 11 UDFs (normalize_text, safe_div, adherence_ratio, status_higher,
   status_target_band, capacity_status, status_score, fn_score_operacional,
   vehicle_type_canonical, vehicle_weight_capacity, motorista_key_canonical)
-- 5 views core (stg_monitoramento, stg_planejamento, dim_filial, metas_globais,
-  base_execucao_canonica)
-- 2 views derivadas (pub_metas, metas_pivot_canonico)
+- 6 views (stg_monitoramento, stg_planejamento, dim_filial, metas_globais,
+  metas_pivot_canonico, base_execucao_canonica)
 
 Uso:
   python deploy_v7_dashboard.py
@@ -43,8 +42,6 @@ EXPECTED_OBJECTS = [
     "dim_filial",
     "metas_globais",
     "base_execucao_canonica",
-    # Views derivadas
-    "pub_metas",
     "metas_pivot_canonico",
 ]
 
@@ -74,7 +71,11 @@ def main():
         # Extrair nome do objeto (UDF ou VIEW)
         match_view = re.search(r"VIEW\s+`[^`]+\.([^`]+)`", stmt, re.IGNORECASE)
         match_func = re.search(r"FUNCTION\s+`[^`]+\.([^`]+)`", stmt, re.IGNORECASE)
-        name = (match_view or match_func).group(1) if (match_view or match_func) else f"statement_{i}"
+        name = (
+            (match_view or match_func).group(1)
+            if (match_view or match_func)
+            else f"statement_{i}"
+        )
 
         print(f"[{i}/{len(statements)}] {name}...", end=" ", flush=True)
         t0 = time.time()
@@ -105,11 +106,18 @@ def main():
         """
         job_config = bigquery.QueryJobConfig(
             query_parameters=[
-                bigquery.ArrayQueryParameter("expected_views", "STRING", [
-                    "stg_monitoramento", "stg_planejamento", "dim_filial",
-                    "metas_globais", "base_execucao_canonica", "pub_metas",
-                    "metas_pivot_canonico"
-                ])
+                bigquery.ArrayQueryParameter(
+                    "expected_views",
+                    "STRING",
+                    [
+                        "stg_monitoramento",
+                        "stg_planejamento",
+                        "dim_filial",
+                        "metas_globais",
+                        "base_execucao_canonica",
+                        "metas_pivot_canonico",
+                    ],
+                )
             ]
         )
         rows_views = list(client.query(query_views, job_config=job_config).result())
@@ -151,23 +159,15 @@ def main():
         except Exception as e:
             print(f"  ✗ Erro ao query base_execucao_canonica: {e}")
 
-        test_metas = f"""
-        SELECT COUNT(*) AS rows
-        FROM `{PROJECT}.{DATASET}.pub_metas`
-        """
-        try:
-            result = list(client.query(test_metas).result())[0]
-            print(f"  ✓ pub_metas: {result.rows} linhas (esperado: 7)")
-        except Exception as e:
-            print(f"  ✗ Erro ao query pub_metas: {e}")
-
         test_pivot = f"""
         SELECT meta_spr_vol, meta_entregas, meta_orh
         FROM `{PROJECT}.{DATASET}.metas_pivot_canonico`
         """
         try:
             result = list(client.query(test_pivot).result())[0]
-            print(f"  ✓ metas_pivot_canonico: meta_spr_vol={result.meta_spr_vol}, meta_entregas={result.meta_entregas}, meta_orh={result.meta_orh}")
+            print(
+                f"  ✓ metas_pivot_canonico: meta_spr_vol={result.meta_spr_vol}, meta_entregas={result.meta_entregas}, meta_orh={result.meta_orh}"
+            )
         except Exception as e:
             print(f"  ✗ Erro ao query metas_pivot_canonico: {e}")
 

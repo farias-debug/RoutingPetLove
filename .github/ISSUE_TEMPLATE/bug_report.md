@@ -10,12 +10,11 @@ assignees: ""
 <!-- Descreva o comportamento inesperado -->
 
 ## Domínio Afetado
-- [ ] BigQuery (pipeline v4/v5/v6)
-- [ ] Extração TMS
+- [ ] BigQuery (pipeline v7)
+- [ ] Extração TMS / Pipeline Cloud
 - [ ] API Cloud Run
 - [ ] React Dashboard (frontend)
-- [ ] Google Apps Script
-- [ ] Infra / Scripts
+- [ ] Infra / Scripts / CI/CD
 
 ## Passos para Reproduzir
 1.

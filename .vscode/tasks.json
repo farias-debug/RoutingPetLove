@@ -28,11 +28,11 @@
       "problemMatcher": []
     },
     {
-      "label": "📊 Pipeline: Apenas Transform (sem Git)",
+      "label": "📊 Pipeline: Deploy SQL v7",
       "type": "shell",
       "command": "${workspaceFolder}/Dashboard/.venv/Scripts/python.exe",
       "args": [
-        "${workspaceFolder}/Dashboard/scripts/transform.py"
+        "${workspaceFolder}/Dashboard/bigquery/deploy_v7_dashboard.py"
       ],
       "options": {
         "cwd": "${workspaceFolder}/Dashboard"
@@ -48,14 +48,17 @@
     //  EXTRAÇÃO TMS
     // ════════════════════════════════════════════════════════
     {
-      "label": "🧹 TMS: Extrair Relatório (Playwright)",
+      "label": "🧹 TMS: Extrair Relatório (Cloud Run Job)",
       "type": "shell",
-      "command": "powershell",
+      "command": "gcloud",
       "args": [
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}/Dashboard/scripts/extrair_monitoramento_rotas.ps1"
+        "run",
+        "jobs",
+        "execute",
+        "pipeline-tms-bq",
+        "--project=data-aileron-482822-d0",
+        "--region=us-central1",
+        "--wait"
       ],
       "options": {
         "cwd": "${workspaceFolder}/Dashboard"
@@ -190,6 +193,82 @@
         "clear": true
       },
       "problemMatcher": []
+    },
+    // ════════════════════════════════════════════════════════
+    //  CODEX CLI
+    // ════════════════════════════════════════════════════════
+    {
+      "label": "🤖 Codex: Interativo (Petlove profile)",
+      "type": "shell",
+      "command": "codex",
+      "args": [
+        "-p",
+        "petlove",
+        "-C",
+        "${workspaceFolder}"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🤖 Codex: Full-Auto com Prompt",
+      "type": "shell",
+      "command": "codex",
+      "args": [
+        "--full-auto",
+        "-p",
+        "petlove",
+        "-C",
+        "${workspaceFolder}",
+        "${input:codexPrompt}"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🤖 Codex: Code Review",
+      "type": "shell",
+      "command": "codex",
+      "args": [
+        "review",
+        "-p",
+        "review",
+        "-C",
+        "${workspaceFolder}"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🤖 Codex: Exec Rápido",
+      "type": "shell",
+      "command": "codex",
+      "args": [
+        "exec",
+        "-p",
+        "quick",
+        "-C",
+        "${workspaceFolder}",
+        "${input:codexPrompt}"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": []
     }
   ],
   "inputs": [
@@ -202,6 +281,11 @@
       "id": "issueBody",
       "type": "promptString",
       "description": "Descrição da issue"
+    },
+    {
+      "id": "codexPrompt",
+      "type": "promptString",
+      "description": "Prompt para o Codex CLI"
     }
   ]
 }

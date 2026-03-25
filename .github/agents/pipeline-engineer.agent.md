@@ -33,7 +33,7 @@ Manter e evoluir o pipeline de dados completo:
 ## Validações Obrigatórias
 
 1. CSV load: timestamps BR convertidos, decimais com ponto, durações em horas
-2. Pipeline v7: todos os objetos devem existir (`base_execucao_canonica`, `pub_metas`, `metas_pivot_canonico`, 11 UDFs)
+2. Pipeline v7: todos os objetos devem existir (`base_execucao_canonica`, `metas_globais`, `metas_pivot_canonico`, 11 UDFs)
 3. Nenhum `TRUNCATE` ou `DELETE` sem backup prévio
 4. Nunca duplicar lógica de KPI fora de `queries.js` — única camada de agregação
 

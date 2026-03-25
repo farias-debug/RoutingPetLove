@@ -183,10 +183,10 @@ try:
     client = bigquery.Client(project='data-aileron-482822-d0')
     q = '''
         SELECT
-            MAX(data_planejada) AS max_data,
+            MAX(data_referencia) AS max_data,
             COUNT(*) AS total_rows,
-            DATE_DIFF(CURRENT_DATE(), MAX(data_planejada), DAY) AS dias_atraso
-        FROM `data-aileron-482822-d0.monitoramento_carga.fct_execucao`
+            DATE_DIFF(CURRENT_DATE(), MAX(data_referencia), DAY) AS dias_atraso
+        FROM `data-aileron-482822-d0.monitoramento_carga.base_execucao_canonica`
     '''
     rows = list(client.query(q).result())
     r = rows[0]
@@ -201,7 +201,7 @@ except Exception as e:
         $maxData = ($parts[0] -split '=')[1]
         $totalRows = ($parts[1] -split '=')[1]
         $diasAtraso = [int]($parts[2] -split '=')[1]
-        Check-OK "fct_execucao: $totalRows linhas, ultima data=$maxData"
+        Check-OK "base_execucao_canonica: $totalRows linhas, ultima data=$maxData"
         if ($diasAtraso -le 2) {
             Check-OK "Dados frescos (atraso: ${diasAtraso}d)"
         }

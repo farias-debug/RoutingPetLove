@@ -1,6 +1,13 @@
-// queries.js — SQL templates para todos os endpoints da API
+﻿// queries.js — SQL templates para todos os endpoints da API
 // Cada função retorna uma string SQL pronta para execução via BigQuery.
 // `ns` = namespace completo `project.dataset` para tabelas e UDFs.
+//
+// UNIDADES (2026-03-25):
+// - peso_real_kg: pipeline_dashboard_v7.sql converte de gramas para kg na camada SQL
+// - valor_total: pipeline_dashboard_v7.sql converte componentes de centavos para reais na camada SQL
+// - capacidade_peso_kg (UDF) já está em KG — sem conversão
+// - peso_plan_kg (planejamento) já está em KG — sem conversão
+// FONTE ÚNICA DE CONVERSÃO: pipeline_dashboard_v7.sql (base_execucao_canonica)
 //
 // ARQUITETURA: Agregação dinâmica sobre base_execucao_canonica (camada atômica).
 // Filtros são aplicados ANTES da agregação — por isso KPIs são recalculados em cada query.
@@ -123,11 +130,13 @@ export function filterFiliaisQuery(projectId, dataset, where) {
 
 export function filterTransportadoresQuery(projectId, dataset, where) {
   return `
-    SELECT DISTINCT b.transportador AS value
+    SELECT DISTINCT
+      b.transportador AS value,
+      COALESCE(b.transportador_display, b.transportador) AS label
     FROM \`${ns(projectId, dataset)}.base_execucao_canonica\` b
     ${where}
     AND b.transportador IS NOT NULL AND TRIM(b.transportador) != ''
-    ORDER BY value
+    ORDER BY label
   `;
 }
 
@@ -191,6 +200,7 @@ export function cardsQuery(projectId, dataset, where) {
         SUM(b.pedidos_plan) AS pedidos_plan,
         SUM(b.volumes_plan) AS volumes_plan,
         SUM(IF(b.possui_planejamento, b.qtd_volumes, NULL)) AS volumes_com_plan,
+        SUM(b.peso_real_kg) AS total_peso_kg_all,
         SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)) AS total_peso_kg,
         SUM(b.capacidade_peso_kg) AS capacidade_peso_total,
         COUNTIF(b.flag_nao_planejada) AS qtd_nao_plan,
@@ -217,7 +227,8 @@ export function cardsQuery(projectId, dataset, where) {
       SELECT k.*,
         CAST(k.qtd_pedidos AS FLOAT64) AS pedidos_f,
         CAST(k.qtd_volumes AS FLOAT64) AS volumes_f,
-        CAST(k.total_peso_kg AS FLOAT64) AS peso_total_f,
+        CAST(k.qtd_rotas AS FLOAT64) AS rotas_f,
+        CAST(k.total_peso_kg_all AS FLOAT64) AS peso_total_f,
         k.ocup_peso_veiculo AS ocupacao_peso
       FROM kpis k
     ),
@@ -269,14 +280,15 @@ export function cardsQuery(projectId, dataset, where) {
     CROSS JOIN UNNEST([
       STRUCT(1 AS sort_order, 'Qtd Pedidos' AS kpi, l.pedidos_f AS valor, CAST(NULL AS FLOAT64) AS meta, CAST(NULL AS FLOAT64) AS delta, 'Informativo' AS status, l.pedidos_f - COALESCE(p.pedidos_f, 0) AS trend_d1, l.pedidos_f - COALESCE(w.pedidos_f, 0) AS trend_wow, l.data AS database_dt, 'Avaliar volume e mix por filial' AS acao),
       STRUCT(2, 'Qtd Volumes', l.volumes_f, CAST(NULL AS FLOAT64), CAST(NULL AS FLOAT64), 'Informativo', l.volumes_f - COALESCE(p.volumes_f, 0), l.volumes_f - COALESCE(w.volumes_f, 0), l.data, 'Monitorar carga movimentada no escopo canônico'),
-      STRUCT(3, 'Peso Total', l.peso_total_f, CAST(NULL AS FLOAT64), CAST(NULL AS FLOAT64), 'Informativo', l.peso_total_f - COALESCE(p.peso_total_f, 0), l.peso_total_f - COALESCE(w.peso_total_f, 0), l.data, 'Acompanhar peso embarcado dos veículos em escopo'),
-      STRUCT(4, 'SPR Volumes', l.spr_volumes, (SELECT meta_spr_vol FROM metas LIMIT 1), l.spr_volumes - (SELECT meta_spr_vol FROM metas LIMIT 1), \`${n}.status_higher\`(l.spr_volumes, (SELECT meta_spr_vol FROM metas LIMIT 1)), l.spr_volumes - COALESCE(p.spr_volumes, 0), l.spr_volumes - COALESCE(w.spr_volumes, 0), l.data, 'Rebalancear densidade de volumes por rota'),
-      STRUCT(5, 'SPR Pedidos', l.spr_pedidos, (SELECT meta_spr_ped FROM metas LIMIT 1), l.spr_pedidos - (SELECT meta_spr_ped FROM metas LIMIT 1), \`${n}.status_higher\`(l.spr_pedidos, (SELECT meta_spr_ped FROM metas LIMIT 1)), l.spr_pedidos - COALESCE(p.spr_pedidos, 0), l.spr_pedidos - COALESCE(w.spr_pedidos, 0), l.data, 'Revisar consolidacao, mix e ocupacao'),
-      STRUCT(6, 'Entregas Efetivas', l.entregas_efetivas, (SELECT meta_entregas FROM metas LIMIT 1), l.entregas_efetivas - (SELECT meta_entregas FROM metas LIMIT 1), \`${n}.status_higher\`(l.entregas_efetivas, (SELECT meta_entregas FROM metas LIMIT 1)), l.entregas_efetivas - COALESCE(p.entregas_efetivas, 0), l.entregas_efetivas - COALESCE(w.entregas_efetivas, 0), l.data, 'Atacar insucessos e janelas criticas'),
-      STRUCT(7, 'Capacidade Utilizada', l.ocupacao_peso, (SELECT meta_ocup FROM metas LIMIT 1), l.ocupacao_peso - (SELECT meta_ocup FROM metas LIMIT 1), \`${n}.capacity_status\`(l.ocupacao_peso), l.ocupacao_peso - COALESCE(p.ocupacao_peso, 0), l.ocupacao_peso - COALESCE(w.ocupacao_peso, 0), l.data, 'Ajustar mix e capacidade por tipo de veiculo'),
-      STRUCT(8, 'ORH', l.orh, (SELECT meta_orh FROM metas LIMIT 1), l.orh - (SELECT meta_orh FROM metas LIMIT 1), \`${n}.status_target_band\`(l.orh, (SELECT meta_orh FROM metas LIMIT 1), 1.0, 2.1), l.orh - COALESCE(p.orh, 0), l.orh - COALESCE(w.orh, 0), l.data, 'Rebalancear jornadas e overtime'),
-      STRUCT(9, 'Aderencia Volumes', l.ader_vol_exibicao, (SELECT meta_ader_vol FROM metas LIMIT 1), l.ader_vol_exibicao - (SELECT meta_ader_vol FROM metas LIMIT 1), CASE WHEN l.ader_vol_exibicao > 1.05 THEN 'Crítico' ELSE \`${n}.status_higher\`(l.ader_vol_exibicao, (SELECT meta_ader_vol FROM metas LIMIT 1)) END, l.ader_vol_exibicao - COALESCE(p.ader_vol_exibicao, 0), l.ader_vol_exibicao - COALESCE(w.ader_vol_exibicao, 0), l.data, 'Revisar cobertura do planejamento publicado'),
-      STRUCT(10, 'DPPH', l.dpph, (SELECT meta_dpph FROM metas LIMIT 1), l.dpph - (SELECT meta_dpph FROM metas LIMIT 1), \`${n}.status_higher\`(l.dpph, (SELECT meta_dpph FROM metas LIMIT 1)), l.dpph - COALESCE(p.dpph, 0), l.dpph - COALESCE(w.dpph, 0), l.data, 'Revisar produtividade por hora trabalhada')
+      STRUCT(3, 'Qtd Embarques', l.rotas_f, CAST(NULL AS FLOAT64), CAST(NULL AS FLOAT64), 'Informativo', l.rotas_f - COALESCE(p.rotas_f, 0), l.rotas_f - COALESCE(w.rotas_f, 0), l.data, 'Total de cargas/rotas embarcadas no recorte'),
+      STRUCT(4, 'Peso Total', l.peso_total_f, CAST(NULL AS FLOAT64), CAST(NULL AS FLOAT64), 'Informativo', l.peso_total_f - COALESCE(p.peso_total_f, 0), l.peso_total_f - COALESCE(w.peso_total_f, 0), l.data, 'Acompanhar peso embarcado dos veículos em escopo'),
+      STRUCT(5, 'SPR Volumes', l.spr_volumes, (SELECT meta_spr_vol FROM metas LIMIT 1), l.spr_volumes - (SELECT meta_spr_vol FROM metas LIMIT 1), \`${n}.status_higher\`(l.spr_volumes, (SELECT meta_spr_vol FROM metas LIMIT 1)), l.spr_volumes - COALESCE(p.spr_volumes, 0), l.spr_volumes - COALESCE(w.spr_volumes, 0), l.data, 'Rebalancear densidade de volumes por rota'),
+      STRUCT(6, 'SPR Pedidos', l.spr_pedidos, (SELECT meta_spr_ped FROM metas LIMIT 1), l.spr_pedidos - (SELECT meta_spr_ped FROM metas LIMIT 1), \`${n}.status_higher\`(l.spr_pedidos, (SELECT meta_spr_ped FROM metas LIMIT 1)), l.spr_pedidos - COALESCE(p.spr_pedidos, 0), l.spr_pedidos - COALESCE(w.spr_pedidos, 0), l.data, 'Revisar consolidacao, mix e ocupacao'),
+      STRUCT(7, 'Entregas Efetivas', l.entregas_efetivas, (SELECT meta_entregas FROM metas LIMIT 1), l.entregas_efetivas - (SELECT meta_entregas FROM metas LIMIT 1), \`${n}.status_higher\`(l.entregas_efetivas, (SELECT meta_entregas FROM metas LIMIT 1)), l.entregas_efetivas - COALESCE(p.entregas_efetivas, 0), l.entregas_efetivas - COALESCE(w.entregas_efetivas, 0), l.data, 'Atacar insucessos e janelas criticas'),
+      STRUCT(8, 'Capacidade Utilizada', l.ocupacao_peso, (SELECT meta_ocup FROM metas LIMIT 1), l.ocupacao_peso - (SELECT meta_ocup FROM metas LIMIT 1), \`${n}.capacity_status\`(l.ocupacao_peso), l.ocupacao_peso - COALESCE(p.ocupacao_peso, 0), l.ocupacao_peso - COALESCE(w.ocupacao_peso, 0), l.data, 'Ajustar mix e capacidade por tipo de veiculo'),
+      STRUCT(9, 'ORH', l.orh, (SELECT meta_orh FROM metas LIMIT 1), l.orh - (SELECT meta_orh FROM metas LIMIT 1), \`${n}.status_target_band\`(l.orh, (SELECT meta_orh FROM metas LIMIT 1), 1.0, 2.1), l.orh - COALESCE(p.orh, 0), l.orh - COALESCE(w.orh, 0), l.data, 'Rebalancear jornadas e overtime'),
+      STRUCT(10, 'Aderencia Volumes', l.ader_vol_exibicao, (SELECT meta_ader_vol FROM metas LIMIT 1), l.ader_vol_exibicao - (SELECT meta_ader_vol FROM metas LIMIT 1), CASE WHEN l.ader_vol_exibicao > 1.05 THEN 'Crítico' ELSE \`${n}.status_higher\`(l.ader_vol_exibicao, (SELECT meta_ader_vol FROM metas LIMIT 1)) END, l.ader_vol_exibicao - COALESCE(p.ader_vol_exibicao, 0), l.ader_vol_exibicao - COALESCE(w.ader_vol_exibicao, 0), l.data, 'Revisar cobertura do planejamento publicado'),
+      STRUCT(11, 'DPPH', l.dpph, (SELECT meta_dpph FROM metas LIMIT 1), l.dpph - (SELECT meta_dpph FROM metas LIMIT 1), \`${n}.status_higher\`(l.dpph, (SELECT meta_dpph FROM metas LIMIT 1)), l.dpph - COALESCE(p.dpph, 0), l.dpph - COALESCE(w.dpph, 0), l.data, 'Revisar produtividade por hora trabalhada')
     ]) AS metric
     ORDER BY metric.sort_order
   `;
@@ -440,10 +452,10 @@ export function alertasQuery(projectId, dataset, where) {
       a.filial AS nomeFilial,
       a.regiao,
       a.tipo_filial AS tipoFilial,
-      COALESCE(a.transportador, 'Não informado') AS transportador,
+      COALESCE(a.transportador_display, a.transportador, 'Não informado') AS transportador,
       a.rota,
       a.placa,
-      a.motorista,
+      COALESCE(a.motorista_display, a.motorista) AS motorista,
       a.tipo_veiculo,
       a.status_tms AS status,
       a.qtd_pedidos AS pedidosRota,
@@ -458,8 +470,8 @@ export function alertasQuery(projectId, dataset, where) {
       a.qtd_entregues AS entregues,
       a.qtd_insucessos AS insucessos,
       ROUND(a.pct_entrega_efetiva, 4) AS entregaEfetivaRota,
-      ROUND(a.ocup_volumes, 4) AS aderenciaVolumes,
-      ROUND(a.ocup_peso_veiculo, 4) AS ocupacaoPeso,
+      ROUND(a.aderencia_volumes, 4) AS aderenciaVolumes,
+      ROUND(a.peso_real_kg / NULLIF(a.capacidade_peso_kg, 0), 4) AS ocupacaoPeso,
       a.flag_rota_concluida AS rotaConcluida,
       a.flag_nao_planejada AS flagNaoPlanejada,
       a.flag_overtime AS flagOvertime,
@@ -524,9 +536,9 @@ export function drillRotasQuery(projectId, dataset, where, sortField, orderDirec
     entregasEf: 'd.pct_entrega_efetiva',
     rotasConcl: 'IF(d.flag_rota_concluida, 1.0, 0.0)',
     orh: 'd.tempo_operacional_h',
-    aderVol: 'd.ocup_volumes',
+    aderVol: 'd.aderencia_volumes',
     volPlan: 'COALESCE(d.volumes_plan, 0)',
-    ocupPeso: 'd.ocup_peso_veiculo',
+    ocupPeso: '(d.peso_real_kg / NULLIF(d.capacidade_peso_kg, 0))',
   });
   return `
     SELECT
@@ -535,10 +547,10 @@ export function drillRotasQuery(projectId, dataset, where, sortField, orderDirec
       d.filial AS nomeFilial,
       d.regiao,
       d.tipo_filial AS tipoFilial,
-      COALESCE(d.transportador, 'Não informado') AS transportador,
+      COALESCE(d.transportador_display, d.transportador, 'Não informado') AS transportador,
       d.rota,
       d.placa,
-      d.motorista,
+      COALESCE(d.motorista_display, d.motorista) AS motorista,
       d.tipo_veiculo,
       d.status_tms AS status,
       d.qtd_pedidos AS pedidosRota,
@@ -553,8 +565,8 @@ export function drillRotasQuery(projectId, dataset, where, sortField, orderDirec
       d.qtd_entregues AS entregues,
       d.qtd_insucessos AS insucessos,
       ROUND(d.pct_entrega_efetiva, 4) AS entregaEfetivaRota,
-      ROUND(d.ocup_volumes, 4) AS aderenciaVolumes,
-      ROUND(d.ocup_peso_veiculo, 4) AS ocupacaoPeso,
+      ROUND(d.aderencia_volumes, 4) AS aderenciaVolumes,
+      ROUND(d.peso_real_kg / NULLIF(d.capacidade_peso_kg, 0), 4) AS ocupacaoPeso,
       ROUND(d.valor_total, 2) AS valorTotal,
       d.flag_rota_concluida AS rotaConcluida,
       d.flag_nao_planejada AS flagNaoPlanejada,
@@ -599,7 +611,7 @@ export function transportadoresQuery(projectId, dataset, where) {
     WITH
     base AS (
       SELECT
-        COALESCE(NULLIF(TRIM(b.transportador), ''), 'Transportador não informado') AS transportador,
+        COALESCE(NULLIF(TRIM(b.transportador_display), ''), NULLIF(TRIM(b.transportador), ''), 'Transportador não informado') AS transportador,
         COUNT(DISTINCT b.id_carga) AS rotas,
         SUM(b.qtd_pedidos) AS pedidos,
         SUM(b.qtd_volumes) AS volumes,
@@ -659,7 +671,7 @@ export function frotaOcupacaoQuery(projectId, dataset, where) {
       ROUND(AVG(peso_real_kg), 2) AS media_peso_rota,
       SUM(peso_real_kg) AS peso_total_kg,
       SUM(capacidade_peso_kg) AS capacidade_peso_total_kg,
-      ROUND(\`${n}.safe_div\`(SUM(peso_real_kg), NULLIF(SUM(capacidade_peso_kg), 0)), 4) AS ocupacao_peso,
+      ROUND(\`${n}.safe_div\`(SUM(IF(capacidade_peso_kg IS NOT NULL, peso_real_kg, NULL)), NULLIF(SUM(capacidade_peso_kg), 0)), 4) AS ocupacao_peso,
       ROUND(\`${n}.safe_div\`(SUM(qtd_volumes), NULLIF(COUNT(*), 0)), 2) AS spr_por_veiculo,
       ROUND(\`${n}.safe_div\`(SUM(tempo_operacional_h), NULLIF(COUNT(*), 0)), 2) AS orh,
       ROUND(\`${n}.safe_div\`(SUM(valor_total), NULLIF(SUM(qtd_volumes), 0)), 2) AS custo_medio_volume
@@ -681,8 +693,8 @@ export function motoristasCountQuery(projectId, dataset, where, overtimeClause) 
       SELECT
         b.data_referencia AS data,
         b.motorista_key_canonico AS motorista_key,
-        b.motorista,
-        COALESCE(b.transportador, 'Não informado') AS transportador,
+        COALESCE(b.motorista_display, b.motorista) AS motorista,
+        COALESCE(b.transportador_display, b.transportador, 'Não informado') AS transportador,
         COALESCE(b.filial, 'Não informado') AS filial,
         COUNT(DISTINCT b.id_carga) AS qtd_rotas,
         SUM(b.tempo_operacional_h) AS horas_jornada,
@@ -702,22 +714,23 @@ export function motoristasCountQuery(projectId, dataset, where, overtimeClause) 
 
 export function motoristasQuery(projectId, dataset, where, overtimeClause) {
   const n = ns(projectId, dataset);
+  // Score calculado pós-agregação (alias md.*) para evitar GROUP BY em colunas de meta.
   const score = scoreExpr(n, {
-    sprVol: sd(n, 'SUM(b.qtd_volumes)', 'CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)'),
-    entregasEf: sd(n, 'SUM(b.qtd_entregues)', 'SUM(b.qtd_entregues) + SUM(b.qtd_insucessos)'),
-    rotasConcl: sd(n, 'CAST(COUNTIF(b.flag_rota_concluida) AS FLOAT64)', 'CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)'),
-    orh: sd(n, 'SUM(b.tempo_operacional_h)', 'CAST(COUNT(DISTINCT b.id_carga) AS FLOAT64)'),
-    aderVol: ar(n, 'SUM(b.qtd_volumes)', 'SUM(b.volumes_plan)'),
-    volPlan: 'SUM(b.volumes_plan)',
-    ocupPeso: sd(n, 'SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL))', 'NULLIF(SUM(b.capacidade_peso_kg), 0)'),
+    sprVol: sd(n, 'md.volumes', 'CAST(md.qtd_rotas AS FLOAT64)'),
+    entregasEf: sd(n, 'md.entregues', 'md.entregues + md.insucessos'),
+    rotasConcl: sd(n, 'CAST(md.rotas_concluidas AS FLOAT64)', 'CAST(md.qtd_rotas AS FLOAT64)'),
+    orh: sd(n, 'md.horas_jornada', 'CAST(md.qtd_rotas AS FLOAT64)'),
+    aderVol: ar(n, 'md.volumes', 'md.volumes_plan'),
+    volPlan: 'md.volumes_plan',
+    ocupPeso: sd(n, 'md.peso_capacidade', 'NULLIF(md.capacidade_peso_total, 0)'),
   });
   return `
     WITH motorista_dia AS (
       SELECT
         b.data_referencia AS data,
         b.motorista_key_canonico AS motorista_key,
-        b.motorista,
-        COALESCE(b.transportador, 'Não informado') AS transportador,
+        COALESCE(b.motorista_display, b.motorista) AS motorista,
+        COALESCE(b.transportador_display, b.transportador, 'Não informado') AS transportador,
         COALESCE(b.filial, 'Não informado') AS filial,
         COUNT(DISTINCT b.id_carga) AS qtd_rotas,
         SUM(b.tempo_operacional_h) AS horas_jornada,
@@ -725,20 +738,27 @@ export function motoristasQuery(projectId, dataset, where, overtimeClause) {
         SUM(b.qtd_insucessos) AS insucessos,
         SUM(b.qtd_pedidos) AS pedidos,
         SUM(b.qtd_volumes) AS volumes,
+        SUM(b.volumes_plan) AS volumes_plan,
+        COUNTIF(b.flag_rota_concluida) AS rotas_concluidas,
+        SUM(IF(b.capacidade_peso_kg IS NOT NULL, b.peso_real_kg, NULL)) AS peso_capacidade,
+        SUM(b.capacidade_peso_kg) AS capacidade_peso_total,
         MAX(CASE WHEN b.flag_overtime THEN TRUE ELSE FALSE END) AS flag_overtime,
-        ROUND(\`${n}.safe_div\`(SUM(b.qtd_entregues), SUM(b.qtd_entregues) + SUM(b.qtd_insucessos)), 4) AS pct_entregas_efetivas,
-        ${score} AS score_operacional
+        ROUND(\`${n}.safe_div\`(SUM(b.qtd_entregues), SUM(b.qtd_entregues) + SUM(b.qtd_insucessos)), 4) AS pct_entregas_efetivas
       FROM \`${n}.base_execucao_canonica\` b
-      CROSS JOIN \`${n}.metas_pivot_canonico\` m
       ${where}
-      GROUP BY 1, 2, 3, 4, 5, m.meta_spr_vol, m.meta_entregas, m.meta_rotas, m.meta_orh, m.meta_ader_vol
+      GROUP BY 1, 2, 3, 4, 5
     )
-    SELECT *
-    FROM motorista_dia m
+    SELECT
+      md.data, md.motorista_key, md.motorista, md.transportador, md.filial,
+      md.qtd_rotas, md.horas_jornada, md.entregues, md.insucessos,
+      md.pedidos, md.volumes, md.flag_overtime, md.pct_entregas_efetivas,
+      ${score} AS score_operacional
+    FROM motorista_dia md
+    CROSS JOIN \`${n}.metas_pivot_canonico\` m
     WHERE 1=1
     ${overtimeClause}
-      AND (COALESCE(m.horas_jornada, 0) > 0 OR COALESCE(m.entregues, 0) + COALESCE(m.insucessos, 0) > 0)
-    ORDER BY data DESC, flag_overtime DESC, horas_jornada DESC, motorista ASC
+      AND (COALESCE(md.horas_jornada, 0) > 0 OR COALESCE(md.entregues, 0) + COALESCE(md.insucessos, 0) > 0)
+    ORDER BY md.data DESC, md.flag_overtime DESC, md.horas_jornada DESC, md.motorista ASC
     LIMIT @limit OFFSET @offset
   `;
 }
@@ -753,6 +773,7 @@ export function motoristasKpisQuery(projectId, dataset, where) {
         SUM(b.tempo_operacional_h) AS horas_jornada,
         SUM(b.qtd_entregues) AS entregues,
         SUM(b.qtd_insucessos) AS insucessos,
+        SUM(b.qtd_volumes) AS volumes,
         MAX(CASE WHEN b.flag_overtime THEN TRUE ELSE FALSE END) AS flag_overtime
       FROM \`${n}.base_execucao_canonica\` b
       ${where}
@@ -763,7 +784,9 @@ export function motoristasKpisQuery(projectId, dataset, where) {
       ROUND(AVG(qtd_rotas), 2) AS mediaRotasDia,
       ROUND(AVG(horas_jornada), 2) AS jornadaMedia,
       COUNT(DISTINCT CASE WHEN flag_overtime THEN motorista_key END) AS qtdOvertime,
-      ROUND(\`${n}.safe_div\`(SUM(entregues), NULLIF(SUM(horas_jornada), 0)), 2) AS dpph
+      ROUND(\`${n}.safe_div\`(SUM(entregues), NULLIF(SUM(horas_jornada), 0)), 2) AS dpph,
+      ROUND(\`${n}.safe_div\`(SUM(volumes), NULLIF(COUNT(DISTINCT motorista_key), 0)), 1) AS volumesPerMotorista,
+      ROUND(\`${n}.safe_div\`(SUM(entregues), NULLIF(SUM(entregues) + SUM(insucessos), 0)), 4) AS efetividadeMedia
     FROM motorista_dia m
     WHERE COALESCE(m.horas_jornada, 0) > 0 OR COALESCE(m.entregues, 0) > 0 OR COALESCE(m.insucessos, 0) > 0
   `;
@@ -978,3 +1001,4 @@ export function serieDiariaQuery(projectId, dataset, where) {
     ORDER BY d.data ASC
   `;
 }
+

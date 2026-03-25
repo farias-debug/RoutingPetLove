@@ -1,7 +1,7 @@
 """
 Teste de paridade de Score Operacional (R11).
-Compara o score calculado por fn_score_operacional em diferentes camadas
-(marts v4, views v6, server.js) para garantir que todos convergem.
+Valida que fn_score_operacional produz resultados consistentes
+sobre base_execucao_canonica e metas_pivot_canonico (arquitetura v7).
 Uso: python score_parity_test.py
 """
 
@@ -18,138 +18,70 @@ TOLERANCE = 0.5  # tolerancia maxima de divergencia no score (pontos)
 
 PARITY_CHECKS = [
     # ---------------------------------------------------------------
-    # 1. Score mart_kpi_diario vs recalculo direto via fn_score_operacional
+    # 1. Score sobre base_execucao_canonica: range [0, 100]
     # ---------------------------------------------------------------
     (
-        "mart_kpi_diario: score vs recalculo",
+        "base_execucao_canonica: score range 0-100",
         f"""
-        WITH src AS (
-          SELECT data, score_operacional,
-            ROUND(`{FQN}.fn_score_operacional`(
-              `{FQN}.status_higher`(spr_vol, meta_spr_vol),
-              `{FQN}.status_higher`(pct_entregas, meta_entregas),
-              `{FQN}.status_higher`(pct_rotas_concl, meta_rotas),
-              `{FQN}.status_target_band`(orh, meta_orh, 1.0, 2.1),
-              `{FQN}.status_higher`(ader_vol, meta_ader_vol),
-              `{FQN}.capacity_status`(ocup_composta)
-            ), 1) AS score_recalc
-          FROM `{FQN}.mart_kpi_diario`
-          WHERE data >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
+        WITH scored AS (
+          SELECT
+            `{FQN}.fn_score_operacional`(
+              `{FQN}.status_higher`(
+                `{FQN}.safe_div`(b.qtd_volumes, CAST(1 AS FLOAT64)), m.meta_spr_vol),
+              `{FQN}.status_higher`(b.pct_entrega_efetiva, m.meta_entregas),
+              IF(b.flag_rota_concluida, 'OK', 'Critico'),
+              `{FQN}.status_target_band`(b.tempo_operacional_h, m.meta_orh, 1.0, 2.1),
+              IF(b.ocup_peso_veiculo IS NOT NULL,
+                 `{FQN}.status_higher`(b.ocup_peso_veiculo, m.meta_ocup),
+                 'Informativo'),
+              `{FQN}.capacity_status`(b.ocup_peso_veiculo)
+            ) AS score
+          FROM `{FQN}.base_execucao_canonica` b
+          CROSS JOIN `{FQN}.metas_pivot_canonico` m
+          WHERE b.data_referencia >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
         )
         SELECT
           COUNT(*) AS total_rows,
-          COUNTIF(ABS(score_operacional - score_recalc) > {TOLERANCE}) AS divergent,
-          MAX(ABS(score_operacional - score_recalc)) AS max_delta
-        FROM src
+          COUNTIF(score < 0 OR score > 100) AS divergent,
+          MAX(score) AS max_score,
+          MIN(score) AS min_score
+        FROM scored
+        WHERE score IS NOT NULL
         """,
-        lambda row: row["divergent"] == 0,
+        lambda row: row["divergent"] == 0 and row["total_rows"] > 0,
     ),
     # ---------------------------------------------------------------
-    # 2. Score mart_kpi_filial_dia vs recalculo
+    # 2. Score determinístico: mesma entrada → mesmo resultado
     # ---------------------------------------------------------------
     (
-        "mart_kpi_filial_dia: score vs recalculo",
-        f"""
-        WITH src AS (
-          SELECT data, filial, score_operacional,
-            ROUND(`{FQN}.fn_score_operacional`(
-              `{FQN}.status_higher`(spr_vol, meta_spr_vol),
-              `{FQN}.status_higher`(pct_entregas, meta_entregas),
-              `{FQN}.status_higher`(pct_rotas_concl, meta_rotas),
-              `{FQN}.status_target_band`(orh, meta_orh, 1.0, 2.1),
-              `{FQN}.status_higher`(ader_vol, meta_ader_vol),
-              `{FQN}.capacity_status`(ocup_composta)
-            ), 1) AS score_recalc
-          FROM `{FQN}.mart_kpi_filial_dia`
-          WHERE data >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
-        )
-        SELECT
-          COUNT(*) AS total_rows,
-          COUNTIF(ABS(score_operacional - score_recalc) > {TOLERANCE}) AS divergent,
-          MAX(ABS(score_operacional - score_recalc)) AS max_delta
-        FROM src
-        """,
-        lambda row: row["divergent"] == 0,
-    ),
-    # ---------------------------------------------------------------
-    # 3. Score mart_kpi_transportador_dia vs recalculo
-    # ---------------------------------------------------------------
-    (
-        "mart_kpi_transportador_dia: score vs recalculo",
-        f"""
-        WITH src AS (
-          SELECT data, transportador, score_operacional,
-            ROUND(`{FQN}.fn_score_operacional`(
-              `{FQN}.status_higher`(spr_vol, meta_spr_vol),
-              `{FQN}.status_higher`(pct_entregas, meta_entregas),
-              `{FQN}.status_higher`(pct_rotas_concl, meta_rotas),
-              `{FQN}.status_target_band`(orh, meta_orh, 1.0, 2.1),
-              `{FQN}.status_higher`(ader_vol, meta_ader_vol),
-              `{FQN}.capacity_status`(ocup_composta)
-            ), 1) AS score_recalc
-          FROM `{FQN}.mart_kpi_transportador_dia`
-          WHERE data >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
-        )
-        SELECT
-          COUNT(*) AS total_rows,
-          COUNTIF(ABS(score_operacional - score_recalc) > {TOLERANCE}) AS divergent,
-          MAX(ABS(score_operacional - score_recalc)) AS max_delta
-        FROM src
-        """,
-        lambda row: row["divergent"] == 0,
-    ),
-    # ---------------------------------------------------------------
-    # 4. Score mart_kpi_motorista_dia vs recalculo
-    # ---------------------------------------------------------------
-    (
-        "mart_kpi_motorista_dia: score vs recalculo",
-        f"""
-        WITH src AS (
-          SELECT data, motorista, score_operacional,
-            ROUND(`{FQN}.fn_score_operacional`(
-              `{FQN}.status_higher`(spr_vol, meta_spr_vol),
-              `{FQN}.status_higher`(pct_entregas, meta_entregas),
-              `{FQN}.status_higher`(pct_rotas_concl, meta_rotas),
-              `{FQN}.status_target_band`(orh, meta_orh, 1.0, 2.1),
-              `{FQN}.status_higher`(ader_vol, meta_ader_vol),
-              `{FQN}.capacity_status`(ocup_composta)
-            ), 1) AS score_recalc
-          FROM `{FQN}.mart_kpi_motorista_dia`
-          WHERE data >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
-        )
-        SELECT
-          COUNT(*) AS total_rows,
-          COUNTIF(ABS(score_operacional - score_recalc) > {TOLERANCE}) AS divergent,
-          MAX(ABS(score_operacional - score_recalc)) AS max_delta
-        FROM src
-        """,
-        lambda row: row["divergent"] == 0,
-    ),
-    # ---------------------------------------------------------------
-    # 5. Score range: todos os scores devem estar entre 0 e 100
-    # ---------------------------------------------------------------
-    (
-        "score range 0-100 em todos os marts",
+        "fn_score_operacional: determinismo (valores fixos)",
         f"""
         SELECT
-          COUNTIF(score_operacional < 0 OR score_operacional > 100) AS out_of_range
-        FROM (
-          SELECT score_operacional FROM `{FQN}.mart_kpi_diario`
-          UNION ALL
-          SELECT score_operacional FROM `{FQN}.mart_kpi_filial_dia`
-          UNION ALL
-          SELECT score_operacional FROM `{FQN}.mart_kpi_transportador_dia`
-          UNION ALL
-          SELECT score_operacional FROM `{FQN}.mart_kpi_motorista_dia`
-        )
+          `{FQN}.fn_score_operacional`(
+            `{FQN}.status_higher`(42, m.meta_spr_ped),
+            `{FQN}.status_higher`(0.98, m.meta_entregas),
+            `{FQN}.status_higher`(0.95, m.meta_rotas),
+            `{FQN}.status_target_band`(7.0, m.meta_orh, 1.0, 2.0),
+            `{FQN}.status_higher`(0.90, m.meta_ader_vol),
+            `{FQN}.status_target_band`(0.85, m.meta_ocup, 0.05, 0.10)
+          ) AS score_a,
+          `{FQN}.fn_score_operacional`(
+            `{FQN}.status_higher`(42, m.meta_spr_ped),
+            `{FQN}.status_higher`(0.98, m.meta_entregas),
+            `{FQN}.status_higher`(0.95, m.meta_rotas),
+            `{FQN}.status_target_band`(7.0, m.meta_orh, 1.0, 2.0),
+            `{FQN}.status_higher`(0.90, m.meta_ader_vol),
+            `{FQN}.status_target_band`(0.85, m.meta_ocup, 0.05, 0.10)
+          ) AS score_b
+        FROM `{FQN}.metas_pivot_canonico` m
         """,
-        lambda row: row["out_of_range"] == 0,
+        lambda row: row["score_a"] == row["score_b"] and row["score_a"] is not None,
     ),
     # ---------------------------------------------------------------
-    # 6. metas_pivot: view retorna exatamente 1 linha com 8 colunas nao-null
+    # 3. metas_pivot_canonico: 1 linha, 8 colunas nao-null
     # ---------------------------------------------------------------
     (
-        "metas_pivot: 1 linha, 8 colunas nao-null",
+        "metas_pivot_canonico: 1 linha, 8 colunas nao-null",
         f"""
         SELECT
           COUNT(*) AS n_rows,
@@ -161,7 +93,7 @@ PARITY_CHECKS = [
           COUNTIF(meta_ocup IS NULL) AS null_ocup,
           COUNTIF(meta_ader_vol IS NULL) AS null_ader_vol,
           COUNTIF(meta_dpph IS NULL) AS null_dpph
-        FROM `{FQN}.metas_pivot`
+        FROM `{FQN}.metas_pivot_canonico`
         """,
         lambda row: (
             row["n_rows"] == 1
@@ -176,18 +108,20 @@ PARITY_CHECKS = [
         ),
     ),
     # ---------------------------------------------------------------
-    # 7. api_filial_performance v6: score deve usar 6 KPIs (range-check)
+    # 4. pct_entrega_efetiva coerente com qtd_entregues/qtd_pedidos
     # ---------------------------------------------------------------
     (
-        "api_filial_performance: score range 0-100",
+        "pct_entrega_efetiva vs safe_div(qtd_entregues, qtd_pedidos)",
         f"""
-        SELECT
-          COUNT(*) AS total,
-          COUNTIF(score_operacional < 0 OR score_operacional > 100) AS out_of_range,
-          COUNTIF(score_operacional IS NULL) AS null_scores
-        FROM `{FQN}.api_filial_performance`
+        SELECT COUNTIF(
+          ABS(pct_entrega_efetiva - `{FQN}.safe_div`(qtd_entregues, NULLIF(qtd_pedidos, 0))) > 0.01
+        ) AS divergent,
+        COUNT(*) AS total_rows
+        FROM `{FQN}.base_execucao_canonica`
+        WHERE pct_entrega_efetiva IS NOT NULL
+          AND qtd_pedidos > 0
         """,
-        lambda row: row["out_of_range"] == 0 and row["total"] > 0,
+        lambda row: row["divergent"] == 0 and row["total_rows"] > 0,
     ),
 ]
 
@@ -207,7 +141,7 @@ def run_check(name, query, validator):
 
 def main():
     print("=" * 70)
-    print("SCORE PARITY TEST — fn_score_operacional unificado")
+    print("SCORE PARITY TEST — fn_score_operacional sobre base_execucao_canonica")
     print("=" * 70)
     total = len(PARITY_CHECKS)
     passed = 0

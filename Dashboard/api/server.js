@@ -3,7 +3,7 @@ import cors from "cors";
 import { BigQuery } from "@google-cloud/bigquery";
 
 import {
-  normalizeEntityKey, normalizeEntityLabel, uniqueOptions,
+  normalizeEntityKey, normalizeEntityLabel, truncateWords, uniqueOptions,
   normalizeStatus, colorHex, formatDate, toNumberOrNull,
   resolveJanelaPeriodo, bqNormalizeText,
   buildCanonWhere, buildCanonAlertWhere, buildCanonAlertTypeFilter, buildDateFilter,
@@ -15,7 +15,8 @@ import * as Q from "./queries.js";
 // ── Boot ────────────────────────────────────────────────────────────────────
 
 const app = express();
-const port = Number(process.env.PORT || 8080);
+// Em Cloud Run o PORT vem do ambiente; localmente padronizamos a API em 3001.
+const port = Number(process.env.PORT || 3001);
 const projectId = process.env.BIGQUERY_PROJECT_ID || "data-aileron-482822-d0";
 const dataset = process.env.BIGQUERY_DATASET || "monitoramento_carga";
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:8080,http://localhost:8081,http://localhost:8082,http://localhost:8083,http://localhost:4173,http://localhost:5173,http://localhost:5174,https://data-aileron-482822-d0.web.app,https://data-aileron-482822-d0.firebaseapp.com")
@@ -66,8 +67,27 @@ const canonOpts = (extra = {}) => ({
 
 // ── Health ───────────────────────────────────────────────────────────────────
 
-app.get("/health", (_req, res) => {
-  res.json({ ok: true, projectId, dataset });
+app.get("/health", async (_req, res) => {
+  const health = { ok: true, projectId, dataset };
+
+  try {
+    const [rows] = await bigquery.query({
+      query: `SELECT MAX(data_referencia) AS last_date, COUNT(DISTINCT data_referencia) AS total_days FROM \`${projectId}.${dataset}.base_execucao_canonica\` WHERE data_referencia >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)`,
+    });
+    const row = rows[0] || {};
+    const lastDate = row.last_date?.value || null;
+    const ageMs = lastDate ? Date.now() - new Date(lastDate).getTime() : null;
+    health.dataFreshness = {
+      lastDate,
+      daysInLast7: Number(row.total_days || 0),
+      ageHours: ageMs ? Math.round(ageMs / 3600000) : null,
+      stale: ageMs ? ageMs > 48 * 3600000 : true,
+    };
+  } catch {
+    health.dataFreshness = null;
+  }
+
+  res.json(health);
 });
 
 // ── Metas ────────────────────────────────────────────────────────────────────
@@ -126,12 +146,12 @@ app.get("/api/filtros/opcoes", async (req, res) => {
       filiais: uniqueOptions(
         filiais,
         (row) => String(row.value || "").trim(),
-        (row, value) => normalizeEntityLabel(row.label, value),
+        (row, value) => row.label || value,
       ),
       transportadores: uniqueOptions(
         transportadores,
         (row) => normalizeEntityKey(row.value),
-        (row) => normalizeEntityLabel(row.value, "Transportador não informado"),
+        (row) => truncateWords(normalizeEntityLabel(row.label || row.value, "Transportador não informado")),
       ),
       tiposVeiculo: tiposVeiculo.map((row) => ({ value: row.value, label: row.value })),
       status: status.map((row) => ({ value: row.value, label: row.value })),
@@ -208,7 +228,7 @@ app.get("/api/filiais/performance", async (req, res) => {
     const rows = await runQuery(Q.filiaisPerformanceQuery(projectId, dataset, where), params);
     res.json(rows.map((row) => ({
       filial: row.filial,
-      nomeFilial: normalizeEntityLabel(row.nomeFilial, row.filial),
+      nomeFilial: row.nomeFilial || row.filial,
       tipoFilial: row.tipoFilial,
       regiao: row.regiao,
       metaSpr: Number(row.metaSpr ?? 0),
@@ -274,9 +294,9 @@ app.get("/api/alertas", async (req, res) => {
       data: rows.map((row) => ({
         data: formatDate(row.data),
         filial: row.filial,
-        nomeFilial: normalizeEntityLabel(row.nomeFilial, row.filial),
+        nomeFilial: row.nomeFilial || row.filial,
         regiao: row.regiao,
-        transportador: normalizeEntityLabel(row.transportador, "Transportador não informado"),
+        transportador: truncateWords(normalizeEntityLabel(row.transportador, "Transportador não informado")),
         rota: row.rota,
         rotaPlanejada: null,
         placa: row.placa,
@@ -379,9 +399,9 @@ app.get("/api/drill-rotas", async (req, res) => {
       data: rows.map((row) => ({
         data: formatDate(row.data),
         filial: row.filial,
-        nomeFilial: normalizeEntityLabel(row.nomeFilial, row.filial),
+        nomeFilial: row.nomeFilial || row.filial,
         regiao: row.regiao ?? null,
-        transportador: normalizeEntityLabel(row.transportador, "Transportador não informado"),
+        transportador: truncateWords(normalizeEntityLabel(row.transportador, "Transportador não informado")),
         rota: row.rota,
         placa: row.placa,
         motorista: normalizeEntityLabel(row.motorista, "Motorista não informado"),
@@ -422,7 +442,7 @@ app.get("/api/transportadores", async (req, res) => {
     const where = buildCanonWhere(req.query, params, canonOpts());
     const rows = await runQuery(Q.transportadoresQuery(projectId, dataset, where), params);
     res.json(rows.map((row) => ({
-      transportador: normalizeEntityLabel(row.transportador, "Transportador não informado"),
+      transportador: truncateWords(normalizeEntityLabel(row.transportador, "Transportador não informado")),
       rotas: Number(row.rotas ?? 0),
       share: Number(row.share ?? 0),
       custoMedioCarga: Number(row.custo_medio_carga ?? 0),
@@ -496,8 +516,8 @@ app.get("/api/motoristas", async (req, res) => {
       data: rows.map((row) => ({
         data: formatDate(row.data),
         filial: row.filial,
-        nomeFilial: normalizeEntityLabel(row.filial, row.filial),
-        transportador: normalizeEntityLabel(row.transportador, "Transportador não informado"),
+        nomeFilial: row.filial,
+        transportador: truncateWords(normalizeEntityLabel(row.transportador, "Transportador não informado")),
         motorista: normalizeEntityLabel(row.motorista, "Motorista não informado"),
         placa: null,
         qtdRotas: Number(row.qtd_rotas ?? 0),
@@ -525,7 +545,7 @@ app.get("/api/motoristas/kpis", async (req, res) => {
     const params = {};
     const where = buildCanonWhere({ ...req.query, periodo: req.query.periodo || req.query.data }, params, canonOpts({ alias: "b", dateField: "b.data_referencia" }));
     const rows = await runQuery(Q.motoristasKpisQuery(projectId, dataset, where), params);
-    res.json(rows[0] || { motoristasAtivos: 0, mediaRotasDia: 0, jornadaMedia: 0, qtdOvertime: 0, dpph: 0 });
+    res.json(rows[0] || { motoristasAtivos: 0, mediaRotasDia: 0, jornadaMedia: 0, qtdOvertime: 0, dpph: 0, volumesPerMotorista: 0, efetividadeMedia: 0 });
   } catch (error) {
     sendError(res, 500, "MOTORISTAS_KPIS_QUERY_FAILED", "Falha ao consultar KPIs de motoristas", { message: error.message });
   }

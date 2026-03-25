@@ -10,12 +10,11 @@ assignees: ""
 <!-- O que você precisa? -->
 
 ## Domínio
-- [ ] BigQuery (pipeline v4/v5/v6)
-- [ ] Extração TMS
+- [ ] BigQuery (pipeline v7)
+- [ ] Extração TMS / Pipeline Cloud
 - [ ] API Cloud Run
 - [ ] React Dashboard (frontend)
-- [ ] Google Apps Script
-- [ ] Infra / Scripts
+- [ ] Infra / Scripts / CI/CD
 
 ## Motivação
 <!-- Por que essa feature é importante? Qual problema resolve? -->
@@ -31,6 +30,7 @@ assignees: ""
 ## Impacto na Cadeia
 <!-- Quais componentes são afetados? -->
 ```
-TMS → CSV → BigQuery → Sheets → Apps Script
-                    → API → React Dashboard
+Cloud Scheduler → Cloud Run Job (TMS → CSV → BQ)
+    → BigQuery v7 (views auto-refresh)
+    → API Cloud Run → React Dashboard (Firebase)
 ```

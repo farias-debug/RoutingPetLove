@@ -245,7 +245,7 @@ export default function InvestigacaoOperacional() {
                         <td className="py-2.5 px-3 tabular-nums">{r.entregas}</td>
                         <td className="py-2.5 px-3 tabular-nums">{r.insucessos}</td>
                         <td className="py-2.5 px-3 tabular-nums">{r.kmRealizado}</td>
-                        <td className="py-2.5 px-3 tabular-nums">{r.peso.toLocaleString("pt-BR")}</td>
+                        <td className="py-2.5 px-3 tabular-nums">{(r.peso ?? 0).toLocaleString("pt-BR")}</td>
                         <td className="py-2.5 px-3 tabular-nums">{r.ocupacaoPeso == null ? "—" : `${(r.ocupacaoPeso * 100).toFixed(1)}%`}</td>
                         <td className="py-2.5 px-3 font-bold tabular-nums">{r.scoreOperacional > 0 ? r.scoreOperacional.toFixed(1) : "—"}</td>
                       </tr>

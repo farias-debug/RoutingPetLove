@@ -1,8 +1,8 @@
 # Catalogo de Medidas Canonico
 
 Projeto: Monitoramento Logistico Last-Mile
-Data: 2026-03-22
-Status: catalogo oficial revisado contra implementacao real em pipeline_v4, pipeline_v5_publicacao, pipeline_v6_api e api/server.js
+Data: 2026-03-25
+Status: catalogo oficial atualizado para pipeline_v7 — inclui colunas adicionadas em refatoracao 2026-03-23
 
 ---
 
@@ -109,6 +109,34 @@ O frontend consome exclusivamente via API REST.
 | valor_total | Valor Total | R$ | base_execucao_canonica | soma financeira consolidada |
 | capacidade_peso_kg | Capacidade Peso | kg | base_execucao_canonica | capacidade fisica inferida pelo tipo de veiculo |
 | possui_planejamento | Possui Planejamento | booleano | base_execucao_canonica | sinaliza disponibilidade de plano |
+
+### 4.1.1 KPIs atomicos row-level (calculados na view, disponíveis sem agregacao)
+
+Estas medidas sao calculadas diretamente na view base_execucao_canonica para cada rota individual.
+
+| Nome tecnico | Nome visual principal | Formula | Unidade | Origem oficial | Observacao |
+| --- | --- | --- | --- | --- | --- |
+| pct_entrega_efetiva | Entrega Efetiva Rota | qtd_entregues / (qtd_entregues+qtd_insucessos) | fracao 0-1 | base_execucao_canonica | row-level; agregacoes usam suma separada |
+| aderencia_volumes | Aderencia Volumes Rota | LEAST(1, qtd_volumes / volumes_plan) | fracao 0-1 | base_execucao_canonica | NULL quando sem planejamento |
+| aderencia_pedidos | Aderencia Pedidos Rota | LEAST(1, qtd_pedidos / pedidos_plan) | fracao 0-1 | base_execucao_canonica | NULL quando sem planejamento |
+| aderencia_peso | Aderencia Peso Rota | LEAST(1, peso_real_kg / peso_plan_kg) | fracao 0-1 | base_execucao_canonica | NULL quando sem planejamento |
+| aderencia_km | Aderencia KM Rota | LEAST(1, km_real / km_plan) | fracao 0-1 | base_execucao_canonica | NULL quando sem planejamento |
+| aderencia_tempo | Aderencia Tempo Rota | LEAST(1, tempo_operacional_h / tempo_plan_h) | fracao 0-1 | base_execucao_canonica | NULL quando sem planejamento |
+| ocup_peso_veiculo | Capacidade Rota Utilizada | peso_real_kg / capacidade_peso_kg | fracao 0-1 | base_execucao_canonica | NULL quando capacidade_peso_kg IS NULL |
+| dpph | DPPH Rota | qtd_entregues / tempo_operacional_h | ent/h | base_execucao_canonica | row-level auxiliar |
+| custo_por_pedido | Custo por Pedido Rota | valor_total / qtd_pedidos | R$/pedido | base_execucao_canonica | row-level; agregacoes somam numerador/denominador |
+| custo_por_volume | Custo por Volume Rota | valor_total / qtd_volumes | R$/volume | base_execucao_canonica | row-level |
+
+### 4.1.2 Colunas de display e chaves canonicas (adicionadas em 2026-03-23)
+
+| Nome tecnico | Nome visual principal | Formula | Origem oficial | Observacao |
+| --- | --- | --- | --- | --- |
+| filial_codigo | Codigo Filial | LPAD(REGEXP_EXTRACT(UPPER(filial_raw), r'[A-Z]+(\d+)'), 2, '0') | base_execucao_canonica (via dim_filial) | Exemplos: PetLog01 → '01', Petlog08 → '08' |
+| motorista_display | Motorista Formatado | INITCAP(LOWER(TRIM(motorista))) | base_execucao_canonica | Nome do motorista em Title Case para exibicao |
+| transportador_display | Transportador Formatado | INITCAP(LOWER(TRIM(transportador))) | base_execucao_canonica | Nome do transportador em Title Case para exibicao |
+| motorista_key_canonico | Chave Canonica Motorista | motorista_key_canonical(cpf, nome) | base_execucao_canonica | Chave de deduplicacao de motorista |
+| transportador_key_canonico | Chave Canonica Transportador | normalize_text(transportador) | base_execucao_canonica | Chave de join para transportador |
+| semana_referencia | Semana de Referencia | FORMAT_DATE('%G-W%V', data_referencia) | base_execucao_canonica | Formato ISO '2026-W12' para agrupamento semanal |
 
 ### 4.2 Medidas atomicas de dimensao usadas em comparacoes
 
@@ -238,7 +266,7 @@ Estas medidas NAO fazem parte do score operacional principal. Sao calculadas inl
 
 ### 6.1 Metas globais canonicas
 
-Fonte oficial: dim_metas_canonica e metas_pivot_canonico.
+Fonte oficial: metas_globais e metas_pivot_canonico.
 
 | Nome tecnico | Meta atual | Unidade | Observacao |
 | --- | --- | --- | --- |
@@ -259,7 +287,7 @@ Fonte oficial: dim_filial.meta_spr.
 Regras:
 
 - nao existe hoje uma tabela canonica separada de metas por filial; a referencia implementada esta em dim_filial.
-- meta_spr_filial e usada no mart_filial_dia_canonico e em views de publicacao para comparar SPR Volumes da filial.
+- meta_spr_filial e usada em base_execucao_canonica (via dim_filial JOIN) para comparar SPR Volumes da filial.
 - quando meta_spr_filial estiver ausente, a comparacao de status de SPR da filial deve usar fallback para a meta global de spr_volumes.
 - capacidade_volume_dia nao e meta de score; e referencia operacional de capacidade diaria da filial.
 
@@ -376,14 +404,17 @@ Mapeamentos obrigatorios de compatibilidade:
 
 ---
 
-## 11. Observacoes de Implementacao Real
+## 11. Observacoes de Implementacao Real (v7 — arquitetura ativa)
 
-1. mart_diario_canonico nao carrega meta por filial nem capacidade_volume_dia; essas referencias entram no grao filial.
-2. mart_filial_dia_canonico ja incorpora meta_spr_filial e capacidade_volume_dia via join com dim_filial.
-3. mart_transportador_dia_canonico usa apenas metas globais.
-4. A API atual ainda calcula alguns agregados diretamente de base_execucao_canonica em queries.js, mas respeitando a mesma semantica central.
-5. Resumo_Filial e Resumo_Semana_Filial_Diario continuam sendo fontes importantes para consumidores legados e refletem SPR vs Meta e Aderencia Cap Vol Dia.
-6. capacidade_volume_dia e um atributo critico de negocio; ausencia dessa coluna em dim_filial impacta comparacoes operacionais por filial.
+1. Marts eliminados na v7: mart_diario_canonico, mart_filial_dia_canonico e mart_transportador_dia_canonico foram removidos. A API agrega inline de base_execucao_canonica.
+2. API calcula todos os KPIs via queries.js (agregacao inline) usando scoreExpr() DRY para o score operacional.
+3. metas_pivot_canonico e a unica fonte de metas; todas as queries usam CROSS JOIN com esta view.
+4. filial_codigo disponivel em dim_filial e em base_execucao_canonica (via join); usado para exibicao, nao para joins.
+5. motorista_display e transportador_display disponíveis em base_execucao_canonica; nomes formatados em Title Case.
+6. semana_referencia disponivel em base_execucao_canonica no formato ISO '%G-W%V' (ex: '2026-W12').
+7. capacidade_volume_dia em dim_filial permanece atributo critico de negocio; ausencia impacta comparacoes por filial.
+8. aderencias row-level (aderencia_volumes, aderencia_pedidos, etc.) disponíveis em base_execucao_canonica sem necessidade de agregacao manual.
+9. custo_por_pedido e custo_por_volume disponíveis como medidas row-level em base_execucao_canonica.
 
 ---
 
@@ -393,17 +424,15 @@ Este catalogo governa diretamente:
 
 - Dashboard/docs/PLANO_ESTRUTURAL_DADOS_CANONICO.md
 - Dashboard/docs/data_contract_frontend.md
-- Dashboard/bigquery/pipeline_v4.sql
-- Dashboard/bigquery/pipeline_v5_publicacao.sql
-- Dashboard/bigquery/pipeline_v6_api.sql
+- Dashboard/bigquery/pipeline_dashboard_v7.sql (arquivo ativo unico)
 - Dashboard/api/server.js
 - Dashboard/api/queries.js
+- Dashboard/api/helpers.js
+- Dashboard/frontend/src/types/api.ts
 
 Tambem deve ser considerado referencia para revisoes em:
 
 - dim_filial
-- dim_metas_canonica
+- metas_globais
 - metas_pivot_canonico
-- mart_diario_canonico
-- mart_filial_dia_canonico
-- mart_transportador_dia_canonico
+- base_execucao_canonica

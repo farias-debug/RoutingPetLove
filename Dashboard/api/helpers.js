@@ -48,6 +48,11 @@ export function normalizeEntityLabel(value, fallback = "") {
     .join(" ");
 }
 
+export function truncateWords(value, maxWords = 2) {
+  const words = String(value || "").trim().split(/\s+/);
+  return words.slice(0, maxWords).join(" ");
+}
+
 export function uniqueOptions(rows, mapValue, mapLabel) {
   const seen = new Set();
   return rows.flatMap((row) => {
@@ -204,7 +209,8 @@ export function buildCanonWhere(query, params = {}, options = {}) {
     where += ` AND ${filialField} = @filial`;
   }
   if (!exclude.has("transportador") && query.transportador) {
-    params.transportador = normalizeEntityKey(query.transportador);
+    // normalize_text BQ retorna lowercase; precisamos do mesmo case para o match
+    params.transportador = normalizeEntityKey(query.transportador).toLowerCase();
     where += ` AND ${bqNormalizeText}(${transportadorField}) = @transportador`;
   }
   if (!exclude.has("status") && statusField && query.status) {
@@ -239,7 +245,8 @@ export function buildCanonAlertWhere(query, params = {}, options = {}) {
     where += ` AND ${alias}filial = @filial`;
   }
   if (query.transportador) {
-    params.transportador = normalizeEntityKey(query.transportador);
+    // normalize_text BQ retorna lowercase; precisamos do mesmo case para o match
+    params.transportador = normalizeEntityKey(query.transportador).toLowerCase();
     where += ` AND ${bqNormalizeText}(${alias}transportador) = @transportador`;
   }
   if (query.status) {

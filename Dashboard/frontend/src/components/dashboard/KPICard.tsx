@@ -41,7 +41,7 @@ export default function KPICard({ data, delay = 0 }: KPICardProps) {
         <div className="flex items-center justify-between mt-2">
           {data.meta != null ? (
             <p className="text-[11px] font-semibold text-muted-foreground">
-              {data.metaLabel ?? "Meta"}: {data.meta.toLocaleString("pt-BR")}{data.unit ?? ""}
+              {data.metaLabel ?? "Meta"}: {data.metaFormatted ?? `${data.meta.toLocaleString("pt-BR")}${data.unit ?? ""}`}
             </p>
           ) : <span />}
           {data.trendValue && (

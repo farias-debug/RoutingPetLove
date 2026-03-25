@@ -1,0 +1,39 @@
+# Build context para Cloud Run Job — apenas os arquivos necessários
+# Tudo que NÃO precisa ir no container é ignorado aqui.
+.git
+.gitignore
+.venv/
+.firebase/
+node_modules/
+__pycache__/
+*.pyc
+.env*
+.firebaserc
+firebase.json
+README.md
+
+# Dockerfiles auxiliares na raiz (pipeline/Dockerfile precisa ir)
+/Dockerfile
+/cloudbuild.yaml
+
+# Frontend inteiro não precisa
+frontend/
+
+# API tem seu próprio container
+api/
+
+# Dados locais
+data/
+downloads/
+output/
+
+# Archive e docs
+_archive/
+docs/
+config/credentials/
+
+# Google apps (arquivado)
+google_apps/
+
+# Scripts locais
+scripts/

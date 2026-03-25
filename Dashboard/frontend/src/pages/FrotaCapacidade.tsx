@@ -25,6 +25,8 @@ const sections: PageSectionNavItem[] = [
   { id: "visao-geral", label: "Visão geral" },
   { id: "capacidade", label: "Capacidade" },
   { id: "spr-filial", label: "SPR por filial" },
+  { id: "aderencia-filial", label: "Aderência" },
+  { id: "desvio-tempo", label: "Desvio de tempo" },
   { id: "mix", label: "Mix veicular" },
 ];
 
@@ -70,11 +72,34 @@ export default function FrotaCapacidade() {
     .slice(0, 10)
     .map((f) => ({
       filial: f.nomeFilial || f.filial,
-      spr: +f.sprPedidosReal.toFixed(2),
-      sprVolumes: +f.sprVolumesReal.toFixed(2),
+      spr: +(f.sprPedidosReal ?? 0).toFixed(2),
+      sprVolumes: +(f.sprVolumesReal ?? 0).toFixed(2),
       meta: f.metaSpr,
     }));
   const metaSpr = filiais?.[0]?.metaSpr ?? 0;
+
+  // Aderência por filial — top 10 piores (menor aderência primeiro)
+  const aderenciaFiliaisData = (filiais ?? [])
+    .filter((f) => f.rotas > 0 && (f.aderenciaPedidos != null || f.aderenciaVolumes != null))
+    .sort((a, b) => (a.aderenciaPedidos ?? 1) - (b.aderenciaPedidos ?? 1))
+    .slice(0, 10)
+    .map((f) => ({
+      filial: f.nomeFilial || f.filial,
+      pedidos: f.aderenciaPedidos != null ? +(f.aderenciaPedidos * 100).toFixed(1) : null,
+      volumes: f.aderenciaVolumes != null ? +(f.aderenciaVolumes * 100).toFixed(1) : null,
+      km: f.aderenciaKm != null ? +(f.aderenciaKm * 100).toFixed(1) : null,
+    }));
+
+  // Desvio de tempo por filial — top 10 maiores desvios absolutos
+  const desvioData = (filiais ?? [])
+    .filter((f) => f.rotas > 0 && f.desvioTempoH != null)
+    .sort((a, b) => Math.abs(b.desvioTempoH ?? 0) - Math.abs(a.desvioTempoH ?? 0))
+    .slice(0, 10)
+    .map((f) => ({
+      filial: f.nomeFilial || f.filial,
+      desvio: +(f.desvioTempoH ?? 0).toFixed(2),
+      desvioPct: f.desvioTempoPct != null ? +(f.desvioTempoPct * 100).toFixed(1) : null,
+    }));
 
   const chartDataComOcupacao = chartData.filter((item) => item.ocupacaoPeso != null);
   const maiorOcupacao = [...chartDataComOcupacao].sort((a, b) => (b.ocupacaoPeso ?? 0) - (a.ocupacaoPeso ?? 0))[0];
@@ -238,8 +263,64 @@ export default function FrotaCapacidade() {
         </SectionCard>
       </section>
 
-      {/* MIX VEICULAR */}
-      <section id="mix" className="scroll-mt-24">
+      {/* ADERÊNCIA POR FILIAL */}
+      <section id="aderencia-filial" className="scroll-mt-24">
+        <SectionCard title="Aderência por filial" subtitle="% de aderência em pedidos, volumes e km — top 10 piores" delay={420}>
+          {loadingFiliais ? <LoadingSkeleton rows={5} /> : aderenciaFiliaisData.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de aderência para o recorte. Verifique se há planejamento cadastrado.</p>
+          ) : (
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={aderenciaFiliaisData} layout="vertical" margin={{ left: 8, right: 32 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
+                  <XAxis type="number" domain={[0, 110]} tickFormatter={(v) => `${v}%`} tick={TICK_STYLE} />
+                  <YAxis type="category" dataKey="filial" width={95} tick={TICK_STYLE_SM} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number | null) => v == null ? ["—", ""] : [`${(v as number).toFixed(1)}%`, ""]} />
+                  <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
+                  <ReferenceLine x={100} stroke={CHART_COLORS.success} strokeDasharray="5 3" strokeWidth={1.5} label={{ value: "100%", position: "insideTopRight", fill: CHART_COLORS.success, fontSize: 10 }} />
+                  <Bar dataKey="pedidos" name="Pedidos %" fill={CHART_COLORS.primary} radius={[0, 3, 3, 0]} barSize={10} />
+                  <Bar dataKey="volumes" name="Volumes %" fill={CHART_COLORS.secondary} radius={[0, 3, 3, 0]} barSize={10} />
+                  <Bar dataKey="km" name="Km %" fill={CHART_COLORS.warning} radius={[0, 3, 3, 0]} barSize={10} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </SectionCard>
+      </section>
+
+      {/* DESVIO DE TEMPO */}
+      <section id="desvio-tempo" className="scroll-mt-24">
+        <SectionCard title="Desvio de tempo por filial" subtitle="Diferença entre tempo realizado e planejado (h) — top 10" delay={460}>
+          {loadingFiliais ? <LoadingSkeleton rows={5} /> : desvioData.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Sem dados de desvio de tempo para o recorte. Verifique se há planejamento de tempo cadastrado.</p>
+          ) : (
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={desvioData} layout="vertical" margin={{ left: 8, right: 32 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
+                  <XAxis type="number" tickFormatter={(v) => `${v}h`} tick={TICK_STYLE} />
+                  <YAxis type="category" dataKey="filial" width={95} tick={TICK_STYLE_SM} />
+                  <Tooltip
+                    contentStyle={TOOLTIP_STYLE}
+                    formatter={(v: number, name: string) => [
+                      `${(v as number).toFixed(2)}h`,
+                      name === "desvio" ? "Desvio (h)" : name,
+                    ]}
+                  />
+                  <ReferenceLine x={0} stroke={CHART_COLORS.light} strokeWidth={1.5} />
+                  <Bar dataKey="desvio" name="Desvio (h)" radius={[0, 4, 4, 0]} barSize={16}>
+                    {desvioData.map((entry) => (
+                      <Cell key={entry.filial} fill={entry.desvio > 0 ? CHART_COLORS.danger : CHART_COLORS.success} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </SectionCard>
+      </section>
+
+      {/* MIX VEICULAR */}      <section id="mix" className="scroll-mt-24">
         <SectionCard title="Mix veicular" subtitle="Capacidade e produtividade por tipo" delay={420}>
           {loadingOcupacao ? (
             <LoadingSkeleton rows={5} />
@@ -271,8 +352,8 @@ export default function FrotaCapacidade() {
                             <span className="tabular-nums text-xs font-bold" style={{ color: barColor }}>{formatPercent(row.ocupacaoPeso)}</span>
                           </div>
                         </td>
-                        <td className="py-2.5 px-3 tabular-nums">{row.sprVeiculo.toFixed(2)}</td>
-                        <td className="py-2.5 px-3 tabular-nums">{row.orh.toFixed(2)}h</td>
+                        <td className="py-2.5 px-3 tabular-nums">{(row.sprVeiculo ?? 0).toFixed(2)}</td>
+                        <td className="py-2.5 px-3 tabular-nums">{(row.orh ?? 0).toFixed(2)}h</td>
                       </tr>
                     );
                   })}

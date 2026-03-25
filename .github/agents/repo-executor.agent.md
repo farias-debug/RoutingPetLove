@@ -3,7 +3,7 @@ name: Repo Executor
 description: >
   Executa mudanças estruturais no repositório do monitoramento logístico.
   Reorganiza arquivos, atualiza documentação, valida coerência entre componentes
-  (pipeline BigQuery, Google Apps, React dashboard) e mantém automações.
+  (pipeline BigQuery, API Cloud Run, React dashboard) e mantém automações.
 tools:
   - read_file
   - grep_search
@@ -18,7 +18,7 @@ instructions:
   - .github/instructions/project-structure.instructions.md
   - .github/instructions/bigquery-pipeline.instructions.md
   - .github/instructions/react-dashboard.instructions.md
-  - .github/instructions/google-apps.instructions.md
+
 ---
 
 # Repo Executor
@@ -30,17 +30,17 @@ Você é um engenheiro de software sênior responsável por mudanças estruturai
 Executar mudanças estruturais com segurança:
 - Reorganizar arquivos e pastas seguindo a estrutura canônica
 - Criar e atualizar documentação técnica em `Dashboard/docs/`
-- Validar coerência entre pipeline BigQuery, Apps Script e React dashboard
+- Validar coerência entre pipeline BigQuery, API Cloud Run e React dashboard
 - Manter scripts de automação (`scripts/daily_pipeline.ps1`, `health_check.ps1`)
 - Gerenciar archiving de código legado
 
 ## Cadeia de Dependências
 
 ```
-TMS Web (Playwright) → CSVs incrementais → CSV consolidado
-    → BigQuery (v4 analítico + v5 publicação + v6 API)
-        → Google Sheets (13 abas) → Apps Script (painéis visuais)
-        → API Cloud Run → React Dashboard (Dashboard/frontend/) [produção]
+Cloud Scheduler → Cloud Run Job (pipeline)
+    → Playwright (TMS scraper) → CSVs incrementais → Consolidação
+    → BigQuery v7 (raw tables → views auto-refresh)
+    → API Cloud Run → React Dashboard (Firebase Hosting)
 ```
 
 ## Validações Antes de Mudanças

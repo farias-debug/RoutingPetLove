@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, DollarSign, Truck, Clock, CheckCircle,
-  BarChart3, Users, Building2, AlertTriangle, ChevronLeft, Menu, Info
+  BarChart3, Users, Building2, AlertTriangle, ChevronLeft, Menu, Info, GitCompare
 } from "lucide-react";
 import petloveLogo from "@/assets/petlove-logo.png";
 import GlobalFiltersBar from "@/components/dashboard/GlobalFiltersBar";
@@ -14,6 +14,7 @@ const navItems = [
   { path: "/planejado-realizado", label: "Planejado × Realizado", icon: BarChart3 },
   { path: "/custos", label: "Custos e Eficiência", icon: DollarSign },
   { path: "/frota", label: "Frota e Capacidade", icon: Truck },
+  { path: "/filiais", label: "Comparativo de Filiais", icon: GitCompare },
   { path: "/tempo-sla", label: "Tempo e SLA", icon: Clock },
   { path: "/aderencia", label: "Aderência e Atendimento", icon: CheckCircle },
   { path: "/transportadores", label: "Transportadores", icon: Building2 },
