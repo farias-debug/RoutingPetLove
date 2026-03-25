@@ -27,7 +27,7 @@ import pandas as pd
 PROJECT = "data-aileron-482822-d0"
 DATASET = "monitoramento_carga"
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent  # Dashboard/
 DATA_DIR = BASE_DIR / "data"
 OUTPUT_DIR = Path(tempfile.gettempdir()) / "bq_load_staging"
 
